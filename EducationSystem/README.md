@@ -2,12 +2,14 @@
 
 Backend skeleton cho dự án Education Management System theo kiến trúc Schema-per-Service / Modular Microservices.
 
-Phase hiện tại chỉ tạo bộ khung ban đầu để chuẩn bị cho các phase backend CRUD và UI sau này. Dự án chưa kết nối database, chưa có DTO, chưa có Entity, chưa có DbContext, chưa có Repository, chưa có Migration và chưa có CRUD API cho các bảng nghiệp vụ.
+Phase hiện tại vẫn là skeleton, nhưng đã có nền tảng EF Core để chuẩn bị cho CRUD. Mỗi service đã có `DbContext` riêng, default schema riêng và migration đầu tay riêng theo schema-per-service.
 
 ## Công nghệ
 
 - .NET 8
 - ASP.NET Core Web API
+- Entity Framework Core
+- SQL Server
 - REST API
 - Swagger/OpenAPI
 - Modular Microservices
@@ -46,6 +48,18 @@ EducationSystem/
 | CommunicationService | `/api/communication` | `communication` | `5004` | `7004` |
 
 ## Cách chạy
+
+Thiết lập connection string bằng user secrets hoặc biến môi trường trước khi chạy migration/runtime:
+
+```powershell
+dotnet user-secrets set "ConnectionStrings:SqlServer" "Server=localhost;Database=EducationSystem;User Id=sa;Password=Your_password123;TrustServerCertificate=True;MultipleActiveResultSets=True" --project src\Services\IdentityService\IdentityService.csproj
+```
+
+Hoặc đặt biến môi trường:
+
+```powershell
+$env:ConnectionStrings__SqlServer = "Server=localhost;Database=EducationSystem;User Id=sa;Password=Your_password123;TrustServerCertificate=True;MultipleActiveResultSets=True"
+```
 
 Chạy build toàn solution:
 
@@ -88,12 +102,11 @@ Service info:
 
 ## Trạng thái hiện tại
 
-- Chưa có database.
+- Đã có EF Core DbContext cho từng service.
+- Đã có migration đầu tay cho từng schema.
 - Chưa có DTO.
 - Chưa có Entity.
-- Chưa có DbContext.
 - Chưa có Repository.
-- Chưa có Migration.
 - Chưa có CRUD API thật cho 37 bảng.
 - Chưa có RabbitMQ.
 - Chưa có gRPC.
@@ -103,9 +116,8 @@ Service info:
 
 ## Future scope
 
-- Kết nối database theo hướng DB First.
 - Scaffold EF Core theo từng schema/service.
-- Tạo DTOs, Entities, DbContext, Repository nếu cần.
+- Tạo DTOs, Entities, Repository nếu cần.
 - Tạo CRUD APIs cho các bảng nghiệp vụ.
 - Thêm JWT authentication/authorization.
 - Tích hợp UI.

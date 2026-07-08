@@ -4,7 +4,7 @@
 
 Education Management System được khởi tạo theo hướng Modular Microservices với chiến lược Schema-per-Service. Mỗi service là một ASP.NET Core Web API project độc lập, có base route, port và boundary nghiệp vụ riêng.
 
-Phase hiện tại chỉ tạo skeleton. Dự án chưa xử lý persistence, messaging, gateway, authentication hoặc UI.
+Phase hiện tại vẫn là skeleton, nhưng đã có nền tảng persistence bằng EF Core cho từng service, cùng migration đầu tay cho từng schema. Messaging, gateway, authentication và UI vẫn chưa được triển khai.
 
 ## Schema-per-Service
 
@@ -17,7 +17,9 @@ Mục tiêu:
 - Dễ scaffold DB First theo từng schema.
 - Dễ mở rộng sang microservice độc lập hơn khi dự án lớn lên.
 
-Trong phase này, schema chỉ là định hướng kiến trúc. Chưa có database và chưa có EF Core.
+Trong phase này, schema đã được gắn vào từng service bằng `DbContext` riêng. Mỗi service dùng một default schema khác nhau trong cùng SQL Server.
+
+Connection string không nằm trong repo. Dev có thể dùng user secrets hoặc biến môi trường `ConnectionStrings__SqlServer` để cấp giá trị cho từng service.
 
 ## Service boundary
 
