@@ -1,31 +1,58 @@
-using Microsoft.EntityFrameworkCore;
+﻿using System;
+using System.Collections.Generic;
 using CommunicationService.Infrastructure.Persistence.Entities;
+using Microsoft.EntityFrameworkCore;
 
 namespace CommunicationService.Infrastructure.Persistence;
 
-public sealed class CommunicationDbContext : DbContext
+public partial class CommunicationDbContext : DbContext
 {
-    public const string Schema = "communication";
-
-    public DbSet<CommunicationFormTemplate> FormTemplates => Set<CommunicationFormTemplate>();
-
-    public CommunicationDbContext(DbContextOptions<CommunicationDbContext> options) : base(options)
+    public CommunicationDbContext(DbContextOptions<CommunicationDbContext> options)
+        : base(options)
     {
     }
+
+    public virtual DbSet<FormRequest> FormRequests { get; set; }
+
+    public virtual DbSet<FormTemplate> FormTemplates { get; set; }
+
+    public virtual DbSet<UserAnnouncement> UserAnnouncements { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.HasDefaultSchema(Schema);
+        modelBuilder.UseCollation("Latin1_General_CI_AS");
 
-        modelBuilder.Entity<CommunicationFormTemplate>(entity =>
+        modelBuilder.Entity<FormRequest>(entity =>
         {
-            entity.ToTable("FormTemplates");
-            entity.HasKey(formTemplate => formTemplate.Id);
-            entity.Property(formTemplate => formTemplate.Code).HasMaxLength(50).IsRequired();
-            entity.Property(formTemplate => formTemplate.Name).HasMaxLength(200).IsRequired();
-            entity.Property(formTemplate => formTemplate.CreatedAtUtc).IsRequired();
+            entity.ToTable("FormRequests", "communication");
+
+            entity.HasIndex(e => e.ApprovalId, "IX_FormRequests_ApprovalId");
+
+            entity.HasIndex(e => e.FormTemplateId, "IX_FormRequests_FormTemplateId");
+
+            entity.HasIndex(e => e.StudentId, "IX_FormRequests_StudentId");
+
+            entity.Property(e => e.Id).ValueGeneratedNever();
+
+            entity.HasOne(d => d.FormTemplate).WithMany(p => p.FormRequests).HasForeignKey(d => d.FormTemplateId);
         });
 
-        base.OnModelCreating(modelBuilder);
+        modelBuilder.Entity<FormTemplate>(entity =>
+        {
+            entity.ToTable("FormTemplates", "communication");
+
+            entity.Property(e => e.Id).ValueGeneratedNever();
+        });
+
+        modelBuilder.Entity<UserAnnouncement>(entity =>
+        {
+            entity.ToTable("UserAnnouncements", "communication");
+
+            entity.Property(e => e.Id).ValueGeneratedNever();
+        });
+
+        OnModelCreatingPartial(modelBuilder);
     }
+
+    partial void OnModelCreatingPartial(ModelBuilder modelBuilder);
 }

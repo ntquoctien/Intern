@@ -1,0 +1,5 @@
+{
+  "ConnectionStrings": {
+    "TayDoV2": "Server=TIENNGUYEN\\SOFTWAREINTERN;Database=TayDoV2;Trusted_Connection=True;TrustServerCertificate=True;"
+  }
+}
