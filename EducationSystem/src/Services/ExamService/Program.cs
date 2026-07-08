@@ -9,6 +9,13 @@ AddSharedConnectionStringFile(builder);
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("FrontendDev", policy =>
+        policy.WithOrigins("http://localhost:5173", "http://127.0.0.1:5173")
+            .AllowAnyHeader()
+            .AllowAnyMethod());
+});
 builder.Services.AddApplicationServices();
 var connectionString = builder.Configuration.GetConnectionString("TayDoV2")
     ?? throw new InvalidOperationException("Connection string 'TayDoV2' was not found.");
@@ -20,6 +27,7 @@ var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
 {
+    app.UseCors("FrontendDev");
     app.UseSwagger();
     app.UseSwaggerUI();
 }
