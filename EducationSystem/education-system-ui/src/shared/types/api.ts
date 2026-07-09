@@ -33,3 +33,7 @@ export type ServiceKey = 'academic' | 'exam' | 'identity' | 'communication'
 export type RecordItem = Record<string, unknown> & {
   id: string
 }
+
+export type LookupItem = Record<string, unknown> & {
+  id: string
+}

@@ -1,6 +1,6 @@
 import type { ColumnsType } from 'antd/es/table'
 import { DataTablePage } from '../../shared/components/DataTablePage'
-import { boolTag, dateTime, shortId } from '../../shared/components/tableRenderers'
+import { boolTag, dateTime, maskPhone } from '../../shared/components/tableRenderers'
 import type { RecordItem } from '../../shared/types/api'
 
 type User = RecordItem & {
@@ -14,11 +14,9 @@ type User = RecordItem & {
 }
 
 const userColumns: ColumnsType<User> = [
-  { title: 'Id', dataIndex: 'id', sorter: true, render: shortId },
   { title: 'Username', dataIndex: 'userName', sorter: true },
   { title: 'Full Name', dataIndex: 'fullName', sorter: true },
-  { title: 'Internal Id', dataIndex: 'userInternalId', sorter: true },
-  { title: 'Mobile', dataIndex: 'mobile', sorter: true },
+  { title: 'Mobile', dataIndex: 'mobile', sorter: false, render: maskPhone },
   { title: 'Role', dataIndex: 'role', sorter: true },
   { title: 'Active', dataIndex: 'isActived', sorter: true, render: boolTag },
   { title: 'Birth Date', dataIndex: 'birthDate', sorter: true, render: dateTime },
@@ -32,8 +30,9 @@ export function UsersPage() {
       service="identity"
       resourcePath="users"
       columns={userColumns}
+      hiddenDetailFields={['userInternalId', 'mobile']}
       searchPlaceholder="Search users"
-      searchHelp="username, full name, identification number, internal ID, mobile"
+      searchHelp="username, full name"
     />
   )
 }
