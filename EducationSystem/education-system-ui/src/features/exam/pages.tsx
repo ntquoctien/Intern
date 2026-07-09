@@ -53,6 +53,8 @@ export function ExamResultsPage() {
       resourcePath="exam-results"
       columns={examResultColumns}
       filterFields={['studentId', 'subjectTeachingExamId']}
+      searchPlaceholder="Search exam notes/result text"
+      searchHelp="notes, result description, result detail"
     />
   )
 }
@@ -65,6 +67,8 @@ export function QuestionsPage() {
       service="exam"
       resourcePath="questions"
       columns={questionColumns}
+      searchPlaceholder="Search question text"
+      searchHelp="question text, image URL"
     />
   )
 }

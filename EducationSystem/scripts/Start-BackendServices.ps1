@@ -19,10 +19,21 @@ foreach ($service in $services) {
     $pidFile = Join-Path $runDir "$($service.Name).pid"
     if (Test-Path $pidFile) {
         $existingPid = Get-Content $pidFile -ErrorAction SilentlyContinue
-        if ($existingPid -and (Get-Process -Id $existingPid -ErrorAction SilentlyContinue)) {
-            Write-Host "$($service.Name) is already running on port $($service.Port)."
-            continue
+        if ($existingPid) {
+            $existingProcess = Get-CimInstance Win32_Process -Filter "ProcessId=$existingPid" -ErrorAction SilentlyContinue
+            if ($existingProcess -and $existingProcess.CommandLine -like "*$($service.Name).csproj*") {
+                try {
+                    Invoke-WebRequest -Uri "http://localhost:$($service.Port)/swagger/v1/swagger.json" -UseBasicParsing -TimeoutSec 2 | Out-Null
+                    Write-Host "$($service.Name) is already running on port $($service.Port)."
+                    continue
+                }
+                catch {
+                    Stop-Process -Id $existingPid -Force -ErrorAction SilentlyContinue
+                }
+            }
         }
+
+        Remove-Item $pidFile -Force -ErrorAction SilentlyContinue
     }
 
     $project = Join-Path $root "src\Services\$($service.Name)\$($service.Name).csproj"

@@ -34,6 +34,8 @@ export function FormRequestsPage() {
       resourcePath="form-requests"
       columns={formRequestColumns}
       filterFields={['studentId', 'status', 'dateRange']}
+      searchPlaceholder="Search approval or note"
+      searchHelp="approval name, note"
     />
   )
 }

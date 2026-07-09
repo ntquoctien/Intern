@@ -1,5 +1,5 @@
 import { ReloadOutlined, SearchOutlined } from '@ant-design/icons'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   Alert,
   Button,
@@ -9,11 +9,12 @@ import {
   InputNumber,
   Table,
   Typography,
+  message,
 } from 'antd'
 import type { ColumnsType, TablePaginationConfig } from 'antd/es/table'
 import type { SorterResult } from 'antd/es/table/interface'
 import dayjs from 'dayjs'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { getById, getPaged } from '../api/httpClient'
 import type { QueryParams, RecordItem, ServiceKey } from '../types/api'
 import { DetailDrawer } from './DetailDrawer'
@@ -35,6 +36,9 @@ type DataTablePageProps<T extends RecordItem> = {
   resourcePath: string
   columns: ColumnsType<T>
   filterFields?: FilterField[]
+  searchPlaceholder?: string
+  searchHelp?: string
+  searchable?: boolean
 }
 
 export function DataTablePage<T extends RecordItem>({
@@ -44,6 +48,9 @@ export function DataTablePage<T extends RecordItem>({
   resourcePath,
   columns,
   filterFields = [],
+  searchPlaceholder = 'Search by text',
+  searchHelp,
+  searchable = true,
 }: DataTablePageProps<T>) {
   const [pageNumber, setPageNumber] = useState(1)
   const [pageSize, setPageSize] = useState(20)
@@ -53,6 +60,7 @@ export function DataTablePage<T extends RecordItem>({
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc')
   const [filters, setFilters] = useState<QueryParams>({})
   const [selectedId, setSelectedId] = useState<string>()
+  const queryClient = useQueryClient()
 
   const params = useMemo<QueryParams>(
     () => ({
@@ -122,44 +130,86 @@ export function DataTablePage<T extends RecordItem>({
     }))
   }
 
+  useEffect(() => {
+    const timeout = window.setTimeout(() => {
+      setPageNumber(1)
+      setSearch(searchText.trim())
+    }, 350)
+
+    return () => window.clearTimeout(timeout)
+  }, [searchText])
+
+  async function refreshData() {
+    await queryClient.invalidateQueries({
+      queryKey: ['paged', service, resourcePath],
+    })
+    await listQuery.refetch()
+    message.success('Data refreshed')
+  }
+
+  function applySearch() {
+    setPageNumber(1)
+    setSearch(searchText.trim())
+  }
+
+  function resetSearchAndFilters() {
+    setSearchText('')
+    setSearch('')
+    setFilters({})
+    setSortBy(undefined)
+    setSortDirection('asc')
+    setPageNumber(1)
+  }
+
   return (
     <div className="page-panel">
       <div className="page-toolbar">
         <PageHeader title={title} description={description} />
         <div className="page-actions">
-          <Input
-            allowClear
-            prefix={<SearchOutlined />}
-            placeholder="Search"
-            style={{ width: 260 }}
-            value={searchText}
-            onChange={(event) => setSearchText(event.target.value)}
-            onPressEnter={() => {
-              setPageNumber(1)
-              setSearch(searchText)
-            }}
-          />
-          <Button
-            type="primary"
-            onClick={() => {
-              setPageNumber(1)
-              setSearch(searchText)
-            }}
-          >
-            Search
-          </Button>
-          <Button icon={<ReloadOutlined />} onClick={() => listQuery.refetch()}>
+          {searchable ? (
+            <>
+              <Input
+                allowClear
+                prefix={<SearchOutlined />}
+                placeholder={searchPlaceholder}
+                style={{ width: 320 }}
+                value={searchText}
+                onChange={(event) => setSearchText(event.target.value)}
+                onPressEnter={applySearch}
+              />
+              <Button type="primary" onClick={applySearch}>
+                Search
+              </Button>
+            </>
+          ) : null}
+          <Button onClick={resetSearchAndFilters}>Reset</Button>
+          <Button icon={<ReloadOutlined />} loading={listQuery.isFetching} onClick={refreshData}>
             Refresh
           </Button>
         </div>
       </div>
+
+      <Typography.Text className="muted" style={{ display: 'block', marginBottom: 12 }}>
+        Total rows: {data?.totalItems ?? 0}
+        {search ? ` | Search: "${search}"` : ''}
+      </Typography.Text>
+      {searchable && searchHelp ? (
+        <Typography.Text className="muted" style={{ display: 'block', marginBottom: 12 }}>
+          Text search fields: {searchHelp}
+        </Typography.Text>
+      ) : null}
+      {!searchable ? (
+        <Typography.Text className="muted" style={{ display: 'block', marginBottom: 12 }}>
+          This page has no text search. Use exact filters below.
+        </Typography.Text>
+      ) : null}
 
       {filterFields.length > 0 ? (
         <div className="filter-row">
           {filterFields.includes('studentId') ? (
             <Input
               allowClear
-              placeholder="studentId"
+              placeholder="Exact studentId"
               style={{ width: 260 }}
               onChange={(event) => updateFilter('studentId', event.target.value)}
             />
@@ -167,7 +217,7 @@ export function DataTablePage<T extends RecordItem>({
           {filterFields.includes('subjectScheduleId') ? (
             <Input
               allowClear
-              placeholder="subjectScheduleId"
+              placeholder="Exact subjectScheduleId"
               style={{ width: 260 }}
               onChange={(event) => updateFilter('subjectScheduleId', event.target.value)}
             />
@@ -175,7 +225,7 @@ export function DataTablePage<T extends RecordItem>({
           {filterFields.includes('subjectTeachingId') ? (
             <Input
               allowClear
-              placeholder="subjectTeachingId"
+              placeholder="Exact subjectTeachingId"
               style={{ width: 260 }}
               onChange={(event) => updateFilter('subjectTeachingId', event.target.value)}
             />
@@ -183,7 +233,7 @@ export function DataTablePage<T extends RecordItem>({
           {filterFields.includes('subjectTeachingExamId') ? (
             <Input
               allowClear
-              placeholder="subjectTeachingExamId"
+              placeholder="Exact subjectTeachingExamId"
               style={{ width: 260 }}
               onChange={(event) =>
                 updateFilter('subjectTeachingExamId', event.target.value)
@@ -193,14 +243,14 @@ export function DataTablePage<T extends RecordItem>({
           {filterFields.includes('userId') ? (
             <Input
               allowClear
-              placeholder="userId"
+              placeholder="Exact userId"
               style={{ width: 260 }}
               onChange={(event) => updateFilter('userId', event.target.value)}
             />
           ) : null}
           {filterFields.includes('status') ? (
             <InputNumber
-              placeholder="status"
+              placeholder="Exact status"
               style={{ width: 140 }}
               onChange={(value) => updateFilter('status', value ?? undefined)}
             />
