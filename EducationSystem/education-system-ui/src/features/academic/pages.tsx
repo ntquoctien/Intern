@@ -123,6 +123,8 @@ export function StudentsPage() {
       resourcePath="students"
       columns={studentColumns}
       filterFields={['userId']}
+      searchPlaceholder="Search profile text"
+      searchHelp="nickname, birthplace, hometown, address, ethnicity, religion, education level"
     />
   )
 }
@@ -135,6 +137,8 @@ export function SubjectsPage() {
       service="academic"
       resourcePath="subjects"
       columns={subjectColumns}
+      searchPlaceholder="Search subject code/name"
+      searchHelp="subject code, name, note"
     />
   )
 }
@@ -147,7 +151,8 @@ export function SubjectTeachingsPage() {
       service="academic"
       resourcePath="subject-teachings"
       columns={subjectTeachingColumns}
-      filterFields={['subjectTeachingId']}
+      searchPlaceholder="Search teaching name"
+      searchHelp="name"
     />
   )
 }
@@ -161,6 +166,7 @@ export function SubjectStudentsPage() {
       resourcePath="subject-students"
       columns={subjectStudentColumns}
       filterFields={['studentId', 'subjectTeachingId']}
+      searchable={false}
     />
   )
 }
@@ -174,6 +180,8 @@ export function SubjectSchedulesPage() {
       resourcePath="subject-schedules"
       columns={subjectScheduleColumns}
       filterFields={['subjectTeachingId', 'dateRange']}
+      searchPlaceholder="Search schedule note"
+      searchHelp="note"
     />
   )
 }
@@ -187,6 +195,8 @@ export function AttendancesPage() {
       resourcePath="attendances"
       columns={attendanceColumns}
       filterFields={['studentId', 'subjectScheduleId', 'status', 'dateRange']}
+      searchPlaceholder="Search attendance notes"
+      searchHelp="notes"
     />
   )
 }

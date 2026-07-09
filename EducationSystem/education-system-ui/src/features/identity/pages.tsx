@@ -32,6 +32,8 @@ export function UsersPage() {
       service="identity"
       resourcePath="users"
       columns={userColumns}
+      searchPlaceholder="Search users"
+      searchHelp="username, full name, identification number, internal ID, mobile"
     />
   )
 }
