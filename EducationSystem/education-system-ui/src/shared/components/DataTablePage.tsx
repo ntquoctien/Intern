@@ -1,5 +1,5 @@
 import { ReloadOutlined, SearchOutlined } from '@ant-design/icons'
-import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useQueries, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   Alert,
   Button,
@@ -7,16 +7,18 @@ import {
   Empty,
   Input,
   InputNumber,
+  Select,
   Table,
   Typography,
   message,
 } from 'antd'
 import type { ColumnsType, TablePaginationConfig } from 'antd/es/table'
+import type { ColumnType } from 'antd/es/table/interface'
 import type { SorterResult } from 'antd/es/table/interface'
 import dayjs from 'dayjs'
 import { useEffect, useMemo, useState } from 'react'
-import { getById, getPaged } from '../api/httpClient'
-import type { QueryParams, RecordItem, ServiceKey } from '../types/api'
+import { getById, getLookup, getPaged } from '../api/httpClient'
+import type { LookupItem, QueryParams, RecordItem, ServiceKey } from '../types/api'
 import { DetailDrawer } from './DetailDrawer'
 import { PageHeader } from './PageHeader'
 
@@ -36,9 +38,68 @@ type DataTablePageProps<T extends RecordItem> = {
   resourcePath: string
   columns: ColumnsType<T>
   filterFields?: FilterField[]
+  relationLookups?: RelationLookup[]
+  hiddenDetailFields?: string[]
   searchPlaceholder?: string
   searchHelp?: string
   searchable?: boolean
+}
+
+export type RelationLookup = {
+  field: string
+  title?: string
+  service: ServiceKey
+  resourcePath: string
+  filterable?: boolean
+  fallbackLabel?: string
+  getLabel?: (item: LookupItem) => string
+}
+
+const defaultRelationLabels: Record<string, string> = {
+  userId: 'User',
+  academicYearId: 'Academic Year',
+  majorId: 'Major',
+  facultyId: 'Faculty',
+  subjectId: 'Subject',
+  roomId: 'Room',
+  roomIdDefault: 'Default Room',
+  subjectTeachingId: 'Subject Teaching',
+  subjectScheduleId: 'Schedule',
+  subjectTeachingExamId: 'Subject Teaching Exam',
+  questionSuiteId: 'Question Suite',
+  studentId: 'Student',
+  formTemplateId: 'Template',
+  approvalId: 'Approval',
+  createdById: 'Created By',
+  teacherId: 'Teacher',
+  examAttemptId: 'Exam Attempt',
+}
+
+function isScalarDataIndex(dataIndex: unknown): dataIndex is string {
+  return typeof dataIndex === 'string'
+}
+
+function isDataColumn<T>(column: ColumnsType<T>[number]): column is ColumnType<T> {
+  return 'dataIndex' in column
+}
+
+function fallbackRelationLabel(field: string, value: unknown, configured?: string) {
+  if (!value) {
+    return '-'
+  }
+
+  return configured ?? defaultRelationLabels[field] ?? 'Linked record'
+}
+
+function defaultLookupLabel(item: LookupItem) {
+  const name = item.name ?? item.fullName ?? item.userName ?? item.nickname ?? item.code ?? item.subjectCode
+  const secondary = item.userInternalId ?? item.subjectCode ?? item.code
+
+  if (name && secondary && name !== secondary) {
+    return `${String(name)} (${String(secondary)})`
+  }
+
+  return name ? String(name) : 'Linked record'
 }
 
 export function DataTablePage<T extends RecordItem>({
@@ -48,6 +109,8 @@ export function DataTablePage<T extends RecordItem>({
   resourcePath,
   columns,
   filterFields = [],
+  relationLookups = [],
+  hiddenDetailFields = [],
   searchPlaceholder = 'Search by text',
   searchHelp,
   searchable = true,
@@ -85,10 +148,56 @@ export function DataTablePage<T extends RecordItem>({
     enabled: Boolean(selectedId),
   })
 
+  const lookupQueries = useQueries({
+    queries: relationLookups.map((lookup) => ({
+      queryKey: ['lookup', lookup.service, lookup.resourcePath],
+      queryFn: () => getLookup<LookupItem>(lookup.service, lookup.resourcePath),
+      staleTime: 5 * 60 * 1000,
+      retry: 1,
+    })),
+  })
+
   const data = listQuery.data?.data
+  const relationMaps = useMemo(() => {
+    return relationLookups.reduce<Record<string, Map<string, string>>>((maps, lookup, index) => {
+      const items = lookupQueries[index]?.data?.data ?? []
+      maps[lookup.field] = new Map(
+        items.map((item) => [
+          String(item.id),
+          lookup.getLabel ? lookup.getLabel(item) : defaultLookupLabel(item),
+        ]),
+      )
+      return maps
+    }, {})
+  }, [lookupQueries, relationLookups])
+
+  const relationLookupByField = useMemo(
+    () => new Map(relationLookups.map((lookup) => [lookup.field, lookup])),
+    [relationLookups],
+  )
+
   const tableColumns = useMemo<ColumnsType<T>>(
     () => [
-      ...columns,
+      ...columns.map((column) => {
+        const dataIndex =
+          isDataColumn(column) && isScalarDataIndex(column.dataIndex) ? column.dataIndex : undefined
+        const lookup = dataIndex ? relationLookupByField.get(dataIndex) : undefined
+
+        if (!dataIndex || !lookup) {
+          return column
+        }
+
+        return {
+          ...column,
+          sorter: false,
+          title: lookup.title ?? column.title,
+          render: (value: unknown) =>
+            typeof value === 'string'
+              ? (relationMaps[dataIndex]?.get(value) ??
+                fallbackRelationLabel(dataIndex, value, lookup.fallbackLabel))
+              : fallbackRelationLabel(dataIndex, value, lookup.fallbackLabel),
+        }
+      }),
       {
         title: 'Action',
         key: 'action',
@@ -101,7 +210,7 @@ export function DataTablePage<T extends RecordItem>({
         ),
       },
     ],
-    [columns],
+    [columns, relationLookupByField, relationMaps],
   )
 
   function handleTableChange(
@@ -161,6 +270,34 @@ export function DataTablePage<T extends RecordItem>({
     setPageNumber(1)
   }
 
+  function renderRelationFilter(field: Exclude<FilterField, 'dateRange'>) {
+    const lookup = relationLookupByField.get(field)
+
+    if (!lookup?.filterable) {
+      return null
+    }
+
+    const options = Array.from(relationMaps[field]?.entries() ?? []).map(([value, label]) => ({
+      value,
+      label,
+    }))
+
+    return (
+      <Select
+        allowClear
+        showSearch
+        key={field}
+        optionFilterProp="label"
+        placeholder={`Filter by ${lookup.title ?? defaultRelationLabels[field] ?? field}`}
+        style={{ width: 260 }}
+        loading={lookupQueries[relationLookups.findIndex((item) => item.field === field)]?.isLoading}
+        options={options}
+        value={(filters[field] as string | undefined) ?? undefined}
+        onChange={(value) => updateFilter(field, value)}
+      />
+    )
+  }
+
   return (
     <div className="page-panel">
       <div className="page-toolbar">
@@ -200,58 +337,28 @@ export function DataTablePage<T extends RecordItem>({
       ) : null}
       {!searchable ? (
         <Typography.Text className="muted" style={{ display: 'block', marginBottom: 12 }}>
-          This page has no text search. Use exact filters below.
+          This page has no text search. Use the dropdown filters below when available.
         </Typography.Text>
       ) : null}
 
       {filterFields.length > 0 ? (
         <div className="filter-row">
-          {filterFields.includes('studentId') ? (
-            <Input
-              allowClear
-              placeholder="Exact studentId"
-              style={{ width: 260 }}
-              onChange={(event) => updateFilter('studentId', event.target.value)}
-            />
-          ) : null}
-          {filterFields.includes('subjectScheduleId') ? (
-            <Input
-              allowClear
-              placeholder="Exact subjectScheduleId"
-              style={{ width: 260 }}
-              onChange={(event) => updateFilter('subjectScheduleId', event.target.value)}
-            />
-          ) : null}
-          {filterFields.includes('subjectTeachingId') ? (
-            <Input
-              allowClear
-              placeholder="Exact subjectTeachingId"
-              style={{ width: 260 }}
-              onChange={(event) => updateFilter('subjectTeachingId', event.target.value)}
-            />
-          ) : null}
-          {filterFields.includes('subjectTeachingExamId') ? (
-            <Input
-              allowClear
-              placeholder="Exact subjectTeachingExamId"
-              style={{ width: 260 }}
-              onChange={(event) =>
-                updateFilter('subjectTeachingExamId', event.target.value)
-              }
-            />
-          ) : null}
-          {filterFields.includes('userId') ? (
-            <Input
-              allowClear
-              placeholder="Exact userId"
-              style={{ width: 260 }}
-              onChange={(event) => updateFilter('userId', event.target.value)}
-            />
-          ) : null}
+          {filterFields.includes('studentId') ? renderRelationFilter('studentId') : null}
+          {filterFields.includes('subjectScheduleId')
+            ? renderRelationFilter('subjectScheduleId')
+            : null}
+          {filterFields.includes('subjectTeachingId')
+            ? renderRelationFilter('subjectTeachingId')
+            : null}
+          {filterFields.includes('subjectTeachingExamId')
+            ? renderRelationFilter('subjectTeachingExamId')
+            : null}
+          {filterFields.includes('userId') ? renderRelationFilter('userId') : null}
           {filterFields.includes('status') ? (
             <InputNumber
               placeholder="Exact status"
               style={{ width: 140 }}
+              value={filters.status}
               onChange={(value) => updateFilter('status', value ?? undefined)}
             />
           ) : null}
@@ -308,6 +415,9 @@ export function DataTablePage<T extends RecordItem>({
         open={Boolean(selectedId)}
         loading={detailQuery.isLoading || detailQuery.isFetching}
         record={detailQuery.data?.data}
+        hiddenFields={hiddenDetailFields}
+        fieldLabels={defaultRelationLabels}
+        relationLabels={relationMaps}
         onClose={() => setSelectedId(undefined)}
       />
     </div>
