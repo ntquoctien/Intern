@@ -1,6 +1,19 @@
 import type { ColumnsType } from 'antd/es/table'
 import { DataTablePage } from '../../shared/components/DataTablePage'
-import { boolTag, dateTime, linkedRecord } from '../../shared/components/tableRenderers'
+import {
+  attendanceTag,
+  boolTag,
+  cleanStudentReference,
+  creditsRenderer,
+  dateOnly,
+  dateTime,
+  genderTag,
+  hoursRenderer,
+  linkedRecord,
+  scheduleTypeTag,
+  statusTag,
+} from '../../shared/components/tableRenderers'
+import { formatFacilityCode } from '../../shared/utils/dataFormatters'
 import type { LookupItem, RecordItem } from '../../shared/types/api'
 
 type Student = RecordItem & {
@@ -30,6 +43,7 @@ type SubjectTeaching = RecordItem & {
   endDate: string
   totalSessions: number
   roomIdDefault?: string
+  facultyId?: string
 }
 
 type SubjectStudent = RecordItem & {
@@ -61,53 +75,54 @@ const studentColumns: ColumnsType<Student> = [
   { title: 'User', dataIndex: 'userId' },
   { title: 'Academic Year', dataIndex: 'academicYearId' },
   { title: 'Major', dataIndex: 'majorId' },
-  { title: 'Nickname', dataIndex: 'nickname', sorter: true },
-  { title: 'Study Status', dataIndex: 'studyStatus', sorter: true },
-  { title: 'Gender', dataIndex: 'gender', sorter: true },
-  { title: 'Graduated', dataIndex: 'isGraduated', sorter: true, render: boolTag },
-  { title: 'Issue', dataIndex: 'hasIssue', sorter: true, render: boolTag },
+  { title: 'Mã học viên', dataIndex: 'nickname', sorter: true },
+  { title: 'Trạng thái', dataIndex: 'studyStatus', sorter: true, render: statusTag },
+  { title: 'Giới tính', dataIndex: 'gender', sorter: true, render: genderTag },
+  { title: 'Đã tốt nghiệp', dataIndex: 'isGraduated', sorter: true, render: boolTag },
+  { title: 'Có vấn đề', dataIndex: 'hasIssue', sorter: true, render: boolTag },
 ]
 
 const subjectColumns: ColumnsType<Subject> = [
-  { title: 'Code', dataIndex: 'subjectCode', sorter: true },
-  { title: 'Name', dataIndex: 'name', sorter: true },
-  { title: 'Faculty', dataIndex: 'facultyId' },
-  { title: 'Credits', dataIndex: 'creditPoint', sorter: true },
-  { title: 'Hours', dataIndex: 'totalHours', sorter: true },
-  { title: 'Active', dataIndex: 'isActived', sorter: true, render: boolTag },
+  { title: 'Mã môn học', dataIndex: 'subjectCode', sorter: true },
+  { title: 'Tên môn học', dataIndex: 'name', sorter: true },
+  { title: 'Khoa/Bộ môn', dataIndex: 'facultyId' },
+  { title: 'Tín chỉ', dataIndex: 'creditPoint', sorter: true, render: creditsRenderer },
+  { title: 'Giờ học', dataIndex: 'totalHours', sorter: true, render: hoursRenderer },
+  { title: 'Đang hoạt động', dataIndex: 'isActived', sorter: true, render: boolTag },
 ]
 
 const subjectTeachingColumns: ColumnsType<SubjectTeaching> = [
-  { title: 'Name', dataIndex: 'name', sorter: true },
-  { title: 'Subject', dataIndex: 'subjectId' },
-  { title: 'Start', dataIndex: 'startDate', sorter: true, render: dateTime },
-  { title: 'End', dataIndex: 'endDate', sorter: true, render: dateTime },
-  { title: 'Sessions', dataIndex: 'totalSessions', sorter: true },
-  { title: 'Default Room', dataIndex: 'roomIdDefault' },
+  { title: 'Tên lớp học phần', dataIndex: 'name', sorter: true },
+  { title: 'Môn học', dataIndex: 'subjectId' },
+  { title: 'Khoa / Bộ môn', dataIndex: 'facultyId', render: formatFacilityCode },
+  { title: 'Ngày bắt đầu', dataIndex: 'startDate', sorter: true, render: dateOnly },
+  { title: 'Ngày kết thúc', dataIndex: 'endDate', sorter: true, render: dateOnly },
+  { title: 'Số buổi', dataIndex: 'totalSessions', sorter: true },
+  { title: 'Phòng mặc định', dataIndex: 'roomIdDefault' },
 ]
 
 const subjectStudentColumns: ColumnsType<SubjectStudent> = [
-  { title: 'Subject Teaching', dataIndex: 'subjectTeachingId' },
-  { title: 'Student', dataIndex: 'studentId' },
+  { title: 'Lớp học phần', dataIndex: 'subjectTeachingId' },
+  { title: 'Học viên', dataIndex: 'studentId', render: cleanStudentReference },
 ]
 
 const subjectScheduleColumns: ColumnsType<SubjectSchedule> = [
-  { title: 'Subject Teaching', dataIndex: 'subjectTeachingId' },
-  { title: 'Room', dataIndex: 'roomId' },
-  { title: 'Teacher', dataIndex: 'teacherId', render: linkedRecord },
-  { title: 'Start', dataIndex: 'startDateTime', sorter: true, render: dateTime },
-  { title: 'End', dataIndex: 'endDateTime', sorter: true, render: dateTime },
-  { title: 'Type', dataIndex: 'scheduleType', sorter: true },
+  { title: 'Lớp học phần', dataIndex: 'subjectTeachingId' },
+  { title: 'Phòng', dataIndex: 'roomId' },
+  { title: 'Giáo viên', dataIndex: 'teacherId', render: linkedRecord },
+  { title: 'Thời gian bắt đầu', dataIndex: 'startDateTime', sorter: true, render: dateTime },
+  { title: 'Thời gian kết thúc', dataIndex: 'endDateTime', sorter: true, render: dateTime },
+  { title: 'Loại', dataIndex: 'scheduleType', sorter: true, render: scheduleTypeTag },
 ]
 
 const attendanceColumns: ColumnsType<Attendance> = [
-  { title: 'Student', dataIndex: 'studentId' },
-  { title: 'Schedule', dataIndex: 'subjectScheduleId', render: linkedRecord },
-  { title: 'Status', dataIndex: 'status', sorter: true },
-  { title: 'Notes', dataIndex: 'notes', sorter: true },
-  { title: 'Created', dataIndex: 'creationDate', sorter: true, render: dateTime },
-  { title: 'First Warning', dataIndex: 'isFirstTypeWarning', sorter: true, render: boolTag },
-  { title: 'Second Warning', dataIndex: 'isSecondTypeWarning', sorter: true, render: boolTag },
+  { title: 'Học viên', dataIndex: 'studentId', render: cleanStudentReference },
+  { title: 'Buổi học', dataIndex: 'subjectScheduleId', render: linkedRecord },
+  { title: 'Trạng thái', dataIndex: 'status', sorter: true, render: attendanceTag },
+  { title: 'Ghi chú', dataIndex: 'notes', sorter: true },
+  { title: 'Ngày ghi nhận', dataIndex: 'creationDate', sorter: true, render: dateTime },
+  { title: 'Cảnh cáo lần 1', dataIndex: 'isFirstTypeWarning', sorter: true, render: boolTag },
+  { title: 'Cảnh cáo lần 2', dataIndex: 'isSecondTypeWarning', sorter: true, render: boolTag },
 ]
 
 const userLabel = (item: LookupItem) =>
@@ -127,8 +142,8 @@ const majorLabel = (item: LookupItem) =>
 export function StudentsPage() {
   return (
     <DataTablePage<Student>
-      title="Students"
-      description="Read-only student records from AcademicService"
+      title="Danh sách học viên"
+      description="Quản lý hồ sơ và thông tin học viên"
       service="academic"
       resourcePath="students"
       columns={studentColumns}
@@ -167,8 +182,8 @@ export function StudentsPage() {
         'motherName',
         'spouseName',
       ]}
-      searchPlaceholder="Search profile text"
-      searchHelp="nickname and non-ID profile text returned by the API"
+      searchPlaceholder="Tìm kiếm theo tên hoặc mã học viên"
+      searchHelp="Nhập tên hoặc mã học viên"
     />
   )
 }
@@ -176,16 +191,16 @@ export function StudentsPage() {
 export function SubjectsPage() {
   return (
     <DataTablePage<Subject>
-      title="Subjects"
-      description="Subjects from AcademicService"
+      title="Quản lý môn học"
+      description="Danh mục toàn bộ môn học trong hệ thống"
       service="academic"
       resourcePath="subjects"
       columns={subjectColumns}
       relationLookups={[
         { field: 'facultyId', title: 'Faculty', service: 'academic', resourcePath: 'faculties' },
       ]}
-      searchPlaceholder="Search subject code/name"
-      searchHelp="subject code, name, note"
+      searchPlaceholder="Tìm kiếm mã hoặc tên môn học"
+      searchHelp="Nhập mã hoặc tên môn học"
     />
   )
 }

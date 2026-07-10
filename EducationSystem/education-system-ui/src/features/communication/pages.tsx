@@ -1,6 +1,6 @@
 import type { ColumnsType } from 'antd/es/table'
 import { DataTablePage } from '../../shared/components/DataTablePage'
-import { dateTime } from '../../shared/components/tableRenderers'
+import { dateTime, requestStatusTag, cleanStudentReference } from '../../shared/components/tableRenderers'
 import type { LookupItem, RecordItem } from '../../shared/types/api'
 
 type FormRequest = RecordItem & {
@@ -15,13 +15,13 @@ type FormRequest = RecordItem & {
 }
 
 const formRequestColumns: ColumnsType<FormRequest> = [
-  { title: 'Student', dataIndex: 'studentId' },
-  { title: 'Template', dataIndex: 'formTemplateId' },
-  { title: 'Approval', dataIndex: 'approvalName', sorter: true },
-  { title: 'Status', dataIndex: 'status', sorter: true },
-  { title: 'Created', dataIndex: 'creationDate', sorter: true, render: dateTime },
-  { title: 'Updated', dataIndex: 'updateDate', sorter: true, render: dateTime },
-  { title: 'Note', dataIndex: 'note', sorter: true },
+  { title: 'Học viên yêu cầu', dataIndex: 'studentId', render: cleanStudentReference },
+  { title: 'Mẫu đơn', dataIndex: 'formTemplateId' },
+  { title: 'Cán bộ duyệt', dataIndex: 'approvalName', sorter: true },
+  { title: 'Trạng thái', dataIndex: 'status', sorter: true, render: requestStatusTag },
+  { title: 'Ngày tạo', dataIndex: 'creationDate', sorter: true, render: dateTime },
+  { title: 'Ngày cập nhật', dataIndex: 'updateDate', sorter: true, render: dateTime },
+  { title: 'Ghi chú', dataIndex: 'note', sorter: true },
 ]
 
 const studentLabel = (item: LookupItem) =>
@@ -30,8 +30,8 @@ const studentLabel = (item: LookupItem) =>
 export function FormRequestsPage() {
   return (
     <DataTablePage<FormRequest>
-      title="Form Requests"
-      description="Read-only form requests from CommunicationService"
+      title="Yêu cầu biểu mẫu"
+      description="Danh sách các yêu cầu biểu mẫu"
       service="communication"
       resourcePath="form-requests"
       columns={formRequestColumns}

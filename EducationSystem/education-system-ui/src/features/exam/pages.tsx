@@ -1,6 +1,11 @@
 import type { ColumnsType } from 'antd/es/table'
 import { DataTablePage } from '../../shared/components/DataTablePage'
-import { linkedRecord } from '../../shared/components/tableRenderers'
+import {
+  cleanStudentReference,
+  examResultTag,
+  linkedRecord,
+  questionLevelTag,
+} from '../../shared/components/tableRenderers'
 import type { LookupItem, RecordItem } from '../../shared/types/api'
 
 type ExamResult = RecordItem & {
@@ -21,20 +26,20 @@ type Question = RecordItem & {
 }
 
 const examResultColumns: ColumnsType<ExamResult> = [
-  { title: 'Student', dataIndex: 'studentId' },
-  { title: 'Subject Teaching Exam', dataIndex: 'subjectTeachingExamId' },
-  { title: 'Attempt', dataIndex: 'examAttemptId', render: linkedRecord },
-  { title: 'Result', dataIndex: 'result', sorter: true },
-  { title: 'Combined', dataIndex: 'combinedResult', sorter: true },
-  { title: 'Description', dataIndex: 'examResultDesc', sorter: true },
-  { title: 'Notes', dataIndex: 'notes', sorter: true },
+  { title: 'Học viên', dataIndex: 'studentId', render: cleanStudentReference },
+  { title: 'Kỳ thi', dataIndex: 'subjectTeachingExamId' },
+  { title: 'Lần thi', dataIndex: 'examAttemptId', render: linkedRecord },
+  { title: 'Kết quả', dataIndex: 'result', sorter: true, render: examResultTag },
+  { title: 'Kết quả ghép', dataIndex: 'combinedResult', sorter: true },
+  { title: 'Mô tả', dataIndex: 'examResultDesc', sorter: true },
+  { title: 'Ghi chú', dataIndex: 'notes', sorter: true },
 ]
 
 const questionColumns: ColumnsType<Question> = [
-  { title: 'Question Suite', dataIndex: 'questionSuiteId' },
-  { title: 'Question', dataIndex: 'questionText', sorter: true },
-  { title: 'Level', dataIndex: 'level', sorter: true },
-  { title: 'Image', dataIndex: 'imageUrl', sorter: true },
+  { title: 'Bộ câu hỏi', dataIndex: 'questionSuiteId' },
+  { title: 'Nội dung câu hỏi', dataIndex: 'questionText', sorter: true },
+  { title: 'Mức độ', dataIndex: 'level', sorter: true, render: questionLevelTag },
+  { title: 'Hình ảnh', dataIndex: 'imageUrl', sorter: true },
 ]
 
 const studentLabel = (item: LookupItem) =>
@@ -43,8 +48,8 @@ const studentLabel = (item: LookupItem) =>
 export function ExamResultsPage() {
   return (
     <DataTablePage<ExamResult>
-      title="Exam Results"
-      description="Server-side paged exam results"
+      title="Kết quả thi"
+      description="Bảng điểm và kết quả các kỳ thi học phần"
       service="exam"
       resourcePath="exam-results"
       columns={examResultColumns}
@@ -66,8 +71,8 @@ export function ExamResultsPage() {
         },
       ]}
       filterFields={['studentId', 'subjectTeachingExamId']}
-      searchPlaceholder="Search exam notes/result text"
-      searchHelp="notes, result description, result detail"
+      searchPlaceholder="Tìm kiếm theo ghi chú hoặc mô tả kết quả"
+      searchHelp="ghi chú, mô tả kết quả"
     />
   )
 }
@@ -75,8 +80,8 @@ export function ExamResultsPage() {
 export function QuestionsPage() {
   return (
     <DataTablePage<Question>
-      title="Questions"
-      description="Question bank records"
+      title="Ngân hàng câu hỏi"
+      description="Danh mục câu hỏi thi trắc nghiệm và tự luận"
       service="exam"
       resourcePath="questions"
       columns={questionColumns}
@@ -88,8 +93,8 @@ export function QuestionsPage() {
           resourcePath: 'question-suites',
         },
       ]}
-      searchPlaceholder="Search question text"
-      searchHelp="question text, image URL"
+      searchPlaceholder="Tìm kiếm nội dung câu hỏi"
+      searchHelp="nội dung câu hỏi, URL hình ảnh"
     />
   )
 }
