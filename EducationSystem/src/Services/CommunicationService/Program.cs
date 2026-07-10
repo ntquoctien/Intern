@@ -17,8 +17,8 @@ builder.Services.AddCors(options =>
             .AllowAnyMethod());
 });
 builder.Services.AddApplicationServices();
-var connectionString = builder.Configuration.GetConnectionString("TayDoV2")
-    ?? throw new InvalidOperationException("Connection string 'TayDoV2' was not found.");
+var connectionString = builder.Configuration.GetConnectionString("CommunicationDb")
+    ?? throw new InvalidOperationException("Connection string 'CommunicationDb' was not found.");
 
 builder.Services.AddDbContext<CommunicationDbContext>(options =>
     options.UseSqlServer(connectionString));

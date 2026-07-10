@@ -17,8 +17,8 @@ builder.Services.AddCors(options =>
             .AllowAnyMethod());
 });
 builder.Services.AddApplicationServices();
-var connectionString = builder.Configuration.GetConnectionString("TayDoV2")
-    ?? throw new InvalidOperationException("Connection string 'TayDoV2' was not found.");
+var connectionString = builder.Configuration.GetConnectionString("AcademicDb")
+    ?? throw new InvalidOperationException("Connection string 'AcademicDb' was not found.");
 
 builder.Services.AddDbContext<AcademicDbContext>(options =>
     options.UseSqlServer(connectionString));

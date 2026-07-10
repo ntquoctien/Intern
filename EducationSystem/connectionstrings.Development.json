@@ -1,5 +1,8 @@
 {
   "ConnectionStrings": {
-    "TayDoV2": "Server=TIENNGUYEN\\SOFTWAREINTERN;Database=TayDoV2;Trusted_Connection=True;TrustServerCertificate=True;"
+    "IdentityDb": "Server=DESKTOP-KUFJBN7\\MSSQLSERVER06;Database=TayDoV2;User Id=identity_user;Password=123;TrustServerCertificate=True;",
+    "AcademicDb": "Server=DESKTOP-KUFJBN7\\MSSQLSERVER06;Database=TayDoV2;User Id=academic_user;Password=123;TrustServerCertificate=True;",
+    "ExamDb": "Server=DESKTOP-KUFJBN7\\MSSQLSERVER06;Database=TayDoV2;User Id=exam_user;Password=123;TrustServerCertificate=True;",
+    "CommunicationDb": "Server=DESKTOP-KUFJBN7\\MSSQLSERVER06;Database=TayDoV2;User Id=communication_user;Password=123;TrustServerCertificate=True;"
   }
 }
