@@ -1,8 +1,8 @@
 {
   "ConnectionStrings": {
-    "IdentityDb": "Server=DESKTOP-KUFJBN7\\MSSQLSERVER06;Database=TayDoV2;User Id=identity_user;Password=123;TrustServerCertificate=True;",
-    "AcademicDb": "Server=DESKTOP-KUFJBN7\\MSSQLSERVER06;Database=TayDoV2;User Id=academic_user;Password=123;TrustServerCertificate=True;",
-    "ExamDb": "Server=DESKTOP-KUFJBN7\\MSSQLSERVER06;Database=TayDoV2;User Id=exam_user;Password=123;TrustServerCertificate=True;",
-    "CommunicationDb": "Server=DESKTOP-KUFJBN7\\MSSQLSERVER06;Database=TayDoV2;User Id=communication_user;Password=123;TrustServerCertificate=True;"
+    "IdentityDb": "Server=.\\SOFTWAREINTERN;Database=TayDoV2;Integrated Security=True;TrustServerCertificate=True;",
+    "AcademicDb": "Server=.\\SOFTWAREINTERN;Database=TayDoV2;Integrated Security=True;TrustServerCertificate=True;",
+    "ExamDb": "Server=.\\SOFTWAREINTERN;Database=TayDoV2;Integrated Security=True;TrustServerCertificate=True;",
+    "CommunicationDb": "Server=.\\SOFTWAREINTERN;Database=TayDoV2;Integrated Security=True;TrustServerCertificate=True;"
   }
 }
