@@ -1,0 +1,1 @@
+export { ManagementAnnouncementsPage } from './ManagementAnnouncementsPage'

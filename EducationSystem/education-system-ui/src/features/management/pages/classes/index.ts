@@ -1,0 +1,1 @@
+export { ManagementClassesPage } from '../../ManagementPages'

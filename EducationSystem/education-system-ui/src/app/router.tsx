@@ -1,15 +1,40 @@
 import { Navigate, createBrowserRouter, useLocation } from 'react-router-dom'
 import { MainLayout } from '../layouts/MainLayout'
+import { StudentProtectedLayout } from '../features/student/StudentLayout'
 import {
+  StudentAnnouncementsPage,
+  StudentAttendancePage,
+  StudentDashboardPage,
+  StudentDocumentsPage,
+  StudentEvaluationsPage,
+  StudentExamResultsPage,
+  StudentFormRequestsPage,
+  StudentLoginPage,
+  StudentProfilePage,
+  StudentProgramPage,
+  StudentSchedulePage,
+  StudentSubjectsPage,
+  StudentTuitionPage,
+} from '../features/student/pages'
+import {
+  FormRequestsPage,
+  ManagementAnnouncementsPage,
+  ManagementAttendancePage,
+  ManagementClassesPage,
+  ManagementDashboardPage,
+  ManagementEducationStructurePage,
+  ManagementEvaluationsPage,
+  ManagementPlansPage,
+  ManagementQuestionSuitesPage,
+  ManagementResultsPage,
+  ManagementSchedulePage,
+  ManagementStudentsPage,
+  ManagementSystemPage,
+  ManagementTeachersPage,
   SubjectStudentsPage,
   SubjectsPage,
-} from '../features/academic/pages'
-import { UsersPage } from '../features/identity/pages'
-import { FormRequestsPage } from '../features/communication/pages'
-import { StudentLoginPage } from '../features/student/StudentLoginPage'
-import { StudentProtectedLayout } from '../features/student/StudentLayout'
-import { StudentAttendancePage, StudentDashboardPage, StudentExamResultsPage, StudentFormRequestsPage, StudentProfilePage, StudentProgramPage, StudentSchedulePage, StudentSubjectsPage } from '../features/student/StudentPages'
-import { ManagementAttendancePage, ManagementClassesPage, ManagementDashboardPage, ManagementPlansPage, ManagementQuestionSuitesPage, ManagementResultsPage, ManagementSchedulePage, ManagementStudentsPage, ManagementTeachersPage } from '../features/management/ManagementPages'
+  UsersPage,
+} from '../features/management/pages'
 
 export function LegacyRedirect({ to }: { to: string }) {
   const location = useLocation()
@@ -29,6 +54,10 @@ export const router = createBrowserRouter([
       { path: '/student/schedule', element: <StudentSchedulePage /> },
       { path: '/student/exam-results', element: <StudentExamResultsPage /> },
       { path: '/student/attendance', element: <StudentAttendancePage /> },
+      { path: '/student/evaluations', element: <StudentEvaluationsPage /> },
+      { path: '/student/announcements', element: <StudentAnnouncementsPage /> },
+      { path: '/student/documents', element: <StudentDocumentsPage /> },
+      { path: '/student/tuition', element: <StudentTuitionPage /> },
       { path: '/student/form-requests', element: <StudentFormRequestsPage /> },
     ],
   },
@@ -37,6 +66,7 @@ export const router = createBrowserRouter([
     children: [
       { index: true, element: <Navigate to="/management/overview" replace /> },
       { path: '/management/overview', element: <ManagementDashboardPage /> },
+      { path: '/management/education/structure', element: <ManagementEducationStructurePage /> },
       { path: '/management/education/plans', element: <ManagementPlansPage /> },
       { path: '/management/education/subjects', element: <SubjectsPage /> },
       { path: '/management/people/students', element: <ManagementStudentsPage /> },
@@ -48,7 +78,10 @@ export const router = createBrowserRouter([
       { path: '/management/teaching/attendance', element: <ManagementAttendancePage /> },
       { path: '/management/assessment/results', element: <ManagementResultsPage /> },
       { path: '/management/assessment/question-suites', element: <ManagementQuestionSuitesPage /> },
+      { path: '/management/assessment/evaluations', element: <ManagementEvaluationsPage /> },
+      { path: '/management/communication/announcements', element: <ManagementAnnouncementsPage /> },
       { path: '/management/forms/requests', element: <FormRequestsPage /> },
+      { path: '/management/system', element: <ManagementSystemPage /> },
       { path: '/academic/students', element: <LegacyRedirect to="/management/people/students" /> },
       { path: '/academic/subjects', element: <LegacyRedirect to="/management/education/subjects" /> },
       { path: '/academic/subject-teachings', element: <LegacyRedirect to="/management/teaching/classes" /> },

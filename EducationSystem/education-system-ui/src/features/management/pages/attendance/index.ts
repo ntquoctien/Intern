@@ -1,0 +1,1 @@
+export { ManagementAttendancePage } from '../../ManagementPages'

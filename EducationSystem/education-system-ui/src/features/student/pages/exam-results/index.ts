@@ -1,0 +1,1 @@
+export { StudentExamResultsPage } from '../../StudentPages'

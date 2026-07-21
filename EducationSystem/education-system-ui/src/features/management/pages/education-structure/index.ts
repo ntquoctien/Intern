@@ -1,0 +1,1 @@
+export { ManagementEducationStructurePage } from './ManagementEducationStructurePage'

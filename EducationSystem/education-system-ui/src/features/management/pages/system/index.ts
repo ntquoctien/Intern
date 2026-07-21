@@ -1,0 +1,1 @@
+export { ManagementSystemPage } from './ManagementSystemPage'

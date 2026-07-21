@@ -11,6 +11,10 @@ const menuItems = [
   { key: '/student/schedule', icon: <CalendarOutlined />, label: 'Thời khóa biểu' },
   { key: '/student/exam-results', icon: <SolutionOutlined />, label: 'Kết quả thi thô' },
   { key: '/student/attendance', icon: <ScheduleOutlined />, label: 'Điểm danh thô' },
+  { key: '/student/evaluations', icon: <SolutionOutlined />, label: 'Đánh giá học tập' },
+  { key: '/student/announcements', icon: <FileTextOutlined />, label: 'Thông báo' },
+  { key: '/student/documents', icon: <ReadOutlined />, label: 'Tài liệu môn học' },
+  { key: '/student/tuition', icon: <FileTextOutlined />, label: 'Học phí' },
   { key: '/student/form-requests', icon: <FileTextOutlined />, label: 'Yêu cầu biểu mẫu' },
 ]
 
