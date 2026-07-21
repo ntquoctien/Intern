@@ -1,6 +1,8 @@
 using IdentityService.Application;
 using IdentityService.Infrastructure.Persistence;
+using IdentityService.Application.StudentAccess;
 using Microsoft.EntityFrameworkCore;
+using SharedKernel;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -19,11 +21,21 @@ builder.Services.AddCors(options =>
             .AllowAnyMethod());
 });
 builder.Services.AddApplicationServices();
+builder.Services.AddOptions<StudentLoginOptions>()
+    .Bind(builder.Configuration.GetSection(StudentLoginOptions.SectionName))
+    .Validate(options => Enum.IsDefined(options.CodeSource), "StudentLogin:CodeSource is invalid.")
+    .Validate(options => Uri.TryCreate(options.AcademicServiceBaseUrl, UriKind.Absolute, out _), "StudentLogin:AcademicServiceBaseUrl must be absolute.")
+    .ValidateOnStart();
+builder.Services.AddStudentJwtAuthentication(builder.Configuration);
+builder.Services.AddSingleton(TimeProvider.System);
+builder.Services.AddScoped<IStudentTokenIssuer, StudentTokenIssuer>();
+builder.Services.AddSingleton<ReadOnlyCommandInterceptor>();
 var connectionString = builder.Configuration.GetConnectionString("IdentityDb")
     ?? throw new InvalidOperationException("Connection string 'IdentityDb' was not found.");
 
-builder.Services.AddDbContext<IdentityDbContext>(options =>
-    options.UseSqlServer(connectionString));
+builder.Services.AddDbContext<IdentityDbContext>((services, options) =>
+    options.UseSqlServer(connectionString)
+        .AddInterceptors(services.GetRequiredService<ReadOnlyCommandInterceptor>()));
 
 var app = builder.Build();
 
@@ -35,6 +47,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.MapControllers();
 

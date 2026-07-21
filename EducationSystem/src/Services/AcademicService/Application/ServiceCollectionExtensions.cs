@@ -8,6 +8,14 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddApplicationServices(this IServiceCollection services)
     {
         services.AddScoped<IStudentQueryService, StudentQueryService>();
+        services.AddScoped<IStudentIdentityResolver, StudentIdentityResolver>();
+        services.AddScoped<IStudentSelfService, StudentSelfService>();
+        services.AddScoped<IManagementReadService, ManagementReadService>();
+        services.AddHttpClient<IIdentityUserClient, IdentityUserClient>(client =>
+        {
+            client.BaseAddress = new Uri("http://localhost:5001");
+            client.Timeout = TimeSpan.FromSeconds(3);
+        });
         services.AddScoped<IFacultyQueryService, FacultyQueryService>();
         services.AddScoped<IMajorQueryService, MajorQueryService>();
         services.AddScoped<IAcademicYearQueryService, AcademicYearQueryService>();

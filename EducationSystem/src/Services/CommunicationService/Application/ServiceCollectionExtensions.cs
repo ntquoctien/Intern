@@ -9,6 +9,7 @@ public static class ServiceCollectionExtensions
     {
         services.AddScoped<IFormTemplateQueryService, FormTemplateQueryService>();
         services.AddScoped<IFormRequestQueryService, FormRequestQueryService>();
+        services.AddScoped<IStudentFormRequestService, StudentFormRequestService>();
         services.AddScoped<IUserAnnouncementQueryService, UserAnnouncementQueryService>();
         return services;
     }

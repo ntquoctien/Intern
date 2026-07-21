@@ -1,6 +1,7 @@
 using ExamService.Application;
 using ExamService.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
+using SharedKernel;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -19,11 +20,14 @@ builder.Services.AddCors(options =>
             .AllowAnyMethod());
 });
 builder.Services.AddApplicationServices();
+builder.Services.AddStudentJwtAuthentication(builder.Configuration);
+builder.Services.AddSingleton<ReadOnlyCommandInterceptor>();
 var connectionString = builder.Configuration.GetConnectionString("ExamDb")
     ?? throw new InvalidOperationException("Connection string 'ExamDb' was not found.");
 
-builder.Services.AddDbContext<ExamDbContext>(options =>
-    options.UseSqlServer(connectionString));
+builder.Services.AddDbContext<ExamDbContext>((services, options) =>
+    options.UseSqlServer(connectionString)
+        .AddInterceptors(services.GetRequiredService<ReadOnlyCommandInterceptor>()));
 
 var app = builder.Build();
 
@@ -35,6 +39,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.MapControllers();
 

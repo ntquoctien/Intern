@@ -1,0 +1,191 @@
+# PRD — Cổng thông tin sinh viên và cổng quản trị đào tạo
+
+| Thuộc tính | Giá trị |
+|---|---|
+| Phiên bản | 1.0 |
+| Trạng thái | Draft để xác nhận nghiệp vụ |
+| Phạm vi | Website tra cứu, ưu tiên chỉ đọc trên database hiện hữu |
+| Đối tượng | Sinh viên; cán bộ quản lý/đào tạo được phân quyền |
+| Nguồn sự thật | 36 bảng thuộc `academic`, `exam`, `identity`, `communication` |
+| Ngày lập | 21/07/2026 |
+
+## 1. Tóm tắt sản phẩm
+
+Xây dựng một website thông tin đại học gồm hai không gian sử dụng độc lập nhưng dùng chung nguồn dữ liệu:
+
+1. **Cổng sinh viên (Student Portal):** sinh viên tự tra cứu hồ sơ, chương trình học, môn/lớp đang học, thời khóa biểu, điểm danh, kỳ thi, kết quả thi, thông báo và các dịch vụ biểu mẫu liên quan đến chính mình.
+2. **Cổng quản trị (University Management Portal):** cán bộ tra cứu tổng thể và đi sâu theo khoa, ngành, khóa, học kỳ, sinh viên, giảng viên, môn học, lớp học phần, lịch, điểm danh, thi và truyền thông.
+
+Sản phẩm phải trình bày dữ liệu theo ngôn ngữ nghiệp vụ đại học, không theo cấu trúc bảng kỹ thuật. GUID, `IsDeleted`, hash/salt và các trường kỹ thuật không được xuất hiện như thông tin chính trên UI.
+
+## 2. Bối cảnh và vấn đề
+
+Database hiện có độ phủ dữ liệu tốt ở hoạt động học tập, nhưng UI hiện tại chủ yếu là các danh sách tài nguyên rời rạc. Người dùng phải tự nối sinh viên, môn, lớp học phần, buổi học và kết quả bằng mã kỹ thuật; điều này chưa tương đương trải nghiệm của một cổng thông tin đại học chính quy.
+
+Các vấn đề cần giải quyết:
+
+- Thiếu kiến trúc thông tin theo hành trình của sinh viên và cán bộ đào tạo.
+- Thiếu master–detail, breadcrumb và drill-down giữa các thực thể liên quan.
+- Một số danh sách chỉ hiển thị ID thay vì mã/tên có nghĩa.
+- Bộ lọc chưa phản ánh khoa, ngành, khóa, học kỳ, môn, lớp, giảng viên và khoảng thời gian.
+- Dữ liệu cá nhân có nguy cơ bị overfetch hoặc hiển thị sai phạm vi quyền hạn.
+- Một số chức năng quen thuộc của website đại học như GPA, xếp loại, đạt/rớt, công nợ hoặc lớp hành chính chưa có đủ dữ liệu/quy tắc để kết luận.
+
+## 3. Mục tiêu và tiêu chí thành công
+
+### 3.1. Mục tiêu
+
+- Sinh viên tìm được thông tin quan trọng của mình trong tối đa 3 thao tác từ trang chủ.
+- Cán bộ đi được trọn chuỗi tra cứu: khoa/ngành → kế hoạch học kỳ → môn → lớp học phần → sinh viên/giảng viên → lịch/điểm danh/kỳ thi/kết quả.
+- Mọi giá trị trên UI có nguồn dữ liệu hoặc quy tắc được phê duyệt; không tự suy diễn nghiệp vụ.
+- Tất cả danh sách lớn dùng truy vấn phía server, phân trang, lọc và sắp xếp có kiểm soát.
+- Hai cổng có cùng ngôn ngữ thiết kế nhưng khác navigation, mật độ thông tin và quyền truy cập.
+
+### 3.2. Chỉ số thành công dự kiến
+
+- ≥ 90% tác vụ tra cứu cốt lõi hoàn thành mà không cần nhập GUID.
+- ≥ 95% màn hình có trạng thái loading, empty, error và retry rõ ràng.
+- P95 tải danh sách ≤ 2 giây trong mạng nội bộ ở kích thước trang mặc định.
+- Không có dữ liệu của sinh viên khác trong response Student Portal.
+- Không có password hash/salt, push token hoặc thông tin định danh nhạy cảm trong list response.
+- 100% field tổng hợp có định nghĩa phép tính và nguồn dữ liệu đã phê duyệt.
+
+## 4. Phạm vi dữ liệu và mức độ sẵn sàng
+
+### 4.1. Quy ước
+
+| Mức | Ý nghĩa | Cách xử lý trong sản phẩm |
+|---|---|---|
+| **A — Sẵn sàng** | Có bảng, quan hệ và dữ liệu thực tế | Có thể xây UI tra cứu sau khi có read model/API phù hợp |
+| **B — Có mô hình nhưng rỗng** | Bảng tồn tại nhưng snapshot có 0 dòng | Thiết kế màn hình và empty state; không demo bằng dữ liệu giả |
+| **C — Thiếu quy tắc/quan hệ** | Có giá trị thô nhưng chưa đủ kết luận nghiệp vụ | Chỉ hiển thị raw value có nhãn trung tính hoặc ẩn tính năng |
+| **D — Chưa có dữ liệu** | Không có bảng/cột/quan hệ cần thiết | Đưa vào backlog mở rộng dữ liệu, ngoài phạm vi bản chỉ đọc |
+
+### 4.2. Tóm tắt 36 bảng
+
+| Nhóm | Dữ liệu chính | Hiện trạng đáng chú ý |
+|---|---|---|
+| Học vụ | năm học, khoa, ngành, kế hoạch học kỳ, môn, lớp học phần, phòng, lịch, ghi danh, giảng viên, điểm danh | Dữ liệu phong phú; `Attendances` 93.865 dòng, `SubjectStudents` 11.365, `SubjectSchedules` 6.382 |
+| Đánh giá học tập | đánh giá sinh viên và chi tiết | 3.423 đánh giá và 23.032 chi tiết; danh mục tiêu chí hiện rỗng nên phải dùng snapshot name/score thận trọng |
+| Thi | kỳ thi, lượt thi, kết quả, bộ câu hỏi, câu hỏi và đáp án | Khối lượng lớn; `ExamResults` 31.079, `ExamQuestionAnswers` 176.092 |
+| Danh tính | người dùng, thiết bị, cấu hình, reset mật khẩu, audit | 665 người dùng; dữ liệu kỹ thuật/nhạy cảm phải hạn chế |
+| Truyền thông | thông báo, mẫu biểu, yêu cầu biểu mẫu | 16.809 thông báo; mẫu biểu và yêu cầu biểu mẫu đang rỗng |
+| Học phí/tài liệu | học phí học kỳ, tài liệu môn | Có schema nhưng đều đang rỗng |
+
+## 5. Người dùng và quyền
+
+### 5.1. Persona
+
+| Persona | Nhu cầu chính | Phạm vi dữ liệu |
+|---|---|---|
+| Sinh viên | Xem nhanh hôm nay học gì, kết quả, điểm danh, hồ sơ và thông báo | Chỉ bản ghi thuộc `studentId` đã xác thực |
+| Cán bộ đào tạo | Theo dõi chương trình, lớp học phần, lịch, ghi danh, kết quả | Theo đơn vị/phạm vi được cấp |
+| Cán bộ khoa | Tra cứu ngành, môn, giảng viên và lớp thuộc khoa | Theo `FacultyId` được cấp |
+| Quản trị hệ thống | Xem danh tính, cấu hình vận hành và audit được phép | Quyền đặc biệt, tách khỏi nghiệp vụ học vụ |
+| Ban giám hiệu/điều hành | Xem số liệu tổng quan và đi sâu theo đơn vị | Dữ liệu tổng hợp, có masking theo chính sách |
+
+### 5.2. Ma trận quyền tối thiểu
+
+| Khả năng | Sinh viên | Cán bộ đào tạo/khoa | Quản trị hệ thống |
+|---|---:|---:|---:|
+| Xem dữ liệu cá nhân của chính mình | Có | Theo quyền | Theo quyền đặc biệt |
+| Xem danh sách toàn bộ sinh viên | Không | Có giới hạn phạm vi | Có |
+| Xem dữ liệu giảng viên/lớp/môn | Chỉ dữ liệu liên quan | Có | Có |
+| Xem dữ liệu thi chi tiết/câu trả lời | Chỉ kết quả được công bố | Theo quyền khảo thí | Theo quyền đặc biệt |
+| Xem hash/salt/push token | Không | Không | Không hiển thị trên UI |
+| Sửa dữ liệu | Ngoài phạm vi phiên bản này | Ngoài phạm vi phiên bản này | Ngoài phạm vi phiên bản này |
+
+> Xác thực bằng mã sinh viên đơn thuần không đủ an toàn cho production. Cần cơ chế xác thực đã được xác minh (mật khẩu đúng thuật toán, SSO hoặc IdP) trước khi công khai Student Portal.
+
+## 6. Nguyên tắc UI/UX
+
+1. **Nghiệp vụ trước dữ liệu kỹ thuật:** dùng “Lớp học phần”, “Giảng viên”, “Học kỳ”, không dùng tên bảng/GUID.
+2. **Overview → list → detail → related records:** mọi đối tượng chính có đường đi sâu và quay lại giữ nguyên bộ lọc.
+3. **Một nguồn, một nhãn:** mã sinh viên chính thức phải được chốt; không trộn `Nickname`, `UserInternalId` và `UserName` như cùng một khái niệm.
+4. **Không bịa chỉ số:** không tự tính GPA, đạt/rớt, tỷ lệ chuyên cần hoặc tín chỉ tích lũy khi chưa có quy tắc.
+5. **Progressive disclosure:** list chỉ chứa field cần scan; thông tin riêng tư/chi tiết nằm trong trang detail có quyền.
+6. **URL là trạng thái:** tab, trang, search, filter và sort nằm trong query string để reload/chia sẻ/back không mất ngữ cảnh.
+7. **Mobile-first cho sinh viên, desktop-first cho quản trị:** Student Portal ưu tiên thẻ và lịch gọn; Management Portal ưu tiên bảng, filter bar và drill-down.
+8. **Trạng thái trung thực:** phân biệt “chưa có dữ liệu”, “không thuộc phạm vi”, “không có quyền” và “không tải được”.
+
+## 7. Kiến trúc thông tin
+
+```text
+Website Đại học
+├── Cổng sinh viên
+│   ├── Đăng nhập
+│   ├── Tổng quan
+│   ├── Hồ sơ của tôi
+│   ├── Chương trình học
+│   ├── Môn và lớp học phần
+│   ├── Thời khóa biểu
+│   ├── Điểm danh
+│   ├── Kỳ thi và kết quả
+│   ├── Đánh giá học tập
+│   ├── Thông báo
+│   ├── Tài liệu môn học
+│   ├── Học phí
+│   └── Biểu mẫu/yêu cầu
+└── Cổng quản trị
+    ├── Tổng quan điều hành
+    ├── Cơ cấu đào tạo
+    │   ├── Khoa, ngành, khóa/năm học
+    │   └── Kế hoạch học kỳ và môn trong kế hoạch
+    ├── Con người
+    │   ├── Sinh viên
+    │   ├── Giảng viên
+    │   └── Tài khoản
+    ├── Giảng dạy
+    │   ├── Danh mục môn
+    │   ├── Lớp học phần và ghi danh
+    │   ├── Phân công giảng viên
+    │   ├── Phòng và lịch
+    │   └── Điểm danh
+    ├── Khảo thí và đánh giá
+    │   ├── Kỳ thi, lượt thi, kết quả
+    │   ├── Bộ câu hỏi, câu hỏi, đáp án
+    │   └── Đánh giá sinh viên
+    ├── Truyền thông và dịch vụ
+    │   ├── Thông báo
+    │   ├── Mẫu biểu
+    │   └── Yêu cầu biểu mẫu
+    └── Hệ thống có giới hạn
+        ├── Cấu hình
+        └── Audit/thiết bị theo quyền
+```
+
+## 8. Yêu cầu chung cho mọi màn hình
+
+### 8.1. App shell
+
+- Header: logo/tên trường, tên cổng, ô tìm kiếm theo phạm vi, thông báo, avatar/menu tài khoản.
+- Sidebar desktop và drawer/bottom navigation mobile; nhóm menu theo nghiệp vụ.
+- Breadcrumb ở trang detail; tiêu đề, mô tả ngắn, thời điểm dữ liệu cập nhật nếu có.
+- Không dùng cùng một menu cho hai cổng; chuyển cổng chỉ xuất hiện khi tài khoản có quyền.
+
+### 8.2. List pattern
+
+- Search có debounce 300–500 ms; filter có label nghiệp vụ; select/auto-complete thay cho nhập mã enum.
+- Server-side pagination; mặc định 20–50 dòng, tùy dataset.
+- Cột ghim cho mã/tên; người dùng được chọn cột nhưng default phải hữu dụng.
+- Row click mở detail; các liên kết liên quan mở đúng tab/ngữ cảnh.
+- Có tổng số bản ghi, xóa filter, skeleton, empty state, lỗi và retry.
+- Không tải toàn bộ lookup lớn; autocomplete phải search/paginate phía server.
+
+### 8.3. Detail pattern
+
+- Header nhận diện: mã + tên + status có nhãn đã xác minh.
+- Các tab: Tổng quan, thông tin liên quan, lịch sử/bản ghi; chỉ hiện tab có dữ liệu/quyền.
+- ID kỹ thuật chỉ được phép trong khu vực “Thông tin kỹ thuật” dành cho hỗ trợ, không phải nội dung mặc định.
+- Trường nhạy cảm được mask; thao tác reveal nếu có phải có quyền và audit.
+
+## 9. Cổng sinh viên — yêu cầu chi tiết
+
+### STU-01. Đăng nhập
+
+**Mục đích:** xác thực sinh viên và tạo phiên truy cập an toàn.
+
+- UI: logo/tên trường, ô mã sinh viên/tài khoản, phương thức xác thực được phê duyệt, ghi nhớ phiên nếu chính sách cho phép, trợ giúp đăng nhập.
+- Không tiết lộ tài khoản có tồn tại qua thông báo lỗi.
+- Chặn rate-limit/brute force; session timeout; logout xóa token cục bộ.
+- `Nickname`, `UserInternalId` và `UserName` phải được BA/chủ dữ liệu chọn một trường làm mã đăng nhập chính thức.

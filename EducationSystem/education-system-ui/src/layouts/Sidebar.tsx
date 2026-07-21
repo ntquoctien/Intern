@@ -1,5 +1,7 @@
 import {
   BookOutlined,
+  CalendarOutlined,
+  DashboardOutlined,
   FileTextOutlined,
   ReadOutlined,
   TeamOutlined,
@@ -7,50 +9,60 @@ import {
 } from '@ant-design/icons'
 import { Menu } from 'antd'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { NAVIGATION_LABELS } from '../shared/constants/labels'
 
 const menuItems = [
   {
-    key: 'academic',
+    key: 'overview',
+    icon: <DashboardOutlined />,
+    label: 'Tổng quan',
+    children: [{ key: '/management/overview', label: 'Dashboard' }],
+  },
+  {
+    key: 'education',
     icon: <ReadOutlined />,
-    label: NAVIGATION_LABELS.ACADEMIC,
+    label: 'Đào tạo',
     children: [
-      { key: '/academic/students', label: NAVIGATION_LABELS.STUDENTS },
-      { key: '/academic/subjects', label: NAVIGATION_LABELS.SUBJECTS },
-      { key: '/academic/subject-teachings', label: NAVIGATION_LABELS.SUBJECT_TEACHINGS },
-      { key: '/academic/subject-students', label: NAVIGATION_LABELS.SUBJECT_STUDENTS },
-      { key: '/academic/subject-schedules', label: NAVIGATION_LABELS.SUBJECT_SCHEDULES },
-      { key: '/academic/attendances', label: NAVIGATION_LABELS.ATTENDANCES },
+      { key: '/management/education/plans', label: 'Kế hoạch học kỳ' },
+      { key: '/management/education/subjects', label: 'Môn học' },
     ],
   },
   {
-    key: 'exam',
-    icon: <BookOutlined />,
-    label: NAVIGATION_LABELS.EXAM,
+    key: 'people', icon: <UserOutlined />, label: 'Con người',
     children: [
-      { key: '/exam/exam-results', label: NAVIGATION_LABELS.EXAM_RESULTS },
-      { key: '/exam/questions', label: NAVIGATION_LABELS.QUESTIONS },
+      { key: '/management/people/students', label: 'Sinh viên' },
+      { key: '/management/people/teachers', label: 'Giảng viên' },
+      { key: '/management/people/users', label: 'Tài khoản nội bộ' },
     ],
   },
   {
-    key: 'identity',
-    icon: <UserOutlined />,
-    label: NAVIGATION_LABELS.IDENTITY,
-    children: [{ key: '/identity/users', label: NAVIGATION_LABELS.USERS }],
+    key: 'teaching', icon: <CalendarOutlined />, label: 'Giảng dạy',
+    children: [
+      { key: '/management/teaching/classes', label: 'Lớp học phần' },
+      { key: '/management/teaching/assignments', label: 'Phân công/ghi danh' },
+      { key: '/management/teaching/schedule', label: 'Lịch theo tuần' },
+      { key: '/management/teaching/attendance', label: 'Điểm danh' },
+    ],
   },
   {
-    key: 'communication',
-    icon: <TeamOutlined />,
-    label: NAVIGATION_LABELS.COMMUNICATION,
-    children: [{ key: '/communication/form-requests', label: NAVIGATION_LABELS.FORM_REQUESTS }],
+    key: 'assessment', icon: <BookOutlined />, label: 'Đánh giá',
+    children: [
+      { key: '/management/assessment/results', label: 'Kết quả thi thô' },
+      { key: '/management/assessment/question-suites', label: 'Ngân hàng câu hỏi' },
+    ],
+  },
+  {
+    key: 'forms', icon: <TeamOutlined />, label: 'Biểu mẫu / Liên lạc',
+    children: [{ key: '/management/forms/requests', label: 'Yêu cầu biểu mẫu' }],
   },
 ]
 
 function openKey(pathname: string) {
-  if (pathname.startsWith('/exam')) return 'exam'
-  if (pathname.startsWith('/identity')) return 'identity'
-  if (pathname.startsWith('/communication')) return 'communication'
-  return 'academic'
+  if (pathname.includes('/education/')) return 'education'
+  if (pathname.includes('/people/')) return 'people'
+  if (pathname.includes('/teaching/')) return 'teaching'
+  if (pathname.includes('/assessment/')) return 'assessment'
+  if (pathname.includes('/forms/')) return 'forms'
+  return 'overview'
 }
 
 export function Sidebar() {

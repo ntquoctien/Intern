@@ -2,6 +2,7 @@ export type ApiResponse<T> = {
   success: boolean
   message: string
   data: T
+  error?: { code: string; message: string }
 }
 
 export type PagedResult<T> = {

@@ -123,3 +123,57 @@ Service info:
 - Tích hợp UI.
 - Cân nhắc API Gateway khi cần một entry point chung.
 - Cân nhắc RabbitMQ hoặc gRPC khi có nhu cầu giao tiếp liên service.
+
+## Read-only Student Portal and management UI
+
+The Student Portal is available at `/student/login` and uses MSSV-only access for demo/internal environments. It is not production-grade identity verification: anyone who knows a valid student code can impersonate that student. Restrict the deployment to a controlled network and apply rate limiting at the edge.
+
+### Required configuration
+
+Set the same JWT signing key (at least 32 UTF-8 bytes) for all four services. Do not commit the value:
+
+```powershell
+$env:StudentJwt__SigningKey = "replace-with-a-secret-of-at-least-32-bytes"
+```
+
+The issuer is `EducationSystem.IdentityService`, the audience is `EducationSystem.StudentPortal`, and the default access-token lifetime is 15 minutes (maximum 30). The initial student-code source is `Students.Nickname`. To select an existing alternative without changing the database:
+
+```powershell
+$env:StudentLogin__CodeSource = "Nickname" # Nickname | UserInternalId | UserName
+```
+
+Frontend environment variables:
+
+```powershell
+$env:VITE_IDENTITY_API_ORIGIN = "http://localhost:5001"
+$env:VITE_ACADEMIC_API_ORIGIN = "http://localhost:5002"
+$env:VITE_EXAM_API_ORIGIN = "http://localhost:5003"
+$env:VITE_COMMUNICATION_API_ORIGIN = "http://localhost:5004"
+$env:VITE_STUDENT_SESSION_STORAGE = "false" # optional demo reload continuity
+```
+
+Run the four services as listed above, then run the UI:
+
+```powershell
+cd education-system-ui
+npm install
+npm run dev
+```
+
+### Security and deployment boundary
+
+- Student logout only clears the browser state. A copied JWT remains valid until its short expiry because no session, refresh token, or revocation record is persisted.
+- In-memory token storage is the default. Optional `sessionStorage` improves demo reload continuity but retains XSS exposure; LocalStorage is never used.
+- The public Student ingress must expose only `POST /api/auth/student/login` and `/api/student/me/*`. Use `deploy/nginx/student-portal.conf` as the allow-list reference.
+- Direct service ports, `/api/management/*`, `/api/academic/*`, `/api/exam/*`, `/api/identity/*`, `/api/communication/*`, and `/api/internal/*` must remain internal/VPN-only. Management authentication and RBAC are out of scope.
+
+### Immutable database and truthful metrics
+
+No schema object, migration, seed, row, session, refresh token, or audit value is created or changed. All new queries use `AsNoTracking`, ownership predicates, DTO projection, and a runtime SELECT-only command interceptor. Verify the guardrails and optional live row counts with:
+
+```powershell
+powershell -File scripts/verify-read-only.ps1
+powershell -File scripts/verify-read-only.ps1 -VerifyDatabase
+```
+
+The UI intentionally does not calculate GPA, pass/fail, earned or required credits, completion percentage, attendance rate, administrative class, curriculum version, or required/elective status. Raw result, combined result, attendance status, schedule type, and study status are shown without unconfirmed semantic labels.

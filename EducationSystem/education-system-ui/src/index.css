@@ -214,3 +214,40 @@ body {
 .ant-table-cell {
   min-width: 80px;
 }
+
+.student-login-shell {
+  align-items: center;
+  background: linear-gradient(135deg, #eff6ff, #f8fafc 55%, #ecfeff);
+  display: flex;
+  justify-content: center;
+  min-height: 100vh;
+  overflow-x: hidden;
+  padding: 20px;
+}
+
+.student-login-card { flex: 0 1 480px; max-width: calc(100vw - 40px); min-width: 0; overflow: hidden; width: calc(100vw - 40px); }
+.student-login-card .ant-card-body,
+.student-login-card .ant-space,
+.student-login-card .ant-space-item { max-width: 100%; min-width: 0; overflow-wrap: anywhere; }
+.student-shell { min-height: 100vh; }
+.student-brand { color: #0f3d66; font-size: 20px; font-weight: 800; padding: 22px 24px; }
+.student-header { align-items: center; background: #fff; border-bottom: 1px solid #e5e7eb; display: flex; height: auto; justify-content: space-between; line-height: 1.3; min-height: 72px; padding: 12px 24px; }
+.student-content { padding: 24px; }
+.center-state { align-items: center; display: flex; justify-content: center; min-height: 240px; }
+.schedule-desktop { display: grid; gap: 12px; grid-template-columns: repeat(7, minmax(150px, 1fr)); overflow-x: auto; }
+.schedule-day { background: #fff; border: 1px solid #e5e7eb; border-radius: 8px; display: flex; flex-direction: column; gap: 10px; min-height: 180px; padding: 12px; }
+.schedule-mobile { display: none; }
+
+@media (max-width: 768px) {
+  .student-content { padding: 16px; }
+  .student-header { padding: 10px 16px; }
+  .schedule-desktop { display: none; }
+  .schedule-mobile { display: block; }
+}
+
+@media (max-width: 1024px) {
+  .app-content,
+  .student-content { padding-left: 56px; }
+  .schedule-desktop { display: none; }
+  .schedule-mobile { display: block; }
+}

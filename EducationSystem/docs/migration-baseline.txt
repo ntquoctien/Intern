@@ -1,0 +1,13 @@
+# Immutable migration baseline for add-read-only-student-portal-management-ui
+src/Services/AcademicService/Migrations/20260707085344_BaselineAcademic.cs
+src/Services/AcademicService/Migrations/20260707085344_BaselineAcademic.Designer.cs
+src/Services/AcademicService/Migrations/AcademicDbContextModelSnapshot.cs
+src/Services/CommunicationService/Migrations/20260707085502_BaselineCommunication.cs
+src/Services/CommunicationService/Migrations/20260707085502_BaselineCommunication.Designer.cs
+src/Services/CommunicationService/Migrations/CommunicationDbContextModelSnapshot.cs
+src/Services/ExamService/Migrations/20260707085024_BaselineExam.cs
+src/Services/ExamService/Migrations/20260707085024_BaselineExam.Designer.cs
+src/Services/ExamService/Migrations/ExamDbContextModelSnapshot.cs
+src/Services/IdentityService/Migrations/20260707085240_BaselineIdentity.cs
+src/Services/IdentityService/Migrations/20260707085240_BaselineIdentity.Designer.cs
+src/Services/IdentityService/Migrations/IdentityDbContextModelSnapshot.cs

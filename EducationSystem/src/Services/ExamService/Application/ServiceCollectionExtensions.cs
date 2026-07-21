@@ -13,6 +13,8 @@ public static class ServiceCollectionExtensions
         services.AddScoped<ISubjectTeachingExamQueryService, SubjectTeachingExamQueryService>();
         services.AddScoped<IExamAttemptQueryService, ExamAttemptQueryService>();
         services.AddScoped<IExamResultQueryService, ExamResultQueryService>();
+        services.AddScoped<IStudentExamResultService, StudentExamResultService>();
+        services.AddScoped<IManagementExamReadService, ManagementExamReadService>();
         services.AddScoped<IExamQuestionSelectionQueryService, ExamQuestionSelectionQueryService>();
         services.AddScoped<IExamQuestionAnswerQueryService, ExamQuestionAnswerQueryService>();
         return services;

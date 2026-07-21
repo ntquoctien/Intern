@@ -1,6 +1,7 @@
 using AcademicService.Application;
 using AcademicService.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
+using SharedKernel;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -19,11 +20,15 @@ builder.Services.AddCors(options =>
             .AllowAnyMethod());
 });
 builder.Services.AddApplicationServices();
+builder.Services.AddSingleton(TimeProvider.System);
+builder.Services.AddStudentJwtAuthentication(builder.Configuration);
+builder.Services.AddSingleton<ReadOnlyCommandInterceptor>();
 var connectionString = builder.Configuration.GetConnectionString("AcademicDb")
     ?? throw new InvalidOperationException("Connection string 'AcademicDb' was not found.");
 
-builder.Services.AddDbContext<AcademicDbContext>(options =>
-    options.UseSqlServer(connectionString));
+builder.Services.AddDbContext<AcademicDbContext>((services, options) =>
+    options.UseSqlServer(connectionString)
+        .AddInterceptors(services.GetRequiredService<ReadOnlyCommandInterceptor>()));
 
 var app = builder.Build();
 
@@ -35,6 +40,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.MapControllers();
 

@@ -1,5 +1,6 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import type { ReactNode } from 'react'
+import { StudentAuthProvider } from '../features/student/studentAuth'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -15,5 +16,5 @@ type AppProvidersProps = {
 }
 
 export function AppProviders({ children }: AppProvidersProps) {
-  return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+  return <QueryClientProvider client={queryClient}><StudentAuthProvider>{children}</StudentAuthProvider></QueryClientProvider>
 }

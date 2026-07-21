@@ -1,0 +1,190 @@
+### STU-02. Tổng quan
+
+**Mục đích:** trả lời nhanh “tôi là ai, hôm nay có gì, điều gì cần chú ý”.
+
+**Hiển thị:** thẻ hồ sơ gọn (họ tên, mã SV đã chốt, ngành, khóa/năm tuyển sinh, trạng thái học); lịch học gần nhất; kỳ thi gần nhất; thông báo mới/bắt buộc đọc; các môn/lớp đang liên quan; shortcut tới điểm danh và kết quả.
+
+**Nguồn:** `Users`, `Students`, `Majors`, `AcademicYears`, `SubjectStudents`, `SubjectTeachings`, `SubjectSchedules`, `SubjectTeachingExams`, `UserAnnouncements`.
+
+**Giới hạn:** không hiển thị GPA, công nợ, tín chỉ đạt hoặc cảnh báo chuyên cần nếu chưa có quy tắc được phê duyệt.
+
+### STU-03. Hồ sơ của tôi
+
+**Các khối:** ảnh/họ tên và mã; thông tin học vụ (ngành, khoa, khóa, trạng thái học); thông tin cá nhân; liên hệ/địa chỉ; thông tin gia đình/đoàn-đảng nếu chính sách cho phép; thông tin thư viện và ghi chú vấn đề chỉ khi được phép.
+
+**Nguồn:** `Users`, `Students`, `Majors`, `Faculties`, `AcademicYears`.
+
+**Quy tắc:** mask số định danh và số điện thoại; không trả password fields; field trống hiện “Chưa cập nhật”, không hiện `null`.
+
+### STU-04. Chương trình học
+
+**Hiển thị:** chọn năm học/học kỳ; danh sách học kỳ; môn theo kế hoạch với mã, tên, số tín chỉ, tổng giờ; tổng tín chỉ theo học kỳ chỉ được cộng trực tiếp từ `SemesterSubjects.CreditPoint`; ghi chú rõ đây là “kế hoạch tham chiếu”.
+
+**Nguồn:** `Students.AcademicYearId/MajorId` → `SemesterPlans` → `SemesterSubjects`, tham chiếu `Subjects` khi có.
+
+**Giới hạn:** database chưa có phiên bản chương trình, môn bắt buộc/tự chọn, tiên quyết và mapping chắc chắn môn đã đạt; không được tạo progress “đã hoàn thành x/y tín chỉ”.
+
+### STU-05. Môn và lớp học phần của tôi
+
+**List:** mã/tên môn, tên lớp học phần, số tín chỉ, ngày bắt đầu–kết thúc, phòng mặc định, giảng viên chính nếu có, trạng thái thời gian trung tính như sắp diễn ra/đang trong khoảng/đã qua.
+
+**Detail:** thông tin môn; danh sách giảng viên; lịch; tài liệu; ghi chú đặc biệt của chính sinh viên nếu chính sách cho phép; link tới điểm danh và kết quả liên quan.
+
+**Nguồn:** `SubjectStudents`, `SubjectTeachings`, `Subjects`, `SubjectTeachingTeachers`, `TeacherFaculties`, `Users`, `Rooms`, `SubjectDocuments`, `SubjectSpecialNotes`.
+
+### STU-06. Thời khóa biểu
+
+**UI:** chế độ tuần mặc định, chuyển tuần, “Hôm nay”, list view cho mobile; mỗi block gồm giờ, môn, lớp, phòng, giảng viên, loại lịch và ghi chú.
+
+**Nguồn:** các lớp thuộc `SubjectStudents` → `SubjectSchedules`, nối `SubjectTeachings`, `Subjects`, `Rooms`, `TeacherFaculties/Users`.
+
+**Quy tắc:** timezone Asia/Ho_Chi_Minh; không suy diễn tiết học từ giờ nếu chưa có bảng quy đổi tiết; phát hiện trùng lịch chỉ là cảnh báo trình bày dựa trên khoảng thời gian.
+
+### STU-07. Điểm danh
+
+**UI:** bộ lọc môn/lớp/khoảng ngày/trạng thái; list theo buổi với thời gian, phòng, trạng thái, ghi chú; summary đếm từng trạng thái chỉ sau khi enum được xác nhận.
+
+**Nguồn:** `Attendances`, `SubjectSchedules`, `SubjectTeachings`, `Subjects`, `Rooms` và student ownership.
+
+**Giới hạn bắt buộc:** giá trị `Attendance.Status` thực tế nằm trong 1–4 nhưng ý nghĩa chưa được xác nhận. Không gán nhãn Có mặt/Vắng/Muộn/Phép hoặc tính tỷ lệ chuyên cần trước khi chốt enum và mẫu số.
+
+### STU-08. Kỳ thi và kết quả
+
+**UI:** tab “Lịch/kỳ thi” và “Kết quả”; filter học kỳ/môn; card/list gồm môn, lớp, tên kỳ thi, loại, thời gian, lần nộp, điểm raw, điểm kết hợp raw, mô tả/ghi chú được phép công bố.
+
+**Nguồn:** `SubjectTeachingExams`, `ExamAttempts`, `ExamResults`, `SubjectTeachings`, `Subjects`.
+
+**Giới hạn:** không hiển thị đạt/rớt, điểm chữ, GPA, điểm chính thức hoặc chọn một dòng “kết quả cuối” khi chưa có quy tắc xử lý duplicate/null và ngưỡng điểm. Không công khai đáp án/câu trả lời nếu chưa có chính sách khảo thí.
+
+### STU-09. Đánh giá học tập
+
+**UI:** timeline/danh sách đánh giá theo học kỳ/lớp/giảng viên; tổng điểm raw, nhận xét và breakdown theo snapshot `EvaluationName`, `StudentScore`, `Score`.
+
+**Nguồn:** `StudentEvaluations`, `StudentEvaluationDetails`, `SemesterPlans`, `SubjectTeachings`, `TeacherFaculties`.
+
+**Giới hạn:** `EvaluationCriterias` đang rỗng; UI không được tự đặt tên thang đo, xếp loại hoặc so sánh giữa các bộ tiêu chí chưa đồng nhất.
+
+### STU-10. Thông báo
+
+**UI:** inbox có chưa đọc/bắt buộc đọc, loại thông báo, thời gian, nội dung an toàn, deep link được allowlist; detail modal/page; badge số lượng.
+
+**Nguồn:** `UserAnnouncements` với `UserIds`, `Message`, `CreationDate`, `Status`, `DeepLink`, `EnforceRead`, `NotificationType`.
+
+**Quy tắc:** backend phải lọc đúng người nhận; sanitize message; deep link chỉ tới route nội bộ hợp lệ. Nếu cập nhật đã đọc làm thay đổi DB thì thuộc phase write-enabled riêng.
+
+### STU-11. Tài liệu môn học
+
+**UI:** theo môn/lớp, gồm tên, loại, mô tả, ngày cập nhật và link tải an toàn.
+
+**Nguồn:** `SubjectDocuments` (hiện 0 dòng).
+
+**Empty state:** “Môn học chưa có tài liệu được công bố”; không tạo tài liệu giả. Link ngoài phải được kiểm tra scheme/domain hoặc proxy tải xuống.
+
+### STU-12. Học phí
+
+**UI:** học kỳ, số tiền raw, ngày thanh toán và trạng thái chỉ khi có quy tắc chính thức.
+
+**Nguồn:** `SemesterTuitions` (hiện 0 dòng).
+
+**Giới hạn:** schema chỉ có `Amount` và `PaidDate`, chưa có hạn thanh toán, miễn giảm, giao dịch, số tiền đã trả/còn nợ hoặc đơn vị tiền tệ. Không xây màn hình công nợ đầy đủ từ schema này.
+
+### STU-13. Biểu mẫu và yêu cầu
+
+**UI:** danh mục mẫu (tên, tài liệu); yêu cầu của tôi (mẫu, ngày tạo/cập nhật, trạng thái, người duyệt, ghi chú); detail timeline nếu có dữ liệu lịch sử.
+
+**Nguồn:** `FormTemplates`, `FormRequests` (đều 0 dòng).
+
+**Giới hạn:** phase chỉ đọc chỉ hiển thị empty state. Tạo/gửi/hủy yêu cầu và chuyển trạng thái là phase write-enabled, cần authorization, audit và workflow riêng.
+
+## 10. Cổng quản trị — yêu cầu chi tiết
+
+### MGT-01. Tổng quan điều hành
+
+**KPI được phép:** tổng sinh viên hiện hữu, người dùng active, khoa, ngành, môn, lớp học phần, giảng viên, lịch, bản ghi điểm danh, kỳ thi và kết quả; breakdown theo các field có thật.
+
+**Biểu đồ/khối:** cơ cấu sinh viên theo khoa/ngành/khóa/trạng thái; lớp theo thời gian; hoạt động thi; thông báo gần đây; cảnh báo chất lượng dữ liệu (thiếu label, orphan cross-service, duplicate kết quả).
+
+**Không được phép:** tỷ lệ tốt nghiệp, tỷ lệ đạt, GPA trung bình, tỷ lệ chuyên cần hoặc công nợ nếu chưa có định nghĩa.
+
+### MGT-02. Khoa, ngành và năm học
+
+- Danh sách khoa: mã, tên, số ngành, số môn, số giảng viên liên kết.
+- Detail khoa: ngành, môn, giảng viên; link drill-down.
+- Danh sách ngành: mã, tên, khoa, loại đào tạo, số sinh viên, số kế hoạch học kỳ.
+- Năm học/khóa: tên, năm, bắt đầu/kết thúc, số sinh viên.
+- Nguồn: `Faculties`, `Majors`, `AcademicYears`, quan hệ đếm tương ứng.
+
+### MGT-03. Kế hoạch đào tạo
+
+- Filter: khoa, ngành, khóa/năm học, học kỳ, active.
+- List plan: ngành, khóa, học kỳ, thời gian, trạng thái, số môn/tổng tín chỉ kế hoạch.
+- Detail: môn trong kế hoạch với code/name snapshot, credit; cảnh báo khi `SubjectId` null hoặc snapshot lệch danh mục môn.
+- Nguồn: `SemesterPlans`, `SemesterSubjects`, `Majors`, `AcademicYears`, `Subjects`.
+- Không gọi đây là “chương trình chuẩn phiên bản X” khi chưa có `CurriculumVersion`.
+
+### MGT-04. Sinh viên
+
+- List mặc định: mã SV chính thức, họ tên, ngành, khoa, khóa, trạng thái học, giới tính nếu cần nghiệp vụ, trạng thái tài khoản.
+- Search: tên, mã SV, username; filter: khoa, ngành, khóa, trạng thái học, tốt nghiệp, có vấn đề.
+- Detail tabs: Tổng quan; hồ sơ cá nhân có masking; lớp học phần; lịch; điểm danh; kỳ thi/kết quả; đánh giá; học phí; yêu cầu biểu mẫu; ghi chú đặc biệt.
+- Nguồn: `Students` composition với `Users` và các bảng liên quan.
+- Không đưa địa chỉ, người thân, định danh lên list hoặc export mặc định.
+
+### MGT-05. Giảng viên
+
+- List: họ tên, mã tài khoản/nội bộ, khoa, trưởng khoa hay không, trạng thái tài khoản, số lớp được phân công.
+- Filter: khoa, vai trò trưởng khoa, trạng thái; search tên/mã.
+- Detail: hồ sơ cơ bản; khoa; lớp phụ trách; lịch giảng; môn liên quan.
+- Nguồn: `TeacherFaculties`, `Users`, `Faculties`, `SubjectTeachingTeachers`, `SubjectTeachings`, `SubjectSchedules`.
+- `TeacherFaculty` là liên kết người dùng–khoa, không chứng minh học hàm/học vị/chức danh; không tự hiển thị các thông tin đó.
+
+### MGT-06. Tài khoản
+
+- List tối thiểu: username, họ tên, mã nội bộ, role raw đã map label, active, ngày sinh chỉ khi cần và được phép.
+- Detail có thể có mobile, profile picture, lần enforce-read; identification phải mask.
+- Không bao giờ trả/hiển thị `PasswordHash`, `PasswordSalt`, push ID hoặc token.
+- Nguồn: `Users`; liên kết Student/Teacher nếu có.
+
+### MGT-07. Danh mục môn học
+
+- List: mã, tên, khoa, tín chỉ, tổng giờ, active; search mã/tên; filter khoa/active/số tín chỉ.
+- Detail: mô tả/ghi chú, kế hoạch có môn, lớp học phần, tài liệu và ghi chú đặc biệt có quyền.
+- Nguồn: `Subjects`, `Faculties`, `SemesterSubjects`, `SubjectTeachings`, `SubjectDocuments`, `SubjectSpecialNotes`.
+
+### MGT-08. Lớp học phần và ghi danh
+
+- List: tên lớp, môn, khoa từ môn, thời gian, phòng mặc định, giảng viên chính, số sinh viên, số buổi.
+- Filter: môn, khoa, giảng viên, phòng, khoảng ngày; không filter trực tiếp theo ngành khi chưa có quan hệ xác định.
+- Detail tabs: thông tin; sinh viên; giảng viên; lịch; điểm danh; kỳ thi/kết quả.
+- Nguồn: `SubjectTeachings`, `Subjects`, `SubjectStudents`, `SubjectTeachingTeachers`, `TeacherFaculties`, `Rooms`.
+- Không gọi lớp học phần là “lớp hành chính” và không gán duy nhất một ngành/học kỳ nếu schema chưa liên kết.
+
+### MGT-09. Phân công giảng viên
+
+- Ma trận/lists theo giảng viên hoặc lớp; nhãn giảng viên chính/phụ từ `IsMainTeacher`.
+- Filter: khoa, giảng viên, môn, lớp, thời gian.
+- Nguồn: `SubjectTeachingTeachers`, `TeacherFaculties`, `Users`, `SubjectTeachings`, `Subjects`.
+
+### MGT-10. Phòng và lịch giảng dạy
+
+- Danh mục phòng: tên, sức chứa, số lịch liên quan.
+- Lịch tuần/tháng/list: lớp, môn, phòng, giảng viên, bắt đầu/kết thúc, loại, ghi chú.
+- Filter: phòng, môn/lớp, giảng viên, khoảng thời gian, loại lịch.
+- Nguồn: `Rooms`, `SubjectSchedules`, `SubjectTeachings`, `Subjects`, `TeacherFaculties/Users`.
+- Cảnh báo vượt sức chứa chỉ được tính khi sĩ số lớp và `NumberOfSeats` hợp lệ; trình bày như kiểm tra dữ liệu, không kết luận vi phạm.
+
+### MGT-11. Điểm danh
+
+- List server-side: sinh viên, mã SV, môn/lớp, buổi học, phòng, status, ghi chú, người tạo, ngày ghi nhận.
+- Filter: khoa (qua môn), môn, lớp, sinh viên, phòng, ngày, status.
+- Detail liên kết tới sinh viên, buổi học và lớp.
+- Nguồn: `Attendances` và read model composition.
+- Không phát hành dashboard tỷ lệ cho đến khi enum/status và quy tắc mẫu số được phê duyệt.
+
+### MGT-12. Kỳ thi, lượt thi và kết quả
+
+- Kỳ thi list: tên, lớp/môn, loại, suite, thời gian, phòng, giảng viên, số lượng/cấu hình câu hỏi, method, cho phép thông báo.
+- Kết quả list: sinh viên, mã SV, môn/lớp/kỳ thi, lượt thi, ngày draft/submit, result và combined result raw.
+- Detail: mô tả/chi tiết kết quả, timeline attempt, số câu/đáp án đã snapshot; dữ liệu đáp án chỉ cho vai trò khảo thí.
+- Filter: môn, lớp, kỳ thi, loại, ngày, sinh viên, score range.
+- Nguồn: `SubjectTeachingExams`, `ExamAttempts`, `ExamResults`, `ExamQuestionSelections`, `ExamQuestionAnswers` và cross-service read model.

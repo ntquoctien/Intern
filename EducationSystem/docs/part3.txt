@@ -1,0 +1,219 @@
+### MGT-13. Ngân hàng câu hỏi
+
+- Suite list/detail: môn, tên, người cập nhật nếu resolve được, số câu theo level.
+- Question list: suite, môn, level, text đã clamp, image preview; filter suite/môn/level.
+- Question detail: nội dung, ảnh, các đáp án và `IsAnswer`, metadata liên quan.
+- Nguồn: `QuestionSuites`, `Questions`, `QuestionAnswers`.
+- Chưa có Chapter/Topic/CLO/PLO/Skill/approval status; không tạo các filter/biểu đồ này nếu chưa mở rộng schema.
+
+### MGT-14. Đánh giá sinh viên
+
+- List: sinh viên, học kỳ/lớp/kỳ thi/câu hỏi/giảng viên liên quan nếu resolve được, loại raw đã map, tổng điểm, ngày, nhận xét.
+- Detail: breakdown từng tiêu chí snapshot.
+- Nguồn: `StudentEvaluations`, `StudentEvaluationDetails`, `EvaluationCriterias`.
+- UI phải chịu được `EvaluationCriteriaId` null và danh mục tiêu chí rỗng.
+
+### MGT-15. Thông báo
+
+- List: loại, trạng thái, thời gian, nhóm/người nhận được parse an toàn, preview nội dung, enforce-read, notification type.
+- Detail: nội dung sanitized, deep link, đối tượng liên quan.
+- Nguồn: `UserAnnouncements`.
+- Gửi/sửa/xóa/đánh dấu đọc nằm ngoài phase chỉ đọc.
+
+### MGT-16. Mẫu biểu và yêu cầu
+
+- Mẫu biểu: tên, document URL; empty state vì hiện chưa có dữ liệu.
+- Yêu cầu: sinh viên, mẫu, ngày tạo/cập nhật, trạng thái, người duyệt, ghi chú; empty state hiện tại.
+- Cần resolve cross-service Student/User thay vì hiện GUID.
+- Workflow phê duyệt là phase write-enabled riêng.
+
+### MGT-17. Hệ thống có giới hạn
+
+- `Settings`: chỉ quản trị hệ thống; key/value cần phân loại secret trước khi hiển thị.
+- `AuditLogs`: hiện rỗng; chỉ hiển thị khi xác định schema và retention; không coi là nhật ký đầy đủ.
+- `UserDevices`: dữ liệu nhạy cảm; chỉ dashboard sức khỏe thiết bị đã aggregate nếu có yêu cầu, không lộ PushId.
+- `PasswordResets`: không tạo list nghiệp vụ chung; truy cập hỗ trợ phải đặc quyền và mask.
+
+## 11. Ma trận dữ liệu → UI
+
+| Bảng | Student Portal | Management Portal | Trạng thái |
+|---|---|---|---|
+| AcademicYears | Hồ sơ, chương trình | Cơ cấu, sinh viên, kế hoạch | A |
+| Faculties, Majors | Hồ sơ, chương trình | Cơ cấu, người, môn | A |
+| SemesterPlans, SemesterSubjects | Chương trình | Kế hoạch đào tạo | A; thiếu version/type môn |
+| Students, Users | Hồ sơ của tôi | Sinh viên/tài khoản | A; cần chốt mã SV |
+| TeacherFaculties | Giảng viên lớp/lịch | Giảng viên | A; cross-service User |
+| Subjects | Chương trình/môn | Danh mục môn | A |
+| SubjectTeachings, SubjectStudents | Lớp của tôi | Lớp/ghi danh | A |
+| SubjectTeachingTeachers | Giảng viên lớp | Phân công | A |
+| Rooms, SubjectSchedules | Thời khóa biểu | Phòng/lịch | A |
+| Attendances | Điểm danh của tôi | Điểm danh | C; enum chưa chốt |
+| SubjectSpecialNotes | Detail môn của tôi nếu được phép | Detail môn/sinh viên | A; nhạy cảm theo chính sách |
+| SubjectDocuments | Tài liệu | Detail môn | B; 0 dòng |
+| StudentEvaluations/Details | Đánh giá của tôi | Đánh giá | A/C; criteria master rỗng |
+| EvaluationCriterias | Breakdown | Danh mục/đánh giá | B; 0 dòng |
+| SemesterTuitions | Học phí | Detail sinh viên | B/C; 0 dòng, schema tối giản |
+| SubjectTeachingExams | Kỳ thi | Kỳ thi | A |
+| ExamAttempts, ExamResults | Kết quả của tôi | Lượt thi/kết quả | A/C; chưa có rule official/pass |
+| QuestionSuites, Questions, QuestionAnswers | Không mặc định | Ngân hàng câu hỏi | A; quyền khảo thí |
+| ExamQuestionSelections/Answers | Không mặc định | Detail lượt thi | A; dữ liệu nhạy cảm |
+| UserAnnouncements | Thông báo | Thông báo | A |
+| FormTemplates, FormRequests | Biểu mẫu | Dịch vụ sinh viên | B; 0 dòng |
+| Settings | Không | Hệ thống có giới hạn | A; cần phân loại secret |
+| UserDevices | Không | Không mặc định | A; nhạy cảm |
+| AuditLogs, PasswordResets | Không | Hệ thống có giới hạn | B; 0 dòng |
+
+## 12. Những nội dung UI không được vượt quá database
+
+| Nội dung quen thuộc ở website đại học | Database hiện tại | Quyết định PRD |
+|---|---|---|
+| GPA hệ 4/hệ 10, điểm chữ | Chỉ có result raw/combined raw | Không tính/hiển thị cho tới khi có công thức và rule chọn kết quả |
+| Đạt/rớt, xếp loại | Không có ngưỡng/quy tắc | Không suy diễn |
+| Tín chỉ tích lũy/tiến độ tốt nghiệp | Có credit kế hoạch nhưng không có mapping hoàn thành chuẩn | Chỉ hiện tín chỉ kế hoạch; không có progress tốt nghiệp |
+| Môn bắt buộc/tự chọn/tiên quyết | Không có field/quan hệ | Không hiển thị; cần mở rộng schema |
+| Phiên bản chương trình | Không có curriculum version | Gọi là kế hoạch học kỳ tham chiếu |
+| Lớp hành chính/cố vấn học tập | Không có mô hình xác định | Không đồng nhất với lớp học phần |
+| Học hàm/học vị/chức danh GV | Không có | Không tạo nội dung giả |
+| Chuyên cần % | Status chưa có semantics và chưa có denominator rule | Chỉ raw status sau khi map được phê duyệt |
+| Công nợ/miễn giảm/hạn đóng | `SemesterTuitions` quá tối giản và rỗng | Chỉ empty state; cần mô hình tài chính riêng |
+| CLO/PLO/kỹ năng/chủ đề/chương | Không có schema | Ngoài phạm vi, backlog dữ liệu |
+| Thông báo đã đọc | Có status/enforce-read nhưng write không thuộc phase | Có thể xem; cập nhật đọc để phase sau |
+| Nộp/duyệt biểu mẫu | Có schema nhưng rỗng; là thao tác ghi | Thiết kế empty/read view; workflow phase sau |
+
+## 13. Yêu cầu read model/API
+
+UI không được tự join nhiều danh sách đầy đủ ở client. Backend cần cung cấp read model theo use case:
+
+- `StudentSummary`: student + user + major + faculty + academic year.
+- `StudentProgram`: semester plan + semester subjects + catalog subject khi có.
+- `StudentTeaching`: enrollment + subject teaching + subject + teachers + room.
+- `ScheduleEvent`: subject/class/room/teacher labels và thời gian.
+- `AttendanceRecord`: student + schedule + subject/class/room labels.
+- `ExamResultRecord`: student + exam + attempt + class/subject labels.
+- `TeacherSummary`: teacher-faculty + user + teaching count.
+- `TeachingDetail`: subject + teachers + enrollments + schedules + exams.
+- `ManagementOverview`: aggregate bằng query có kiểm soát, không kéo raw dataset về client.
+
+Mọi endpoint list cần `page`, `pageSize`, `search`, filter đặc thù, `sort` allowlist và response gồm `items`, `page`, `pageSize`, `totalCount`. Cross-service composition phải xử lý missing label bằng “Không xác định” và cờ chất lượng dữ liệu, không hiện GUID thay thế.
+
+## 14. Quy tắc dữ liệu và trình bày
+
+- Dùng `IsDeleted = false` ở mọi query nghiệp vụ thích hợp.
+- Thời gian hiển thị `dd/MM/yyyy HH:mm`, xử lý timezone nhất quán.
+- Số điểm không tự làm tròn làm thay đổi nghĩa; hiển thị precision theo quy tắc đã chốt.
+- Enum phải có data dictionary được phê duyệt. Nếu chưa có, dùng “Mã trạng thái: n” tại màn hình quản trị hạn chế; Student Portal phải ẩn hoặc dùng nhãn trung tính.
+- Snapshot fields như `SemesterSubject.SubjectName/SubjectCode` được ưu tiên cho lịch sử; nếu lệch danh mục hiện tại, UI có thể cảnh báo nhưng không tự thay thế.
+- Dữ liệu rỗng khác lỗi. Empty state phải nói rõ chưa có bản ghi, không nói “hệ thống lỗi”.
+- Không export trường nhạy cảm mặc định; mọi export phải áp dụng cùng filter/quyền như list và có giới hạn số dòng.
+
+## 15. Bảo mật và riêng tư
+
+- Student ownership phải lấy từ token đã xác thực, áp dụng trong database query trước projection/paging; không nhận `studentId` tùy ý từ client.
+- Management Portal cần RBAC/ABAC theo role và phạm vi khoa/đơn vị; deny-by-default.
+- TLS, security headers, CORS allowlist, rate limiting và session expiry bắt buộc khi triển khai.
+- Không log token, mật khẩu, hash/salt, push ID, số định danh đầy đủ hoặc dữ liệu thi nhạy cảm.
+- Chống XSS cho announcement, note, question/answer text; validate link và image URL.
+- Audit cho truy cập nhạy cảm và export cần một thiết kế riêng; bảng `AuditLogs` rỗng không chứng minh audit hiện hữu.
+- Phiên bản hiện tại giữ nguyên database: GET/read query, ngoại trừ login phát hành token không ghi DB. Mọi đánh dấu đã đọc, tạo form hay quản lý dữ liệu phải qua change proposal khác.
+
+## 16. Phi chức năng
+
+### Hiệu năng
+
+- Không `SELECT *`; projection đúng field theo list/detail.
+- Danh sách attendance/result/question/answer bắt buộc server pagination.
+- Index/filter plan phải được đánh giá bằng query plan trên bản sao hoặc kết nối chỉ đọc; không thay schema trong scope này.
+- Cache ngắn cho danh mục ít thay đổi (khoa, ngành, phòng, năm học); dữ liệu cá nhân/điểm không cache dùng chung.
+- Hủy request cũ khi người dùng đổi filter nhanh; tránh N+1 và lookup toàn bảng.
+
+### Khả dụng và lỗi
+
+- Có correlation ID hỗ trợ; thông báo lỗi thân thiện không lộ stack trace.
+- Một service phụ lỗi không được khiến toàn bộ dashboard trắng; widget có fallback riêng.
+- Retry chỉ cho request đọc idempotent; không retry vô hạn.
+
+### Accessibility và responsive
+
+- Mục tiêu WCAG 2.1 AA: keyboard navigation, focus rõ, contrast, label/form error, screen-reader text.
+- Không truyền đạt status chỉ bằng màu; có text/icon.
+- Student Portal hỗ trợ tốt từ 360 px; bảng chuyển card/list hoặc horizontal scroll có cột ưu tiên.
+- Management Portal tối ưu từ 1280 px, usable từ tablet 768 px.
+
+## 17. Acceptance criteria cấp sản phẩm
+
+1. Sinh viên đăng nhập và chỉ nhận dữ liệu thuộc chính mình trên mọi endpoint Student Portal.
+2. Dashboard sinh viên dẫn tới lịch, điểm danh, kết quả và thông báo trong tối đa 3 thao tác.
+3. Cán bộ có thể mở một sinh viên và xem các bản ghi lớp/lịch/điểm danh/thi liên quan mà không sao chép GUID.
+4. Cán bộ có thể đi từ khoa/ngành tới kế hoạch và môn; từ môn tới lớp học phần; từ lớp tới giảng viên/sinh viên/lịch/kỳ thi.
+5. Search/filter/sort/paging nằm trong URL và được thực thi phía server ở danh sách lớn.
+6. Mỗi list/detail có loading, empty, error, retry và permission-denied state phù hợp.
+7. Không có password hash/salt, push ID hoặc dữ liệu định danh đầy đủ trong network response không cần thiết.
+8. Attendance không dùng nhãn hoặc tỷ lệ chưa được phê duyệt.
+9. Exam result không tự tạo GPA, đạt/rớt, điểm chữ hoặc kết quả chính thức.
+10. Các bảng rỗng hiển thị empty state thật, không seed hay giả lập dữ liệu trên database cố định.
+11. Tất cả 36 bảng được phân loại: có UI nghiệp vụ, chỉ dùng làm lookup/detail, hoặc chủ động không hiển thị vì kỹ thuật/nhạy cảm.
+12. Bộ kiểm tra read-only xác nhận không có migration, seed hay write API trong phạm vi release.
+
+## 18. Lộ trình đề xuất
+
+### Phase 0 — Chốt nghiệp vụ và an toàn
+
+- Chốt mã sinh viên chính thức và cơ chế đăng nhập production.
+- Ban hành data dictionary cho Role/Status/Type/Level, đặc biệt attendance và exam.
+- Chốt RBAC/phạm vi dữ liệu quản trị và masking.
+- Xác nhận quy tắc công bố kết quả, đánh giá, thông báo và dữ liệu khảo thí.
+
+### Phase 1 — Nền tảng tra cứu cốt lõi
+
+- App shell, auth, overview hai cổng.
+- Hồ sơ, cơ cấu đào tạo, sinh viên, giảng viên, môn, kế hoạch, lớp, lịch.
+- Read models, server filters, master–detail và URL state.
+
+### Phase 2 — Điểm danh, thi, đánh giá và truyền thông
+
+- Điểm danh sau khi chốt enum.
+- Kỳ thi/kết quả raw và ngân hàng câu hỏi theo quyền.
+- Đánh giá sinh viên và thông báo.
+
+### Phase 3 — Module có schema nhưng đang rỗng
+
+- Tài liệu môn, học phí tối giản, mẫu biểu/yêu cầu khi có dữ liệu thật và owner nghiệp vụ.
+
+### Phase 4 — Nghiệp vụ ghi và mở rộng dữ liệu
+
+- Workflow biểu mẫu, đã đọc thông báo, quản lý dữ liệu.
+- GPA/đạt-rớt/tích lũy, curriculum version, môn bắt buộc/tự chọn/tiên quyết.
+- Lớp hành chính, cố vấn, chuẩn đầu ra CLO/PLO và mô hình tài chính đầy đủ.
+
+## 19. Rủi ro và câu hỏi cần quyết định
+
+| Ưu tiên | Câu hỏi/quyết định |
+|---|---|
+| P0 | Trường nào là mã sinh viên chính thức: `Nickname`, `UserInternalId` hay `UserName`? |
+| P0 | Thuật toán xác thực/SSO production là gì? |
+| P0 | Ý nghĩa chính xác của các giá trị attendance status 1–4? |
+| P0 | Quy tắc chọn kết quả thi chính thức, ngưỡng đạt, điểm chữ và công bố điểm? |
+| P0 | Các role và phạm vi khoa/đơn vị của Management Portal? |
+| P1 | `SubjectTeaching` được gắn học kỳ/ngành bằng quan hệ nào, hay cần bổ sung schema? |
+| P1 | Sinh viên được xem breakdown câu hỏi/đáp án tới mức nào và sau thời điểm nào? |
+| P1 | `StudentEvaluations.Type` và thang điểm có data dictionary nào? |
+| P1 | `UserAnnouncements.UserIds` được serialize theo chuẩn nào; status đọc được lưu ra sao? |
+| P2 | Có cần hỗ trợ export và audit truy cập dữ liệu nhạy cảm ngay phase đầu? |
+
+## 20. Definition of Ready cho triển khai
+
+PRD sẵn sàng chuyển thành backlog triển khai khi hoàn tất tối thiểu:
+
+- Phê duyệt sitemap và danh sách P0/P1.
+- Chốt bốn quyết định P0 về mã sinh viên, xác thực, attendance và kết quả thi.
+- Có RBAC matrix và chính sách masking.
+- Có data dictionary enum và định nghĩa field tổng hợp.
+- API contract/read model cho các màn hình P0 được review với database owner.
+- Wireframe desktop/mobile cho hai app shell, overview, list và detail mẫu được duyệt.
+- Kế hoạch test ownership, cross-service missing labels, empty tables và dataset lớn được thống nhất.
+
+---
+
+### Phụ lục — Quyết định thiết kế cốt lõi
+
+PRD này cố ý không biến mọi bảng thành một menu. Các bảng kỹ thuật hoặc bảng nối được dùng phía sau read model; UI tổ chức theo hành trình nghiệp vụ. Mọi tính năng “giống website đại học” nhưng chưa có dữ liệu hoặc quy tắc đã được tách khỏi scope hiện tại để tránh giao diện đẹp nhưng đưa ra kết luận sai về sinh viên.
