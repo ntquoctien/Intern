@@ -35,3 +35,9 @@
 - Không phân loại bắt buộc/tự chọn hoặc tiên quyết vì schema chưa có.
 - Không tính tín chỉ đã đạt, tín chỉ còn thiếu hay tiến độ tốt nghiệp.
 
+## Đối chiếu schema database (22/07/2026)
+
+- `SemesterPlans` (120): `Id`, `AcademicYearId`, `MajorId`, `Semester`, `StartDate`, `EndDate`, `IsActive`, `IsDeleted`.
+- `SemesterSubjects` (659): `Id`, `SemesterPlanId`, `SubjectId`, `SubjectName`, `SubjectCode`, `CreditPoint`, `IsDeleted`.
+- Đối chiếu `Subjects(Id, FacultyId, SubjectCode, Name, CreditPoint, TotalHours, Note, IsActived, IsDeleted)`; cảnh báo SubjectId null/snapshot lệch.
+

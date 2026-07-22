@@ -25,3 +25,9 @@
 - `SubjectDocuments` hiện 0 dòng; tab hiển thị empty state thật.
 - Không tự bổ sung CLO/PLO, chương, chủ đề hoặc tiên quyết vì chưa có data model.
 
+## Đối chiếu schema database (22/07/2026)
+
+- `Subjects` (390): `Id`, `FacultyId`, `SubjectCode`, `Name`, `CreditPoint`, `TotalHours`, `Note`, `IsActived`, `IsDeleted`.
+- Detail liên kết `SemesterSubjects`, `SubjectTeachings`, `SubjectDocuments`, `SubjectSpecialNotes`; resolve khoa qua Faculties.
+- SpecialNotes có StudentId/CreatedById/Notes/Type/CreationDate và chỉ hiển thị theo quyền; SubjectDocuments đang rỗng.
+

@@ -29,3 +29,9 @@
 - Không gọi là lớp hành chính.
 - Không gán lớp duy nhất cho ngành/học kỳ nếu schema chưa có quan hệ xác định.
 
+## Đối chiếu schema database (22/07/2026)
+
+- `SubjectTeachings` (557): `Id`, `SubjectId`, `Name`, `StartDate`, `EndDate`, `TotalSessions`, `RoomIdDefault`, `IsDeleted`.
+- Detail liên kết `SubjectStudents`, `SubjectTeachingTeachers`, `SubjectSchedules`, `Attendances`, `SubjectTeachingExams`; resolve Subject, Room, Teacher/User và Student/User.
+- Không gán lớp cho ngành/học kỳ; sĩ số là count SubjectStudents.
+

@@ -29,3 +29,9 @@
 - `TeacherFaculties`, `Users`, `Faculties`, `SubjectTeachingTeachers`, `SubjectTeachings`, `Subjects`, `SubjectSchedules`.
 - Không hiển thị học hàm, học vị hoặc chức danh vì database không có.
 
+## Đối chiếu schema database (22/07/2026)
+
+- `TeacherFaculties` (67): `Id`, `UserId`, `FacultyId`, `IsHeadOfFaculty`, `IsDeleted`.
+- Resolve `Users(Id, FullName, UserName, UserInternalId, Mobile, ProfilePicUrl, Role, IsActived)` và `Faculties(Id, Code, Name)`.
+- Quan hệ dạy từ `SubjectTeachingTeachers(Id, SubjectTeachingId, TeacherId, IsMainTeacher, IsDeleted)` → SubjectTeachings → Subjects.
+

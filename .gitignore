@@ -1,9 +1,47 @@
 openspec/
 .codex/
+.agents/
 
+# .NET build and test artifacts
 bin/
 obj/
 **/bin/
 **/obj/
+TestResults/
+**/TestResults/
+*.trx
+*.coverage
+*.coveragexml
 
+# Frontend dependencies and generated output
+node_modules/
+**/node_modules/
+dist/
+**/dist/
+coverage/
+**/coverage/
+*.tsbuildinfo
+
+# Local build/test verification directories
+EducationSystem/.*buildcheck/
+EducationSystem/.*testcheck/
+EducationSystem/.*finalcheck/
+EducationSystem/.*rebuild-check/
+EducationSystem/.*rebuild-tests/
 EducationSystem/.run/
+
+# IDE, OS, logs, and local environment files
+.vs/
+**/.vs/
+.idea/
+**/.idea/
+.vscode/
+**/.vscode/
+*.user
+*.suo
+*.log
+.DS_Store
+Thumbs.db
+.env
+.env.*
+!.env.example

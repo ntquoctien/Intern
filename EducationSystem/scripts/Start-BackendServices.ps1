@@ -8,6 +8,21 @@ $root = Split-Path -Parent $PSScriptRoot
 $runDir = Join-Path $root ".run"
 New-Item -ItemType Directory -Path $runDir -Force | Out-Null
 
+# Development services require one shared signing key. Keep it ephemeral when
+# the caller has not supplied a real secret; never write it to the repository.
+if ([string]::IsNullOrWhiteSpace($env:StudentJwt__SigningKey)) {
+    $jwtBytes = New-Object byte[] 48
+    $randomNumberGenerator = [System.Security.Cryptography.RandomNumberGenerator]::Create()
+    try {
+        $randomNumberGenerator.GetBytes($jwtBytes)
+    }
+    finally {
+        $randomNumberGenerator.Dispose()
+    }
+    $env:StudentJwt__SigningKey = [Convert]::ToBase64String($jwtBytes)
+    Write-Host "Generated an ephemeral Student JWT signing key for this development run."
+}
+
 $services = @(
     @{ Name = "IdentityService"; Port = 5001 },
     @{ Name = "AcademicService"; Port = 5002 },

@@ -28,3 +28,9 @@
 - Không hiển thị PushId, token hoặc dữ liệu reset mật khẩu.
 - Role là enum cần data dictionary; không để người dùng nhập mã số filter.
 
+## Đối chiếu schema database (22/07/2026)
+
+- `Users` (665): `Id`, `UserName`, `FullName`, `BirthDate`, `IdentificationDate`, `IdentificationNumber`, `UserInternalId`, `Mobile`, `ProfilePicUrl`, `Role`, `IsActived`, `LastEnforceAnnouncementRead`, `IsDeleted`.
+- Detail liên kết `Students(UserId)`, `TeacherFaculties(UserId)` và aggregate `UserDevices(UserId, UserRole, DeviceType)`.
+- Cấm trả `PasswordHash`, `PasswordSalt`, `UserDevices.Identifier`, `UserDevices.PushId`; mask identification/mobile.
+

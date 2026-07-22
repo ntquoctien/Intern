@@ -1,1 +1,1 @@
-export { ManagementTeachersPage } from '../../ManagementPages'
+export { ManagementTeachersPage } from './ManagementTeachersPage'

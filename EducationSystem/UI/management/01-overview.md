@@ -33,3 +33,8 @@
 
 - GPA trung bình, tỷ lệ đạt, tốt nghiệp, chuyên cần hay công nợ khi chưa có định nghĩa.
 - KPI phải aggregate tại backend, không tải raw dataset về client.
+
+## Đối chiếu schema database (22/07/2026)
+
+- Aggregate từ `Students`, `Users`, `Faculties`, `Majors`, `AcademicYears`, `Subjects`, `SubjectTeachings`, `TeacherFaculties`, `SubjectSchedules`, `Attendances`, `SubjectTeachingExams`, `ExamResults`, `UserAnnouncements`.
+- Mọi count lọc `IsDeleted`; database không có bảng lịch sử snapshot nên không tính phần trăm tăng trưởng theo tháng.

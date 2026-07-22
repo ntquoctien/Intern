@@ -34,3 +34,15 @@
 
 - `Students` composition `Users`, `Majors`, `Faculties`, `AcademicYears` và các bảng học tập liên quan.
 
+## Đối chiếu schema database (22/07/2026)
+
+- List: `Students(Id, UserId, AcademicYearId, MajorId, StudyStatus, Nickname, IsGraduated, HasIssue)` + `Users(FullName, UserName, UserInternalId, IsActived)` + nhãn Major/Faculty/AcademicYear.
+- Detail: toàn bộ cột Students về giới tính, nơi sinh, địa chỉ, dân tộc, tôn giáo, trình độ, gia đình, chính sách, nghề nghiệp, ngày Đảng/Đoàn, issue và library; phân section, masking và RBAC.
+- Không trả `PasswordHash/PasswordSalt`; identification/mobile/address/family không xuất hiện ở list/export mặc định.
+
+## Quy tắc điểm tổng kết môn
+
+- Công thức khi đủ dữ liệu: `Điểm môn = Chuyên cần × 10% + Kiểm tra × 40% + Thi × 50%`.
+- Chỉ tính khi ba điểm đều là điểm số 0–10, thuộc cùng `StudentId` và cùng môn/lớp học phần; thiếu một thành phần thì hiển thị “Chưa đủ dữ liệu để tính”.
+- Schema hiện chưa có cột điểm chuyên cần; `Attendances.Status` không được tự quy đổi thành điểm. `StudentEvaluations.Type` cũng chưa xác định loại “Kiểm tra”, nên chưa phát hành GPA môn từ dữ liệu hiện tại.
+

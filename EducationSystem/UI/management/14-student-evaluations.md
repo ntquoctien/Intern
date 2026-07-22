@@ -28,3 +28,9 @@
 - `EvaluationCriterias` đang 0 dòng; detail phải hoạt động với ID null/snapshot name.
 - Không tự tạo xếp loại hay so sánh bộ tiêu chí chưa đồng nhất.
 
+## Đối chiếu schema database (22/07/2026)
+
+- `StudentEvaluations` (3.423): liên kết student/class/plan/exam/question/teacher, TeacherName, Type, Comment, TotalScore, CreationDate, UpdatedDate, IsDeleted.
+- `StudentEvaluationDetails` (23.032): EvaluationCriteriaId, snapshot EvaluationName, StudentScore, Score; `EvaluationCriterias` hiện rỗng.
+- Resolve ID khi tồn tại, giữ snapshot khi catalog thiếu; RBAC với comment/điểm chi tiết.
+

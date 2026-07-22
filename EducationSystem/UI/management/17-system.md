@@ -30,3 +30,10 @@
 - Không hiển thị password hash/salt, reset secret, push identifier hay dữ liệu định danh đầy đủ.
 - Phase hiện tại chỉ đọc, không sửa settings hoặc thực hiện reset.
 
+## Đối chiếu schema database (22/07/2026)
+
+- `Settings` (11): `Id`, `Key`, `Value`, `IsDeleted`; inventory/mask Value và deny-by-default.
+- `AuditLogs` hiện 0 dòng: `Id`, `Action`, `Details`, `RecordId`, `CreationDate`, `UserId`, `RecordEntity`, `RecordDesc`, `IsDeleted`.
+- `UserDevices` (115): chỉ aggregate UserRole/DeviceType, cấm lộ Identifier/PushId. `PasswordResets` hiện 0 dòng và không được lộ secret.
+- Không bao giờ trả `Users.PasswordHash`, `Users.PasswordSalt` hoặc số định danh đầy đủ.
+

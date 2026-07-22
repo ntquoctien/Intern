@@ -31,3 +31,9 @@
 - `ExamResults` 31.079 và answers 176.092 dòng: không tải toàn bộ.
 - Không tự kết luận điểm chính thức, đạt/rớt, điểm chữ hoặc GPA.
 
+## Đối chiếu schema database (22/07/2026)
+
+- `SubjectTeachingExams` (1.528): lớp, suite, tên, thời gian, phòng, teacher, notes, type, Count/NumOfEasy/Normal/Hard/Practice, Method, AllowNotifyStudent, IsDeleted.
+- `ExamAttempts` (1.587): student/exam/draft/submit; `ExamResults` (31.079): exam/student/attempt, Result, CombinedResult, Notes, ExamResultDesc, ExamResultDetail.
+- Có thể đối chiếu ExamQuestionSelections/ExamQuestionAnswers theo quyền; không suy diễn đạt/rớt.
+

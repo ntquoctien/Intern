@@ -39,3 +39,9 @@
 - Tỷ lệ chuyên cần hoặc cảnh báo vắng học.
 - Công nợ học phí.
 
+## Đối chiếu schema database (22/07/2026)
+
+- Hồ sơ: `Users(Id, FullName, ProfilePicUrl, IsActived)`, `Students(Id, UserId, AcademicYearId, MajorId, Nickname, StudyStatus, IsGraduated, HasIssue)`, `Majors`, `Faculties`, `AcademicYears`.
+- Học tập: `SubjectStudents`, `SubjectTeachings(Id, SubjectId, Name, StartDate, EndDate, TotalSessions, RoomIdDefault)`, `Subjects`, `SubjectSchedules`, `Rooms`, `TeacherFaculties`.
+- Liên lạc/thi: `UserAnnouncements(Id, Type, Message, CreationDate, Status, DeepLink, DeepLinkParam, EnforceRead, NotificationType)`, `SubjectTeachingExams`, `ExamResults`.
+

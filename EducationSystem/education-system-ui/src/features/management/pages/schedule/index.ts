@@ -1,1 +1,1 @@
-export { ManagementSchedulePage } from '../../ManagementPages'
+export { ManagementRoomsSchedulePage as ManagementSchedulePage } from './ManagementRoomsSchedulePage'

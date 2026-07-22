@@ -29,3 +29,9 @@
 - Dataset 93.865 dòng: bắt buộc paging/filter backend.
 - Chưa phát hành tỷ lệ chuyên cần hoặc nhãn status cho đến khi xác nhận semantics 1–4 và mẫu số.
 
+## Đối chiếu schema database (22/07/2026)
+
+- `Attendances` (93.865): `Id`, `SubjectScheduleId`, `StudentId`, `CreatedById`, `Status`, `Notes`, `CreationDate`, `IsFirstTypeWarning`, `IsSecondTypeWarning`.
+- Detail resolve student/user, lịch, lớp, môn, phòng và người ghi nhận; không hiện GUID quan hệ.
+- Bắt buộc paging/filter server; không phát hành nhãn status/tỷ lệ trước khi xác nhận semantics.
+

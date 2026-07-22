@@ -31,3 +31,8 @@
 - Badge header lấy số lượng từ endpoint aggregate có quyền.
 - Đánh dấu đã đọc là thao tác ghi, ngoài phase chỉ đọc hiện tại.
 
+## Đối chiếu schema database (22/07/2026)
+
+- `UserAnnouncements` (16.809): `Id`, `Type`, `UserIds`, `Message`, `CreationDate`, `Status`, `DeepLink`, `DeepLinkParam`, `EntityObjectId`, `EnforceRead`, `NotificationType`, `IsDeleted`.
+- Backend parse `UserIds` và lọc đúng user; không hiện raw recipients/GUID entity. Deep link chỉ chạy khi khớp allowlist; sanitize message.
+

@@ -26,3 +26,9 @@
 - `SubjectTeachingTeachers`, `TeacherFaculties`, `Users`, `SubjectTeachings`, `Subjects`.
 - Missing user label hiển thị “Không xác định” kèm cờ dữ liệu ở quản trị, không dùng GUID làm tên.
 
+## Đối chiếu schema database (22/07/2026)
+
+- `SubjectTeachingTeachers` (524): `Id`, `SubjectTeachingId`, `TeacherId`, `IsMainTeacher`, `IsDeleted`.
+- Resolve lớp/môn từ SubjectTeachings/Subjects; giảng viên từ TeacherFaculties và Users; khoa từ Faculties.
+- Ghi danh là bảng riêng `SubjectStudents(Id, SubjectTeachingId, StudentId)`, không trộn nghĩa với phân công.
+

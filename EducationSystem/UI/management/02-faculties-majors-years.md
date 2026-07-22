@@ -30,3 +30,9 @@
 - `Faculties`, `Majors`, `AcademicYears` và aggregate từ `Subjects`, `TeacherFaculties`, `Students`, `SemesterPlans`.
 - Số đếm phải tôn trọng `IsDeleted` và phạm vi quyền.
 
+## Đối chiếu schema database (22/07/2026)
+
+- `Faculties` (9): `Id`, `Name`, `Code`, `IsDeleted`; detail aggregate ngành, môn, giảng viên, sinh viên.
+- `Majors` (21): `Id`, `FacultyId`, `Name`, `Code`, `TrainingType`, `IsDeleted`; giữ TrainingType raw nếu chưa có enum.
+- `AcademicYears` (6): `Id`, `Name`, `Year`, `StartDate`, `EndDate`, `IsDeleted`; detail aggregate sinh viên và kế hoạch.
+

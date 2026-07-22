@@ -33,3 +33,9 @@
 - `FormTemplates`, `FormRequests`; resolve student/approver qua service phù hợp.
 - Student Portal chỉ truy vấn request thuộc `studentId` trong token.
 
+## Đối chiếu schema database (22/07/2026)
+
+- `FormTemplates` hiện 0 dòng: `Id`, `Name`, `DocumentUrl`, `IsDeleted`.
+- `FormRequests` hiện 0 dòng: `Id`, `CreationDate`, `UpdateDate`, `StudentId`, `FormTemplateId`, `ApprovalId`, `ApprovalName`, `Note`, `Status`, `IsDeleted`.
+- Không hiện ApprovalId dạng GUID; ưu tiên ApprovalName; kiểm tra an toàn DocumentUrl.
+

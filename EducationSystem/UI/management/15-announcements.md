@@ -29,3 +29,8 @@
 - Không để lộ raw serialized `UserIds` trên list.
 - Gửi/sửa/xóa thông báo là phase write-enabled riêng.
 
+## Đối chiếu schema database (22/07/2026)
+
+- `UserAnnouncements` (16.809): `Id`, `Type`, `UserIds`, `Message`, `CreationDate`, `Status`, `DeepLink`, `DeepLinkParam`, `EntityObjectId`, `EnforceRead`, `NotificationType`, `IsDeleted`.
+- Detail parse/resolve recipients, sanitize content và kiểm tra deep-link allowlist; không đưa raw UserIds lên list.
+

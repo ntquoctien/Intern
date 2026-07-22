@@ -27,3 +27,8 @@
 - Không tạo nhãn “Đã đóng/Chưa đóng” chỉ từ `PaidDate` nếu chưa có quy tắc.
 - Muốn có cổng tài chính đầy đủ cần mở rộng data model và workflow riêng.
 
+## Đối chiếu schema database (22/07/2026)
+
+- `SemesterTuitions` hiện 0 dòng: `Id`, `SemesterPlanId`, `StudentId`, `Amount`, `PaidDate`, `IsDeleted`; resolve kỳ qua `SemesterPlans` và `AcademicYears`.
+- Không có hạn thanh toán, đơn vị tiền, miễn giảm, giao dịch hay số dư; không suy diễn công nợ.
+

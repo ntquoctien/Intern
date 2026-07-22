@@ -35,3 +35,9 @@
 - Dữ liệu hiện có `Attendance.Status` 1–4 nhưng chưa xác nhận ý nghĩa.
 - Không gán Có mặt/Vắng/Muộn/Có phép và không tính tỷ lệ chuyên cần trước khi chốt data dictionary và mẫu số.
 
+## Đối chiếu schema database (22/07/2026)
+
+- `Attendances` (93.865): `Id`, `SubjectScheduleId`, `StudentId`, `CreatedById`, `Status`, `Notes`, `CreationDate`, `IsFirstTypeWarning`, `IsSecondTypeWarning`.
+- Resolve buổi qua `SubjectSchedules`, lớp/môn qua `SubjectTeachings`/`Subjects`, phòng qua `Rooms`; resolve người ghi nhận khi có quyền.
+- `Status` 1–4 chưa có semantics nên không gán nhãn/tính tỷ lệ.
+

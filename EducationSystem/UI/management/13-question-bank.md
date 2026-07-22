@@ -26,3 +26,9 @@
 - Answers đúng chỉ cho role được cấp; sanitize text và validate image URL.
 - Không tạo filter Chapter/Topic/CLO/PLO/Skill/status vì database chưa có.
 
+## Đối chiếu schema database (22/07/2026)
+
+- `QuestionSuites` (319): `Id`, `SubjectId`, `Name`, `UpdatedById`, `CreationTime`.
+- `Questions` (6.652): `Id`, `QuestionSuiteId`, `QuestionText`, `Level`, `ImageUrl`; `QuestionAnswers` (25.516): `Id`, `QuestionId`, `AnswerText`, `ImageUrl`, `IsAnswer`.
+- Resolve subject/updater; đáp án đúng chỉ dành cho role khảo thí được phép.
+

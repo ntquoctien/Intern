@@ -31,3 +31,8 @@
 - Không seed dữ liệu demo vào database.
 - Tạo/sửa/duyệt/từ chối là workflow ghi cần proposal, authorization và audit riêng.
 
+## Đối chiếu schema database (22/07/2026)
+
+- `FormTemplates`: `Id`, `Name`, `DocumentUrl`, `IsDeleted`; `FormRequests`: `Id`, CreationDate, UpdateDate, StudentId, FormTemplateId, ApprovalId, ApprovalName, Note, Status, IsDeleted. Cả hai hiện 0 dòng.
+- Detail resolve sinh viên/mẫu, ưu tiên ApprovalName; UI empty state thật và không giả workflow.
+

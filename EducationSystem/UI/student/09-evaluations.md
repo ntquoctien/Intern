@@ -30,3 +30,9 @@
 - `EvaluationCriterias` đang 0 dòng.
 - Không tự đặt tên thang đo, xếp loại hoặc so sánh giữa các bộ tiêu chí chưa đồng nhất.
 
+## Đối chiếu schema database (22/07/2026)
+
+- `StudentEvaluations` (3.423): các ID student/class/plan/exam/question/teacher, `TeacherName`, `Type`, `Comment`, `TotalScore`, `CreationDate`, `UpdatedDate`, `IsDeleted`.
+- `StudentEvaluationDetails` (23.032): `StudentEvaluationId`, `EvaluationCriteriaId`, `EvaluationName`, `StudentScore`, `Score`, `IsDeleted`.
+- `EvaluationCriterias` hiện 0 dòng: `Id`, `Name`, `Description`, `Type`, `Score`, `ParentId`, `QuestionId`; ưu tiên snapshot name.
+

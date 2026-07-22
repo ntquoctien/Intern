@@ -29,3 +29,8 @@
 - `SubjectDocuments`, `Subjects`.
 - Quyền truy cập dựa trên các môn/lớp liên quan qua `SubjectStudents`.
 
+## Đối chiếu schema database (22/07/2026)
+
+- `SubjectDocuments` hiện 0 dòng: `Id`, `SubjectId`, `Type`, `Name`, `Detail`, `Url`, `CreateById`, `UserId`, `CreationDate`, `UpdateDate`.
+- Resolve subject và creator; kiểm tra URL scheme/domain; không hiện GUID người tạo và không giả dữ liệu.
+

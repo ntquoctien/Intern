@@ -28,3 +28,9 @@
 - `SemesterPlans`, `SemesterSubjects`, `Majors`, `Faculties`, `AcademicYears`, `Subjects`.
 - Không gọi đây là curriculum version; chưa có loại môn bắt buộc/tự chọn/tiên quyết.
 
+## Đối chiếu schema database (22/07/2026)
+
+- `SemesterPlans` (120): `Id`, `AcademicYearId`, `MajorId`, `Semester`, `StartDate`, `EndDate`, `IsActive`, `IsDeleted`; resolve Major → Faculty và AcademicYear.
+- `SemesterSubjects` (659): `Id`, `SemesterPlanId`, `SubjectId`, `SubjectName`, `SubjectCode`, `CreditPoint`, `IsDeleted`; detail hiển thị snapshot và tổng tín chỉ snapshot.
+- Đối chiếu `Subjects(Id, SubjectCode, Name, CreditPoint, IsActived, IsDeleted)`; chỉ báo khớp khi code/name/credit đều khớp và subject còn tồn tại.
+

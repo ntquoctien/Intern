@@ -1,1 +1,1 @@
-export { SubjectStudentsPage } from '../../../academic/pages'
+export { ManagementTeachingAssignmentsPage as SubjectStudentsPage } from './ManagementTeachingAssignmentsPage'

@@ -34,3 +34,8 @@
 - Không hiển thị hoặc gửi về client `PasswordHash`, `PasswordSalt`.
 - Login bằng mã sinh viên đơn thuần chỉ phù hợp demo/nội bộ, không đủ cho production.
 
+## Đối chiếu schema database (22/07/2026)
+
+- `identity.Users` (665): `Id`, `UserName`, `FullName`, `UserInternalId`, `ProfilePicUrl`, `Role`, `IsActived`, `LastEnforceAnnouncementRead`, `IsDeleted`.
+- `academic.Students` (577): `Id`, `UserId`, `Nickname`, `IsDeleted` để đối chiếu MSSV. Không trả `PasswordHash`, `PasswordSalt`.
+

@@ -40,6 +40,9 @@ public sealed class ManagementProjectionTests
         Assert.NotNull(await service.GetStudentAsync(student.Id, default));
         Assert.Single(await service.GetTeachersAsync(default));
         Assert.Equal(2, (await service.GetPlansAsync(default)).Count);
+        var projectedPlan = Assert.IsType<AcademicService.Application.DTOs.Management.ManagementPlanDetailDto>(await service.GetPlanAsync(planA.Id, default));
+        Assert.Equal(3, projectedPlan.TotalCreditPoints);
+        Assert.True(Assert.Single(projectedPlan.Subjects).CatalogMatch);
         var projectedClass = Assert.Single(await service.GetClassesAsync(default));
         Assert.Equal("CNTT", projectedClass.FacultyName);
         Assert.Empty(projectedClass.TeacherNames);

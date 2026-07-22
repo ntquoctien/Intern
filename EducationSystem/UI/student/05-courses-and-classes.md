@@ -44,3 +44,9 @@
 - `SubjectTeaching` là lớp học phần, không phải lớp hành chính.
 - Không tự gắn một lớp học phần với ngành/học kỳ khi database chưa có quan hệ chắc chắn.
 
+## Đối chiếu schema database (22/07/2026)
+
+- `SubjectStudents(Id, SubjectTeachingId, StudentId)`; `SubjectTeachings(Id, SubjectId, Name, StartDate, EndDate, TotalSessions, RoomIdDefault, IsDeleted)`.
+- `Subjects(Id, FacultyId, SubjectCode, Name, CreditPoint, TotalHours, Note, IsActived)`; `Rooms(Id, Name, NumberOfSeats)`.
+- `SubjectTeachingTeachers(Id, SubjectTeachingId, TeacherId, IsMainTeacher)`, `TeacherFaculties`, `SubjectSchedules`; resolve tên qua `Users.FullName`.
+

@@ -1,1 +1,1 @@
-export { UsersPage } from '../../../identity/pages'
+export { ManagementUsersPage as UsersPage } from './ManagementUsersPage'

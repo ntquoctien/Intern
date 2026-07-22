@@ -25,3 +25,9 @@
 - Dùng timezone thống nhất; không suy diễn tiết học.
 - Cảnh báo vượt sức chứa chỉ khi số chỗ và sĩ số đều hợp lệ.
 
+## Đối chiếu schema database (22/07/2026)
+
+- `Rooms` (24): `Id`, `Name`, `NumberOfSeats`, `IsDeleted`.
+- `SubjectSchedules` (6.382): `Id`, `SubjectTeachingId`, `RoomId`, `TeacherId`, `StartDateTime`, `EndDateTime`, `ScheduleType`, `Note`, `IsDeleted`.
+- Resolve lớp/môn/giảng viên; chỉ cảnh báo sức chứa khi NumberOfSeats và count SubjectStudents hợp lệ.
+

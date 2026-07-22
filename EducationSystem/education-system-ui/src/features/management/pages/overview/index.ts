@@ -1,1 +1,1 @@
-export { ManagementDashboardPage } from '../../ManagementPages'
+export { ManagementOverviewPage as ManagementDashboardPage } from './ManagementOverviewPage'

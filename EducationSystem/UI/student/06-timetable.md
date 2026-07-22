@@ -37,3 +37,9 @@
 - Dùng timezone Asia/Ho_Chi_Minh.
 - Không suy diễn số tiết từ giờ nếu chưa có bảng quy đổi tiết học.
 
+## Đối chiếu schema database (22/07/2026)
+
+- `SubjectSchedules` (6.382): `Id`, `SubjectTeachingId`, `RoomId`, `TeacherId`, `StartDateTime`, `EndDateTime`, `ScheduleType`, `Note`, `IsDeleted`.
+- Resolve `SubjectTeachings(Name, SubjectId)`, `Subjects(SubjectCode, Name)`, `Rooms(Name, NumberOfSeats)`, `TeacherFaculties(UserId)` và `Users.FullName`.
+- Chỉ trả lịch thuộc `SubjectStudents` của sinh viên; giữ `ScheduleType` raw nếu chưa chốt enum.
+

@@ -41,3 +41,9 @@
 - `identity.Users`, `academic.Students`, `Majors`, `Faculties`, `AcademicYears`.
 - Không trả password hash/salt hoặc dữ liệu thiết bị.
 
+## Đối chiếu schema database (22/07/2026)
+
+- `Users`: `FullName`, `BirthDate`, `IdentificationDate`, `IdentificationNumber`, `UserInternalId`, `Mobile`, `ProfilePicUrl`, `Role`, `IsActived`; mask số định danh/mobile.
+- `Students`: `StudyStatus`, `Gender`, `Nickname`, nơi sinh/địa chỉ/dân tộc/tôn giáo/trình độ, gia đình, chính sách, nghề nghiệp, ngày Đảng/Đoàn, `IsGraduated`, `HasIssue`, `IssueDescription`, `LibraryId`; chia section và RBAC.
+- Resolve `AcademicYears(Name, Year, StartDate, EndDate)`, `Majors(Code, Name, TrainingType)`, `Faculties(Code, Name)`.
+
