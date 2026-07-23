@@ -198,4 +198,103 @@ public sealed class StudentSelfService(
                 attendance.IsSecondTypeWarning))
             .ToListAsync(cancellationToken);
     }
+
+    public async Task<IReadOnlyList<StudentEvaluationDto>> GetEvaluationsAsync(
+        Guid studentId,
+        CancellationToken cancellationToken)
+    {
+        return await dbContext.StudentEvaluations.AsNoTracking()
+            .Where(evaluation => evaluation.StudentId == studentId && !evaluation.IsDeleted)
+            .OrderByDescending(evaluation => evaluation.CreationDate)
+            .Select(evaluation => new StudentEvaluationDto(
+                evaluation.Id,
+                evaluation.SubjectTeachingId,
+                evaluation.SubjectTeaching != null ? evaluation.SubjectTeaching.Subject.SubjectCode : null,
+                evaluation.SubjectTeaching != null ? evaluation.SubjectTeaching.Subject.Name : null,
+                evaluation.SubjectTeaching != null ? evaluation.SubjectTeaching.Name : null,
+                evaluation.SemesterPlan != null ? evaluation.SemesterPlan.Semester : null,
+                evaluation.SubjectTeachingExamId,
+                evaluation.QuestionId,
+                evaluation.TeacherName,
+                evaluation.Type,
+                evaluation.Comment,
+                evaluation.TotalScore,
+                evaluation.CreationDate,
+                evaluation.UpdatedDate,
+                evaluation.StudentEvaluationDetails
+                    .Where(detail => !detail.IsDeleted)
+                    .OrderBy(detail => detail.Id)
+                    .Select(detail => new StudentEvaluationCriterionDto(
+                        detail.Id,
+                        detail.EvaluationName ?? (detail.EvaluationCriteria != null ? detail.EvaluationCriteria.Name : null),
+                        detail.StudentScore,
+                        detail.Score))
+                    .ToList()))
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<IReadOnlyList<StudentDocumentDto>> GetDocumentsAsync(
+        Guid studentId,
+        CancellationToken cancellationToken)
+    {
+        var documents = await dbContext.SubjectDocuments.AsNoTracking()
+            .Where(document => dbContext.SubjectStudents.Any(enrollment =>
+                enrollment.StudentId == studentId &&
+                !enrollment.Student.IsDeleted &&
+                !enrollment.SubjectTeaching.IsDeleted &&
+                enrollment.SubjectTeaching.SubjectId == document.SubjectId))
+            .OrderByDescending(document => document.UpdateDate)
+            .Select(document => new
+            {
+                document.Id,
+                document.SubjectId,
+                document.Subject.SubjectCode,
+                SubjectName = document.Subject.Name,
+                document.Type,
+                document.Name,
+                document.Detail,
+                document.Url,
+                document.CreationDate,
+                document.UpdateDate
+            })
+            .ToListAsync(cancellationToken);
+
+        return documents.Select(document => new StudentDocumentDto(
+            document.Id,
+            document.SubjectId,
+            document.SubjectCode,
+            document.SubjectName,
+            document.Type,
+            document.Name,
+            document.Detail,
+            Uri.TryCreate(document.Url, UriKind.Absolute, out var uri) &&
+            string.Equals(uri.Scheme, Uri.UriSchemeHttps, StringComparison.OrdinalIgnoreCase)
+                ? uri.AbsoluteUri
+                : null,
+            document.CreationDate,
+            document.UpdateDate))
+            .ToList();
+    }
+
+    public async Task<IReadOnlyList<StudentTuitionDto>> GetTuitionsAsync(
+        Guid studentId,
+        CancellationToken cancellationToken)
+    {
+        return await dbContext.SemesterTuitions.AsNoTracking()
+            .Where(tuition => tuition.StudentId == studentId &&
+                !tuition.IsDeleted &&
+                !tuition.SemesterPlan.IsDeleted)
+            .OrderByDescending(tuition => tuition.SemesterPlan.StartDate)
+            .Select(tuition => new StudentTuitionDto(
+                tuition.Id,
+                tuition.SemesterPlanId,
+                tuition.SemesterPlan.Semester,
+                tuition.SemesterPlan.AcademicYear.Name,
+                tuition.SemesterPlan.StartDate,
+                tuition.SemesterPlan.EndDate,
+                tuition.SemesterPlan.IsActive,
+                tuition.Amount,
+                tuition.PaidDate))
+            .ToListAsync(cancellationToken);
+    }
 }

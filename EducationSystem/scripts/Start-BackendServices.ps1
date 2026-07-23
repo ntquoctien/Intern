@@ -54,10 +54,18 @@ foreach ($service in $services) {
     $project = Join-Path $root "src\Services\$($service.Name)\$($service.Name).csproj"
     $outLog = Join-Path $runDir "$($service.Name).out.log"
     $errLog = Join-Path $runDir "$($service.Name).err.log"
-    $arguments = @("run", "--project", $project, "--launch-profile", "http")
-    if ($NoBuild) {
-        $arguments += "--no-build"
+
+    if (-not $NoBuild) {
+        Write-Host "Building $($service.Name)..."
+        & dotnet build $project --no-restore
+        if ($LASTEXITCODE -ne 0) {
+            throw "Build failed for $($service.Name)."
+        }
     }
+
+    # Build explicitly above so startup never performs an implicit restore and
+    # never launches an outdated service after new endpoints were added.
+    $arguments = @("run", "--project", $project, "--launch-profile", "http", "--no-build")
 
     $process = Start-Process -FilePath "dotnet" `
         -ArgumentList $arguments `

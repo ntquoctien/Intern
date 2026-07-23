@@ -10,7 +10,9 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IFormTemplateQueryService, FormTemplateQueryService>();
         services.AddScoped<IFormRequestQueryService, FormRequestQueryService>();
         services.AddScoped<IStudentFormRequestService, StudentFormRequestService>();
+        services.AddScoped<IStudentAnnouncementService, StudentAnnouncementService>();
         services.AddScoped<IUserAnnouncementQueryService, UserAnnouncementQueryService>();
+        services.AddScoped<IManagementAnnouncementReadService, ManagementAnnouncementReadService>();
         return services;
     }
 }

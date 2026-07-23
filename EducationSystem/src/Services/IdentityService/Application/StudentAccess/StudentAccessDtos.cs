@@ -1,6 +1,6 @@
 namespace IdentityService.Application.StudentAccess;
 
-public sealed record StudentLoginRequest(string StudentCode);
+public sealed record StudentLoginRequest(string StudentCode, string Credential);
 
 public sealed record StudentSessionDto(
     Guid StudentId,

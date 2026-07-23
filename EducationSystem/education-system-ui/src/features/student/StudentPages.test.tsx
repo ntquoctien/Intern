@@ -1,12 +1,13 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
+import { MemoryRouter } from 'react-router-dom'
 import { StudentDashboardPage, StudentFormRequestsPage, StudentSchedulePage } from './StudentPages'
 import { studentApi } from './studentApi'
 
 function renderPage(page: React.ReactNode) {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } })
-  return render(<QueryClientProvider client={client}>{page}</QueryClientProvider>)
+  return render(<QueryClientProvider client={client}><MemoryRouter>{page}</MemoryRouter></QueryClientProvider>)
 }
 
 describe('student page accessibility and responsive views', () => {
@@ -20,22 +21,23 @@ describe('student page accessibility and responsive views', () => {
       roomName: 'A101', teacherName: null, note: '',
     }])
     const { container } = renderPage(<StudentSchedulePage />)
-    expect(await screen.findAllByText(/SE101 · SE101.01/)).not.toHaveLength(0)
-    expect(screen.getByText('Chưa có thông tin giảng viên')).toBeInTheDocument()
+    expect(await screen.findAllByText('SE101')).not.toHaveLength(0)
+    expect(screen.getAllByText(/Chưa có giảng viên/)).not.toHaveLength(0)
     expect(container.querySelector('.schedule-desktop')).toBeInTheDocument()
     expect(container.querySelector('.schedule-mobile')).toBeInTheDocument()
     expect(screen.getByRole('radio', { name: 'T2' })).toBeInTheDocument()
   })
 
   it('opens form-request detail from keyboard and exposes no mutation action', async () => {
+    vi.spyOn(studentApi, 'formTemplates').mockResolvedValue([])
     vi.spyOn(studentApi, 'formRequests').mockResolvedValue([{
       formRequestId: 'request-1', formTemplateName: 'Xác nhận sinh viên',
       creationDate: '2026-07-20T08:00:00', updateDate: '2026-07-20T09:00:00',
       rawStatus: 1, approvalName: '', note: 'Bản ghi hiện có',
     }])
     renderPage(<StudentFormRequestsPage />)
-    const cell = await screen.findByText('Xác nhận sinh viên')
-    const row = cell.closest('tr')!
+    const cells = await screen.findAllByText('Xác nhận sinh viên')
+    const row = cells.map(cell => cell.closest('button')).find(Boolean)!
     row.focus()
     fireEvent.keyDown(row, { key: 'Enter' })
     await waitFor(() => expect(screen.getByText('Chi tiết yêu cầu')).toBeInTheDocument())

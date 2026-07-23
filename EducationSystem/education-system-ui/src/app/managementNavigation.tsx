@@ -1,4 +1,4 @@
-import { BankOutlined, BookOutlined, CalendarOutlined, CheckSquareOutlined, DashboardOutlined, FileTextOutlined, IdcardOutlined, ReadOutlined, SettingOutlined, TeamOutlined, UserOutlined } from '@ant-design/icons'
+import { AuditOutlined, BankOutlined, BellOutlined, BookOutlined, CalendarOutlined, CheckSquareOutlined, DashboardOutlined, DatabaseOutlined, FileTextOutlined, IdcardOutlined, ReadOutlined, SettingOutlined, TeamOutlined, UserOutlined } from '@ant-design/icons'
 
 export type ManagementRole = 'Administrator' | 'AcademicManager' | 'Viewer'
 export type ManagementNavigationItem = {
@@ -24,6 +24,9 @@ export const managementNavigation: ManagementNavigationItem[] = [
   { id: 'schedule', label: 'Phòng & Lịch giảng dạy', path: '/management/teaching/schedule', icon: <CalendarOutlined />, roles: allRoles, breadcrumb: ['Trang chủ', 'Quản trị', 'Phòng và lịch giảng dạy'] },
   { id: 'attendance', label: 'Điểm danh', path: '/management/teaching/attendance', icon: <CheckSquareOutlined />, roles: allRoles, breadcrumb: ['Trang chủ', 'Quản trị', 'Điểm danh'] },
   { id: 'results', label: 'Kỳ thi / Kết quả', path: '/management/assessment/results', icon: <FileTextOutlined />, roles: allRoles, breadcrumb: ['Trang chủ', 'Quản trị', 'Kỳ thi và kết quả'] },
+  { id: 'question-bank', label: 'Ngân hàng câu hỏi', path: '/management/assessment/question-suites', icon: <DatabaseOutlined />, roles: allRoles, breadcrumb: ['Trang chủ', 'Quản trị', 'Ngân hàng câu hỏi'] },
+  { id: 'evaluations', label: 'Đánh giá sinh viên', path: '/management/assessment/evaluations', icon: <AuditOutlined />, roles: allRoles, breadcrumb: ['Trang chủ', 'Quản trị', 'Đánh giá sinh viên'] },
+  { id: 'announcements', label: 'Thông báo', path: '/management/communication/announcements', icon: <BellOutlined />, roles: allRoles, breadcrumb: ['Trang chủ', 'Quản trị', 'Thông báo'] },
   { id: 'forms', label: 'Biểu mẫu', path: '/management/forms/requests', icon: <FileTextOutlined />, roles: allRoles, breadcrumb: ['Trang chủ', 'Quản trị', 'Biểu mẫu'] },
   { id: 'system', label: 'Hệ thống', path: '/management/system', icon: <SettingOutlined />, roles: ['Administrator'], breadcrumb: ['Trang chủ', 'Quản trị', 'Hệ thống'] },
   { id: 'users', label: 'Tài khoản', path: '/management/people/users', icon: <IdcardOutlined />, roles: ['Administrator'], breadcrumb: ['Trang chủ', 'Quản trị', 'Tài khoản người dùng'] },

@@ -18,7 +18,10 @@ public sealed class StudentAuthController(
         StudentLoginRequest request,
         CancellationToken cancellationToken)
     {
-        var result = await loginService.LoginAsync(request.StudentCode ?? string.Empty, cancellationToken);
+        var result = await loginService.LoginAsync(
+            request.StudentCode ?? string.Empty,
+            request.Credential ?? string.Empty,
+            cancellationToken);
         if (result.Success)
         {
             return Ok(ApiResponse<StudentLoginResponse>.Ok(result.Response));

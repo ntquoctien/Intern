@@ -22,13 +22,19 @@ coverage/
 **/coverage/
 *.tsbuildinfo
 
-# Local build/test verification directories
-EducationSystem/.*buildcheck/
-EducationSystem/.*testcheck/
-EducationSystem/.*finalcheck/
-EducationSystem/.*rebuild-check/
-EducationSystem/.*rebuild-tests/
+# Local build/test verification and scratch directories
+# These folders are created with changing suffixes (for example
+# .announcement-buildcheck2 and .attendance-perf-tests).
+EducationSystem/.*buildcheck*/
+EducationSystem/.*testcheck*/
+EducationSystem/.*finalcheck*/
+EducationSystem/.*rebuild-check*/
+EducationSystem/.*rebuild-tests*/
+EducationSystem/.*-tests*/
+EducationSystem/.*-perf-check*/
+EducationSystem/.*-runtime-check*/
 EducationSystem/.run/
+EducationSystem/.tmp/
 
 # IDE, OS, logs, and local environment files
 .vs/

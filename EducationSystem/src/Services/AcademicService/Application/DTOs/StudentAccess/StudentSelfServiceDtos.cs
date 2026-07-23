@@ -79,6 +79,52 @@ public sealed record StudentAttendanceDto(
     bool? IsFirstTypeWarning,
     bool? IsSecondTypeWarning);
 
+public sealed record StudentEvaluationDto(
+    Guid EvaluationId,
+    Guid? SubjectTeachingId,
+    string? SubjectCode,
+    string? SubjectName,
+    string? ClassName,
+    int? Semester,
+    Guid? SubjectTeachingExamId,
+    Guid? QuestionId,
+    string? TeacherName,
+    int RawType,
+    string? Comment,
+    decimal? RawTotalScore,
+    DateTime CreationDate,
+    DateTime? UpdatedDate,
+    IReadOnlyList<StudentEvaluationCriterionDto> Criteria);
+
+public sealed record StudentEvaluationCriterionDto(
+    Guid DetailId,
+    string? SnapshotName,
+    decimal? StudentScore,
+    decimal? RawMaximumScore);
+
+public sealed record StudentDocumentDto(
+    Guid DocumentId,
+    Guid SubjectId,
+    string SubjectCode,
+    string SubjectName,
+    int RawType,
+    string Name,
+    string Detail,
+    string? SafeUrl,
+    DateTime CreationDate,
+    DateTime UpdateDate);
+
+public sealed record StudentTuitionDto(
+    Guid TuitionId,
+    Guid SemesterPlanId,
+    int Semester,
+    string AcademicYearName,
+    DateTime StartDate,
+    DateTime EndDate,
+    bool IsActivePlan,
+    decimal? RawAmount,
+    DateTime? PaidDate);
+
 public sealed record SafeIdentityUserDto(
     Guid UserId,
     string FullName,

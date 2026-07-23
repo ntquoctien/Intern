@@ -7,7 +7,7 @@ import { clearStudentToken, getStudentToken, setStudentToken, setStudentUnauthor
 type StudentAuthValue = {
   session: StudentSession | null
   restoring: boolean
-  login: (studentCode: string) => Promise<void>
+  login: (studentCode: string, password: string) => Promise<void>
   logout: () => void
 }
 
@@ -43,8 +43,8 @@ export function StudentAuthProvider({ children }: { children: ReactNode }) {
   const value = useMemo<StudentAuthValue>(() => ({
     session,
     restoring,
-    login: async (studentCode) => {
-      const result = await loginStudent(studentCode.trim())
+    login: async (studentCode, password) => {
+      const result = await loginStudent(studentCode.trim(), password)
       setStudentToken(result.accessToken)
       setSession(result.session)
     },

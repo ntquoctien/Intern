@@ -1,6 +1,6 @@
 import type { ApiResponse } from '../../shared/types/api'
 import { httpClient } from '../../shared/api/httpClient'
-import type { Attendance, ExamResult, FormRequest, ScheduleItem, StudentProfile, StudentProgram, StudentSession, StudentSubject } from './types'
+import type { Attendance, ExamResult, FormRequest, ScheduleItem, StudentAnnouncement, StudentDocument, StudentEvaluation, StudentFormTemplate, StudentProfile, StudentProgram, StudentSession, StudentSubject, StudentTuition } from './types'
 
 const origins = {
   identity: import.meta.env.VITE_IDENTITY_API_ORIGIN ?? 'http://localhost:5001',
@@ -14,10 +14,10 @@ async function read<T>(service: keyof typeof origins, path: string) {
   return response.data.data as T
 }
 
-export async function loginStudent(studentCode: string) {
+export async function loginStudent(studentCode: string, password: string) {
   const response = await httpClient.post<ApiResponse<{ accessToken: string; session: StudentSession }>>(
     `${origins.identity}/api/auth/student/login`,
-    { studentCode },
+    { studentCode, credential: password },
   )
   return response.data.data
 }
@@ -33,6 +33,11 @@ export const studentApi = {
   schedule: () => read<ScheduleItem[]>('academic', 'schedule'),
   examResults: () => read<ExamResult[]>('exam', 'exam-results'),
   attendance: () => read<Attendance[]>('academic', 'attendance'),
+  evaluations: () => read<StudentEvaluation[]>('academic', 'evaluations'),
+  announcements: () => read<StudentAnnouncement[]>('communication', 'announcements'),
+  documents: () => read<StudentDocument[]>('academic', 'documents'),
+  tuition: () => read<StudentTuition[]>('academic', 'tuition'),
   formRequests: () => read<FormRequest[]>('communication', 'form-requests'),
+  formTemplates: () => read<StudentFormTemplate[]>('communication', 'form-requests/templates'),
   formRequest: (id: string) => read<FormRequest>('communication', `form-requests/${id}`),
 }

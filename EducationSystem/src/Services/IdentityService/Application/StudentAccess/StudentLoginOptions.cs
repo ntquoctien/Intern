@@ -16,4 +16,6 @@ public sealed class StudentLoginOptions
     public string AcademicServiceBaseUrl { get; set; } = "http://localhost:5002";
 
     public int AcademicLookupTimeoutSeconds { get; set; } = 3;
+
+    public string DefaultCredential { get; set; } = "1";
 }

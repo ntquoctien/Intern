@@ -1,6 +1,7 @@
 using AcademicService.Application.DTOs.Management;
 using AcademicService.Application.Interfaces;
 using AcademicService.Infrastructure.Persistence;
+using AcademicService.Infrastructure.Persistence.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace AcademicService.Application.Services;
@@ -341,6 +342,171 @@ public sealed class ManagementReadService(
             .ToListAsync(cancellationToken);
     }
 
+    public async Task<AttendanceManagementPageDto> GetAttendancePageAsync(ManagementAttendanceQueryDto query, CancellationToken cancellationToken)
+    {
+        var source = ApplyAttendanceFilters(dbContext.Attendances.AsNoTracking(), query);
+        var total = await source.CountAsync(cancellationToken);
+        var statusCounts = await source.GroupBy(item => item.Status)
+            .Select(group => new { Status = group.Key, Count = group.Count() })
+            .ToDictionaryAsync(item => item.Status, item => item.Count, cancellationToken);
+        var pageNumber = Math.Max(1, query.PageNumber);
+        var pageSize = Math.Clamp(query.PageSize, 1, 100);
+        // Materialize the small page of keys before joining the academic graph.
+        // SQL Server otherwise expands every Student column into the paged query
+        // and can choose a plan that times out even for a ten-row page.
+        var pageIds = await source.OrderByDescending(item => item.CreationDate)
+            .Select(item => item.Id)
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync(cancellationToken);
+        var rows = await AttendanceProjectionQuery(dbContext.Attendances.AsNoTracking()
+                .Where(item => pageIds.Contains(item.Id)))
+            .ToListAsync(cancellationToken);
+        var positions = pageIds.Select((id, index) => new { id, index }).ToDictionary(item => item.id, item => item.index);
+        rows.Sort((left, right) => positions[left.AttendanceId].CompareTo(positions[right.AttendanceId]));
+        var userIds = rows.Select(item => item.StudentUserId).Concat(rows.Select(item => item.CreatedById))
+            .Concat(rows.Where(item => item.TeacherUserId.HasValue).Select(item => item.TeacherUserId!.Value));
+        var users = await identityUserClient.GetManyAsync(userIds, cancellationToken);
+        return new AttendanceManagementPageDto(rows.Select(item => MapAttendance(item, users)).ToList(),
+            pageNumber, pageSize, total, statusCounts);
+    }
+
+    public async Task<AttendanceManagementItemDto?> GetAttendanceDetailAsync(Guid id, CancellationToken cancellationToken)
+    {
+        var item = await AttendanceProjectionQuery(dbContext.Attendances.AsNoTracking()
+                .Where(value => value.Id == id))
+            .SingleOrDefaultAsync(cancellationToken);
+        if (item is null) return null;
+        var userIds = new[] { item.StudentUserId, item.CreatedById }
+            .Concat(item.TeacherUserId.HasValue ? new[] { item.TeacherUserId.Value } : []);
+        var users = await identityUserClient.GetManyAsync(userIds, cancellationToken);
+        return MapAttendance(item, users);
+    }
+
+    public async Task<StudentEvaluationManagementPageDto> GetStudentEvaluationPageAsync(
+        StudentEvaluationManagementQueryDto query, CancellationToken cancellationToken)
+    {
+        var source = ApplyEvaluationFilters(dbContext.StudentEvaluations.AsNoTracking()
+            .Where(item => !item.IsDeleted), query);
+        var pageNumber = Math.Max(1, query.PageNumber);
+        var pageSize = Math.Clamp(query.PageSize, 1, 100);
+        var total = await source.CountAsync(cancellationToken);
+        var average = await source.Where(item => item.TotalScore.HasValue)
+            .AverageAsync(item => item.TotalScore, cancellationToken);
+        var withComment = await source.CountAsync(item => item.Comment != null && item.Comment != "", cancellationToken);
+        var withoutScore = await source.CountAsync(item => !item.TotalScore.HasValue, cancellationToken);
+        var studentCount = await source.Select(item => item.StudentId).Distinct().CountAsync(cancellationToken);
+        var pageIds = await source.OrderByDescending(item => item.CreationDate).Select(item => item.Id)
+            .Skip((pageNumber - 1) * pageSize).Take(pageSize).ToListAsync(cancellationToken);
+        var rows = await EvaluationIncludes(dbContext.StudentEvaluations.AsNoTracking()
+                .Where(item => pageIds.Contains(item.Id)))
+            .ToListAsync(cancellationToken);
+        var positions = pageIds.Select((id, index) => new { id, index }).ToDictionary(item => item.id, item => item.index);
+        rows.Sort((left, right) => positions[left.Id].CompareTo(positions[right.Id]));
+        var users = await identityUserClient.GetManyAsync(rows.Select(item => item.Student.UserId), cancellationToken);
+        return new StudentEvaluationManagementPageDto(rows.Select(item => MapEvaluation(item, users)).ToList(),
+            pageNumber, pageSize, total, average, withComment, withoutScore, studentCount);
+    }
+
+    public async Task<StudentEvaluationManagementItemDto?> GetStudentEvaluationAsync(Guid id, CancellationToken cancellationToken)
+    {
+        var item = await EvaluationIncludes(dbContext.StudentEvaluations.AsNoTracking())
+            .SingleOrDefaultAsync(value => value.Id == id && !value.IsDeleted, cancellationToken);
+        if (item is null) return null;
+        var users = await identityUserClient.GetManyAsync(new[] { item.Student.UserId }, cancellationToken);
+        return MapEvaluation(item, users);
+    }
+
+    private static IQueryable<StudentEvaluation> ApplyEvaluationFilters(
+        IQueryable<StudentEvaluation> source, StudentEvaluationManagementQueryDto query)
+    {
+        if (!string.IsNullOrWhiteSpace(query.Search))
+        {
+            var search = query.Search.Trim();
+            source = source.Where(item => (item.Student.Nickname != null && item.Student.Nickname.Contains(search))
+                || (item.Comment != null && item.Comment.Contains(search))
+                || (item.TeacherName != null && item.TeacherName.Contains(search)));
+        }
+        if (query.StudentId.HasValue) source = source.Where(item => item.StudentId == query.StudentId);
+        if (query.ClassId.HasValue) source = source.Where(item => item.SubjectTeachingId == query.ClassId);
+        if (query.SemesterPlanId.HasValue) source = source.Where(item => item.SemesterPlanId == query.SemesterPlanId);
+        if (query.TeacherId.HasValue) source = source.Where(item => item.TeacherId == query.TeacherId);
+        if (query.Type.HasValue) source = source.Where(item => item.Type == query.Type);
+        if (query.FromDate.HasValue) source = source.Where(item => item.CreationDate >= query.FromDate.Value);
+        if (query.ToDate.HasValue) source = source.Where(item => item.CreationDate < query.ToDate.Value.AddDays(1));
+        if (query.MinimumScore.HasValue) source = source.Where(item => item.TotalScore >= query.MinimumScore);
+        if (query.MaximumScore.HasValue) source = source.Where(item => item.TotalScore <= query.MaximumScore);
+        return source;
+    }
+
+    private static IQueryable<StudentEvaluation> EvaluationIncludes(IQueryable<StudentEvaluation> source) => source
+        .Include(item => item.Student).ThenInclude(student => student.Major)
+        .Include(item => item.Student).ThenInclude(student => student.AcademicYear)
+        .Include(item => item.SubjectTeaching).ThenInclude(teaching => teaching!.Subject)
+        .Include(item => item.SemesterPlan)
+        .Include(item => item.StudentEvaluationDetails).ThenInclude(detail => detail.EvaluationCriteria);
+
+    private static StudentEvaluationManagementItemDto MapEvaluation(StudentEvaluation item,
+        IReadOnlyDictionary<Guid, AcademicService.Application.DTOs.StudentAccess.SafeIdentityUserDto> users) =>
+        new(item.Id, item.StudentId, item.Student.UserId, item.Student.Nickname ?? item.StudentId.ToString(),
+            users.GetValueOrDefault(item.Student.UserId)?.FullName,
+            users.GetValueOrDefault(item.Student.UserId)?.ProfilePicUrl,
+            item.Student.Major.Name, item.Student.AcademicYear.Name,
+            item.SubjectTeachingId, item.SubjectTeaching?.Name,
+            item.SubjectTeaching?.Subject.SubjectCode, item.SubjectTeaching?.Subject.Name,
+            item.SemesterPlanId, item.SemesterPlan?.Semester, item.SubjectTeachingExamId,
+            item.QuestionId, item.TeacherId, item.TeacherName, item.Type, item.Comment,
+            item.TotalScore, item.CreationDate, item.UpdatedDate,
+            item.StudentEvaluationDetails.Where(detail => !detail.IsDeleted)
+                .Select(detail => new StudentEvaluationBreakdownDto(detail.Id,
+                    detail.EvaluationCriteriaId, detail.EvaluationName, detail.EvaluationCriteria?.Name,
+                    detail.StudentScore, detail.Score, detail.EvaluationCriteria != null)).ToList());
+
+    private static IQueryable<Attendance> ApplyAttendanceFilters(IQueryable<Attendance> source, ManagementAttendanceQueryDto query)
+    {
+        if (!string.IsNullOrWhiteSpace(query.Search)) { var search = query.Search.Trim(); source = source.Where(item => (item.Student.Nickname != null && item.Student.Nickname.Contains(search)) || item.Notes.Contains(search)); }
+        if (query.FacultyId.HasValue) source = source.Where(item => item.SubjectSchedule.SubjectTeaching.Subject.FacultyId == query.FacultyId);
+        if (query.SubjectId.HasValue) source = source.Where(item => item.SubjectSchedule.SubjectTeaching.SubjectId == query.SubjectId);
+        if (query.ClassId.HasValue) source = source.Where(item => item.SubjectSchedule.SubjectTeachingId == query.ClassId);
+        if (query.RoomId.HasValue) source = source.Where(item => item.SubjectSchedule.RoomId == query.RoomId);
+        if (query.Status.HasValue) source = source.Where(item => item.Status == query.Status);
+        if (query.CreatedById.HasValue) source = source.Where(item => item.CreatedById == query.CreatedById);
+        if (query.FromDate.HasValue) source = source.Where(item => item.SubjectSchedule.StartDateTime >= query.FromDate.Value);
+        if (query.ToDate.HasValue) source = source.Where(item => item.SubjectSchedule.StartDateTime < query.ToDate.Value.AddDays(1));
+        return source;
+    }
+
+    private static IQueryable<AttendanceProjection> AttendanceProjectionQuery(IQueryable<Attendance> source) =>
+        source.Select(item => new AttendanceProjection(
+            item.Id, item.StudentId, item.Student.UserId, item.Student.Nickname ?? item.StudentId.ToString(),
+            item.Student.Major.Code, item.Student.Major.Name, item.Student.AcademicYear.Name,
+            item.SubjectScheduleId, item.SubjectSchedule.SubjectTeachingId, item.SubjectSchedule.SubjectTeaching.Name,
+            item.SubjectSchedule.SubjectTeaching.SubjectId,
+            item.SubjectSchedule.SubjectTeaching.Subject.SubjectCode,
+            item.SubjectSchedule.SubjectTeaching.Subject.Name,
+            item.SubjectSchedule.SubjectTeaching.Subject.FacultyId,
+            item.SubjectSchedule.SubjectTeaching.Subject.Faculty != null
+                ? item.SubjectSchedule.SubjectTeaching.Subject.Faculty.Name
+                : null,
+            item.SubjectSchedule.RoomId, item.SubjectSchedule.Room != null ? item.SubjectSchedule.Room.Name : null,
+            item.SubjectSchedule.TeacherId,
+            item.SubjectSchedule.Teacher != null ? item.SubjectSchedule.Teacher.UserId : null,
+            item.SubjectSchedule.StartDateTime, item.SubjectSchedule.EndDateTime,
+            item.Status, item.Notes, item.CreatedById, item.CreationDate,
+            item.IsFirstTypeWarning, item.IsSecondTypeWarning));
+
+    private static AttendanceManagementItemDto MapAttendance(AttendanceProjection item, IReadOnlyDictionary<Guid, AcademicService.Application.DTOs.StudentAccess.SafeIdentityUserDto> users)
+    {
+        return new AttendanceManagementItemDto(item.AttendanceId, item.StudentId, item.StudentCode,
+            users.GetValueOrDefault(item.StudentUserId)?.FullName, users.GetValueOrDefault(item.StudentUserId)?.ProfilePicUrl,
+            item.MajorCode, item.MajorName, item.AcademicYearName,
+            item.ScheduleId, item.ClassId, item.ClassName, item.SubjectId, item.SubjectCode, item.SubjectName,
+            item.FacultyId, item.FacultyName, item.RoomId, item.RoomName,
+            item.TeacherFacultyId, item.TeacherUserId.HasValue ? users.GetValueOrDefault(item.TeacherUserId.Value)?.FullName : null,
+            item.StartDateTime, item.EndDateTime, item.Status, item.Notes, item.CreatedById,
+            users.GetValueOrDefault(item.CreatedById)?.FullName, item.CreationDate, item.IsFirstTypeWarning, item.IsSecondTypeWarning);
+    }
+
     public async Task<ManagementSubjectDetailDto?> GetSubjectAsync(Guid id, CancellationToken cancellationToken)
     {
         return await dbContext.Subjects.AsNoTracking()
@@ -359,4 +525,14 @@ public sealed class ManagementReadService(
     private sealed record StudentProjection(Guid StudentId, Guid UserId, string StudentCode,
         string MajorCode, string MajorName, string? FacultyName, string AcademicYearName,
         int? RawStudyStatus, bool IsGraduated, bool? HasIssue);
+
+    private sealed record AttendanceProjection(
+        Guid AttendanceId, Guid StudentId, Guid StudentUserId, string StudentCode,
+        string MajorCode, string MajorName, string AcademicYearName,
+        Guid ScheduleId, Guid ClassId, string ClassName,
+        Guid SubjectId, string SubjectCode, string SubjectName,
+        Guid? FacultyId, string? FacultyName, Guid? RoomId, string? RoomName,
+        Guid? TeacherFacultyId, Guid? TeacherUserId,
+        DateTime StartDateTime, DateTime EndDateTime, int Status, string Notes,
+        Guid CreatedById, DateTime CreationDate, bool? IsFirstTypeWarning, bool? IsSecondTypeWarning);
 }

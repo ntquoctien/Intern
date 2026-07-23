@@ -1,1 +1,1 @@
-export { ManagementAttendancePage } from '../../ManagementPages'
+export { ManagementAttendanceRecordsPage as ManagementAttendancePage } from './ManagementAttendanceRecordsPage'

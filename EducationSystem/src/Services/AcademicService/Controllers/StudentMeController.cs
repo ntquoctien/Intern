@@ -56,4 +56,28 @@ public sealed class StudentMeController(
         return Ok(ApiResponse<IReadOnlyList<StudentAttendanceDto>>.Ok(
             await studentService.GetAttendanceAsync(current.StudentId, cancellationToken)));
     }
+
+    [HttpGet("evaluations")]
+    public async Task<ActionResult<ApiResponse<IReadOnlyList<StudentEvaluationDto>>>> Evaluations(CancellationToken cancellationToken)
+    {
+        var current = currentStudentAccessor.GetRequiredStudent();
+        return Ok(ApiResponse<IReadOnlyList<StudentEvaluationDto>>.Ok(
+            await studentService.GetEvaluationsAsync(current.StudentId, cancellationToken)));
+    }
+
+    [HttpGet("documents")]
+    public async Task<ActionResult<ApiResponse<IReadOnlyList<StudentDocumentDto>>>> Documents(CancellationToken cancellationToken)
+    {
+        var current = currentStudentAccessor.GetRequiredStudent();
+        return Ok(ApiResponse<IReadOnlyList<StudentDocumentDto>>.Ok(
+            await studentService.GetDocumentsAsync(current.StudentId, cancellationToken)));
+    }
+
+    [HttpGet("tuition")]
+    public async Task<ActionResult<ApiResponse<IReadOnlyList<StudentTuitionDto>>>> Tuition(CancellationToken cancellationToken)
+    {
+        var current = currentStudentAccessor.GetRequiredStudent();
+        return Ok(ApiResponse<IReadOnlyList<StudentTuitionDto>>.Ok(
+            await studentService.GetTuitionsAsync(current.StudentId, cancellationToken)));
+    }
 }

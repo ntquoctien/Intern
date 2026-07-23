@@ -7,7 +7,7 @@ namespace IdentityService.Application.StudentAccess;
 
 public interface IStudentLoginService
 {
-    Task<StudentLoginResult> LoginAsync(string studentCode, CancellationToken cancellationToken = default);
+    Task<StudentLoginResult> LoginAsync(string studentCode, string credential, CancellationToken cancellationToken = default);
 
     Task<StudentSessionDto?> GetSessionAsync(CurrentStudent currentStudent, DateTimeOffset expiresAt, CancellationToken cancellationToken = default);
 }
@@ -20,10 +20,12 @@ public sealed class StudentLoginService(
 {
     public async Task<StudentLoginResult> LoginAsync(
         string studentCode,
+        string credential,
         CancellationToken cancellationToken = default)
     {
         var normalizedCode = studentCode.Trim();
-        if (normalizedCode.Length is < 1 or > 100)
+        if (normalizedCode.Length is < 1 or > 100 ||
+            !string.Equals(credential, loginOptions.Value.DefaultCredential, StringComparison.Ordinal))
         {
             return Failure(StudentErrorCodes.NotFound, "Student code was not found.");
         }

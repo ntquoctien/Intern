@@ -23,3 +23,21 @@ public sealed record ManagementSubjectSummaryDto(Guid SubjectId, Guid? FacultyId
 public sealed record ManagementSubjectDetailDto(Guid SubjectId, Guid? FacultyId, string? FacultyCode, string? FacultyName, string SubjectCode, string Name, int CreditPoint, int? TotalHours, string Note, bool IsActive, int PlanCount, int ClassCount, int DocumentCount, int SpecialNoteCount);
 public sealed record ManagementScheduleDto(Guid ScheduleId, string SubjectCode, string SubjectName, string ClassName, DateTime StartDateTime, DateTime EndDateTime, string? RoomName, string? TeacherName, int? RawScheduleType);
 public sealed record ManagementAttendanceDto(Guid AttendanceId, string SubjectCode, string SubjectName, string ClassName, DateTime StartDateTime, int RawStatus, bool? FirstWarning, bool? SecondWarning);
+public sealed record ManagementAttendanceQueryDto(int PageNumber = 1, int PageSize = 10, string? Search = null, Guid? FacultyId = null, Guid? SubjectId = null, Guid? ClassId = null, Guid? RoomId = null, int? Status = null, Guid? CreatedById = null, DateTime? FromDate = null, DateTime? ToDate = null);
+public sealed record AttendanceManagementItemDto(Guid AttendanceId, Guid StudentId, string StudentCode, string? StudentName, string? StudentProfilePicUrl, string MajorCode, string MajorName, string AcademicYearName, Guid ScheduleId, Guid ClassId, string ClassName, Guid SubjectId, string SubjectCode, string SubjectName, Guid? FacultyId, string? FacultyName, Guid? RoomId, string? RoomName, Guid? TeacherFacultyId, string? TeacherName, DateTime StartDateTime, DateTime EndDateTime, int RawStatus, string Notes, Guid CreatedById, string? CreatedByName, DateTime CreationDate, bool? FirstWarning, bool? SecondWarning);
+public sealed record AttendanceManagementPageDto(IReadOnlyList<AttendanceManagementItemDto> Items, int PageNumber, int PageSize, int TotalItems, IReadOnlyDictionary<int, int> StatusCounts);
+public sealed record StudentEvaluationManagementQueryDto(int PageNumber = 1, int PageSize = 10,
+    string? Search = null, Guid? StudentId = null, Guid? ClassId = null, Guid? SemesterPlanId = null,
+    Guid? TeacherId = null, int? Type = null, DateTime? FromDate = null, DateTime? ToDate = null,
+    decimal? MinimumScore = null, decimal? MaximumScore = null);
+public sealed record StudentEvaluationBreakdownDto(Guid DetailId, Guid? CriteriaId, string? SnapshotName,
+    string? CriteriaName, decimal? StudentScore, decimal? MaximumScore, bool CriteriaResolved);
+public sealed record StudentEvaluationManagementItemDto(Guid EvaluationId, Guid StudentId, Guid StudentUserId,
+    string StudentCode, string? StudentName, string? StudentProfilePicUrl, string MajorName,
+    string AcademicYearName, Guid? ClassId, string? ClassName, string? SubjectCode, string? SubjectName,
+    Guid? SemesterPlanId, int? Semester, Guid? ExamId, Guid? QuestionId, Guid? TeacherId,
+    string? TeacherName, int RawType, string? Comment, decimal? TotalScore, DateTime CreationDate,
+    DateTime? UpdatedDate, IReadOnlyList<StudentEvaluationBreakdownDto> Breakdown);
+public sealed record StudentEvaluationManagementPageDto(IReadOnlyList<StudentEvaluationManagementItemDto> Items,
+    int PageNumber, int PageSize, int TotalItems, decimal? AverageScore, int WithCommentCount,
+    int WithoutScoreCount, int StudentCount);

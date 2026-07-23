@@ -21,4 +21,8 @@ public interface IManagementReadService
     Task<ManagementSubjectDetailDto?> GetSubjectAsync(Guid id, CancellationToken cancellationToken);
     Task<IReadOnlyList<ManagementScheduleDto>> GetScheduleAsync(CancellationToken cancellationToken);
     Task<IReadOnlyList<ManagementAttendanceDto>> GetAttendanceAsync(CancellationToken cancellationToken);
+    Task<AttendanceManagementPageDto> GetAttendancePageAsync(ManagementAttendanceQueryDto query, CancellationToken cancellationToken);
+    Task<AttendanceManagementItemDto?> GetAttendanceDetailAsync(Guid id, CancellationToken cancellationToken);
+    Task<StudentEvaluationManagementPageDto> GetStudentEvaluationPageAsync(StudentEvaluationManagementQueryDto query, CancellationToken cancellationToken);
+    Task<StudentEvaluationManagementItemDto?> GetStudentEvaluationAsync(Guid id, CancellationToken cancellationToken);
 }

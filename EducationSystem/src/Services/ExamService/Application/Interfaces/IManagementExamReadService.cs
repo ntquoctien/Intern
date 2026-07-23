@@ -8,4 +8,8 @@ public interface IManagementExamReadService
     Task<IReadOnlyList<ManagementRawExamResultDto>> GetResultsAsync(CancellationToken cancellationToken);
     Task<IReadOnlyList<QuestionSuiteSummaryDto>> GetSuitesAsync(CancellationToken cancellationToken);
     Task<QuestionSuiteDetailDto?> GetSuiteAsync(Guid id, CancellationToken cancellationToken);
+    Task<ManagementExamPageDto> GetExamPageAsync(ManagementExamQueryDto query, CancellationToken cancellationToken);
+    Task<ManagementExamItemDto?> GetExamAsync(Guid id, CancellationToken cancellationToken);
+    Task<QuestionBankPageDto> GetQuestionPageAsync(QuestionBankQueryDto query, CancellationToken cancellationToken);
+    Task<QuestionBankDetailDto?> GetQuestionAsync(Guid id, CancellationToken cancellationToken);
 }

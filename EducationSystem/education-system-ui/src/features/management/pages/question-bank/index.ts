@@ -1,1 +1,1 @@
-export { ManagementQuestionSuitesPage } from '../../ManagementPages'
+export { ManagementQuestionBankPage as ManagementQuestionSuitesPage } from './ManagementQuestionBankPage'

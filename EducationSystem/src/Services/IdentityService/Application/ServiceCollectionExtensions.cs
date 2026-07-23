@@ -14,6 +14,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IPasswordResetQueryService, PasswordResetQueryService>();
         services.AddScoped<IAuditLogQueryService, AuditLogQueryService>();
         services.AddScoped<ISettingQueryService, SettingQueryService>();
+        services.AddScoped<IManagementSystemReadService, ManagementSystemReadService>();
         services.AddScoped<IStudentLoginService, StudentLoginService>();
         services.AddHttpClient<IAcademicStudentIdentityClient, AcademicStudentIdentityClient>((provider, client) =>
         {

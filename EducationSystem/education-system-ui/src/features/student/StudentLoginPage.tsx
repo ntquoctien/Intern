@@ -1,4 +1,4 @@
-import { Alert, Button, Card, Form, Input, Space, Typography } from 'antd'
+import { Alert, Button, Card, Form, Input, Typography } from 'antd'
 import axios from 'axios'
 import { useState } from 'react'
 import { Navigate, useLocation, useNavigate } from 'react-router-dom'
@@ -13,38 +13,47 @@ export function StudentLoginPage() {
   const [submitting, setSubmitting] = useState(false)
   if (session) return <Navigate to="/student/dashboard" replace />
 
-  const submit = async ({ studentCode }: { studentCode: string }) => {
+  const submit = async ({ studentCode, password }: { studentCode: string; password: string }) => {
     setSubmitting(true)
     setError(undefined)
     try {
-      await login(studentCode)
+      await login(studentCode, password)
       navigate('/student/dashboard', { replace: true })
     } catch (reason) {
       const response = axios.isAxiosError<ApiResponse<unknown>>(reason) ? reason.response?.data : undefined
-      setError(response?.error?.code === 'STUDENT_CODE_AMBIGUOUS'
-        ? 'Mã sinh viên đang trùng với nhiều hồ sơ. Vui lòng liên hệ quản trị viên.'
-        : response?.error?.code === 'STUDENT_NOT_FOUND'
-          ? 'Không tìm thấy mã sinh viên hợp lệ.'
-          : response?.message ?? 'Không thể đăng nhập lúc này.')
+      setError(response?.error?.code === 'STUDENT_IDENTITY_SERVICE_UNAVAILABLE'
+        ? 'Hệ thống đang tạm thời gián đoạn. Vui lòng thử lại sau.'
+        : 'Thông tin đăng nhập không hợp lệ.')
     } finally {
       setSubmitting(false)
     }
   }
 
   return <main className="student-login-shell">
+    <section className="student-login-panel" aria-labelledby="student-login-title">
+      <header className="student-login-brand">
+        <span className="student-login-brand-mark" aria-hidden="true">TDU</span>
+        <div>
+          <strong>TRƯỜNG ĐẠI HỌC TÂY ĐÔ</strong>
+          <span>CỔNG THÔNG TIN SINH VIÊN</span>
+        </div>
+      </header>
     <Card className="student-login-card">
-      <Space direction="vertical" size="large" style={{ width: '100%' }}>
-        <div><Typography.Title level={2}>Cổng thông tin sinh viên</Typography.Title><Typography.Text type="secondary">Đăng nhập bằng mã số sinh viên (MSSV)</Typography.Text></div>
+      <Typography.Title id="student-login-title" level={2}>Đăng nhập</Typography.Title>
+      <Typography.Paragraph type="secondary">Sử dụng mã số sinh viên và mật khẩu để tiếp tục.</Typography.Paragraph>
         {new URLSearchParams(location.search).get('reason') === 'expired' && <Alert type="warning" showIcon message="Phiên đã hết hạn. Vui lòng đăng nhập lại." />}
-        <Alert type="warning" showIcon message="Chỉ dành cho demo/nội bộ" description="MSSV không phải là cơ chế xác minh danh tính an toàn. Không dùng cổng này như hệ thống đăng nhập production." />
         {error && <Alert type="error" showIcon message={error} />}
         <Form layout="vertical" onFinish={submit}>
           <Form.Item name="studentCode" label="Mã số sinh viên" rules={[{ required: true, message: 'Vui lòng nhập MSSV' }, { max: 100 }]}>
-            <Input autoFocus autoComplete="username" placeholder="Ví dụ: SV000001" />
+            <Input autoFocus autoComplete="username" placeholder="Nhập mã số sinh viên" />
+          </Form.Item>
+          <Form.Item name="password" label="Mật khẩu" rules={[{ required: true, message: 'Vui lòng nhập mật khẩu' }]}>
+            <Input.Password autoComplete="current-password" placeholder="Nhập mật khẩu" />
           </Form.Item>
           <Button type="primary" htmlType="submit" loading={submitting} block>Đăng nhập</Button>
         </Form>
-      </Space>
+        <Typography.Text className="student-login-hint" type="secondary">Mật khẩu mặc định: <strong>1</strong></Typography.Text>
     </Card>
+    </section>
   </main>
 }

@@ -1,1 +1,1 @@
-export { FormRequestsPage } from '../../../communication/pages'
+export { FormRequestsPage } from './ManagementFormRequestsPage'

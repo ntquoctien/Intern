@@ -40,9 +40,25 @@ public sealed class StudentLoginTests
         };
         var service = CreateService(db, client, issuer);
 
-        Assert.Equal(StudentErrorCodes.NotFound, (await service.LoginAsync("missing")).ErrorCode);
+        Assert.Equal(StudentErrorCodes.NotFound, (await service.LoginAsync("missing", "1")).ErrorCode);
         client.Resolution = new AcademicStudentResolution(2, null);
-        Assert.Equal(StudentErrorCodes.CodeAmbiguous, (await service.LoginAsync("duplicate")).ErrorCode);
+        Assert.Equal(StudentErrorCodes.CodeAmbiguous, (await service.LoginAsync("duplicate", "1")).ErrorCode);
+        Assert.Equal(0, issuer.IssueCount);
+    }
+
+    [Fact]
+    public async Task Login_RejectsIncorrectDefaultPasswordWithoutLookingUpStudent()
+    {
+        await using var db = NewIdentityDb();
+        var issuer = new FakeTokenIssuer();
+        var service = CreateService(db, new FakeAcademicClient
+        {
+            Resolution = new AcademicStudentResolution(1, NewCandidate(Guid.NewGuid()))
+        }, issuer);
+
+        var result = await service.LoginAsync("SV000001", "wrong");
+
+        Assert.Equal(StudentErrorCodes.NotFound, result.ErrorCode);
         Assert.Equal(0, issuer.IssueCount);
     }
 
@@ -61,7 +77,7 @@ public sealed class StudentLoginTests
             Resolution = new AcademicStudentResolution(1, candidate)
         }, new FakeTokenIssuer());
 
-        var result = await service.LoginAsync("SV000001");
+        var result = await service.LoginAsync("SV000001", "1");
         Assert.Equal(StudentErrorCodes.AccountUnavailable, result.ErrorCode);
     }
 
@@ -74,7 +90,7 @@ public sealed class StudentLoginTests
             Resolution = new AcademicStudentResolution(1, NewCandidate(Guid.NewGuid()))
         }, new FakeTokenIssuer());
 
-        Assert.Equal(StudentErrorCodes.AccountUnavailable, (await service.LoginAsync("SV000001")).ErrorCode);
+        Assert.Equal(StudentErrorCodes.AccountUnavailable, (await service.LoginAsync("SV000001", "1")).ErrorCode);
     }
 
     [Theory]
@@ -99,7 +115,7 @@ public sealed class StudentLoginTests
             Resolution = new AcademicStudentResolution(1, candidate)
         }, issuer);
 
-        var result = await service.LoginAsync("SV000001");
+        var result = await service.LoginAsync("SV000001", "1");
         Assert.True(result.Success);
         Assert.Equal(1, issuer.IssueCount);
     }

@@ -24,6 +24,19 @@ public sealed class StudentFormRequestService(CommunicationDbContext dbContext) 
             .Select(Project())
             .SingleOrDefaultAsync(cancellationToken);
 
+    public async Task<IReadOnlyList<StudentFormTemplateDto>> GetTemplatesAsync(
+        CancellationToken cancellationToken) =>
+        await dbContext.FormTemplates.AsNoTracking()
+            .Where(template => !template.IsDeleted)
+            .OrderBy(template => template.Name)
+            .Select(template => new StudentFormTemplateDto(
+                template.Id,
+                template.Name,
+                template.DocumentUrl != null && template.DocumentUrl.StartsWith("https://")
+                    ? template.DocumentUrl
+                    : null))
+            .ToListAsync(cancellationToken);
+
     private IQueryable<Infrastructure.Persistence.Entities.FormRequest> OwnedQuery(Guid studentId) =>
         dbContext.FormRequests.AsNoTracking()
             .Where(request => request.StudentId == studentId && !request.IsDeleted);
@@ -33,11 +46,13 @@ public sealed class StudentFormRequestService(CommunicationDbContext dbContext) 
             request.Id,
             request.FormTemplateId,
             request.FormTemplate != null ? request.FormTemplate.Name : null,
-            request.FormTemplate != null ? request.FormTemplate.DocumentUrl : null,
+            request.FormTemplate != null && request.FormTemplate.DocumentUrl != null &&
+                request.FormTemplate.DocumentUrl.StartsWith("https://")
+                ? request.FormTemplate.DocumentUrl
+                : null,
             request.CreationDate,
             request.UpdateDate,
             request.Status,
-            request.ApprovalId,
             request.ApprovalName,
             request.Note);
 }

@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { render, screen } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
@@ -36,15 +36,15 @@ describe('student routes', () => {
     expect(screen.getByText('LOGIN_DESTINATION')).toBeInTheDocument()
   })
 
-  it('redirects to dashboard after successful MSSV-only login', async () => {
+  it('redirects to dashboard after successful MSSV and password login', async () => {
     const login = vi.fn().mockResolvedValue(undefined)
     mockedAuth.mockReturnValue({ session: null, restoring: false, login, logout: vi.fn() })
     renderLoginRoutes()
     await userEvent.type(screen.getByLabelText('Mã số sinh viên'), 'SV000001')
+    await userEvent.type(screen.getByLabelText('Mật khẩu'), '1')
     await userEvent.click(screen.getByRole('button', { name: 'Đăng nhập' }))
-    expect(login).toHaveBeenCalledWith('SV000001')
-    expect(screen.getByText('DASHBOARD_DESTINATION')).toBeInTheDocument()
-    expect(screen.queryByLabelText(/mật khẩu/i)).not.toBeInTheDocument()
+    expect(login).toHaveBeenCalledWith('SV000001', '1')
+    await waitFor(() => expect(screen.getByText('DASHBOARD_DESTINATION')).toBeInTheDocument())
   })
 
   it('clears client session and navigates to login on logout', async () => {
@@ -59,7 +59,7 @@ describe('student routes', () => {
   it('renders keyboard-addressable read-only navigation without mutation actions', () => {
     mockedAuth.mockReturnValue({ session, restoring: false, login: vi.fn(), logout: vi.fn() })
     renderRoutes('/student/dashboard')
-    expect(screen.getByRole('menuitem', { name: /Thời khóa biểu/ })).toBeInTheDocument()
+    expect(screen.getByRole('menuitem', { name: /Lịch học/ })).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /tạo|sửa|xóa|duyệt|nộp/i })).not.toBeInTheDocument()
   })
 })

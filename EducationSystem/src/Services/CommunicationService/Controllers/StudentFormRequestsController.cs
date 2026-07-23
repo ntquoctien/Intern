@@ -13,6 +13,12 @@ public sealed class StudentFormRequestsController(
     IStudentFormRequestService requestService,
     ICurrentStudentAccessor currentStudentAccessor) : ControllerBase
 {
+    [HttpGet("templates")]
+    public async Task<ActionResult<ApiResponse<IReadOnlyList<StudentFormTemplateDto>>>> GetTemplates(
+        CancellationToken cancellationToken) =>
+        Ok(ApiResponse<IReadOnlyList<StudentFormTemplateDto>>.Ok(
+            await requestService.GetTemplatesAsync(cancellationToken)));
+
     [HttpGet]
     public async Task<ActionResult<ApiResponse<IReadOnlyList<StudentFormRequestDto>>>> GetAll(
         CancellationToken cancellationToken)

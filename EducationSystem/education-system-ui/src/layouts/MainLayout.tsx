@@ -12,7 +12,7 @@ export function MainLayout() {
         <Sidebar />
       </Layout.Sider>
       <Drawer className="mobile-sidebar" placement="left" width={240} open={mobileMenuOpen} onClose={() => setMobileMenuOpen(false)} styles={{ body: { padding: 0 } }}>
-        <Sidebar />
+        <Sidebar onNavigate={() => setMobileMenuOpen(false)} />
       </Drawer>
       <Layout>
         <HeaderBar onOpenMenu={() => setMobileMenuOpen(true)} />

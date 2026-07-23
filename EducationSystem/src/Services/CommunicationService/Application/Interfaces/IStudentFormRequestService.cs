@@ -6,4 +6,5 @@ public interface IStudentFormRequestService
 {
     Task<IReadOnlyList<StudentFormRequestDto>> GetAllAsync(Guid studentId, CancellationToken cancellationToken);
     Task<StudentFormRequestDto?> GetByIdAsync(Guid studentId, Guid requestId, CancellationToken cancellationToken);
+    Task<IReadOnlyList<StudentFormTemplateDto>> GetTemplatesAsync(CancellationToken cancellationToken);
 }
