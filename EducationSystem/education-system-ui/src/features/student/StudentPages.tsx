@@ -8,7 +8,7 @@ import { studentApi } from './studentApi'
 import type { Attendance, ExamResult, FormRequest, ScheduleItem, StudentFormTemplate, StudentSubject } from './types'
 
 function QueryState<T>({ query, empty, children }: { query: { isLoading: boolean; isError: boolean; data?: T }; empty?: boolean; children: (data: T) => ReactNode }) {
-  if (query.isLoading) return <div className="center-state"><Spin tip="Đang tải dữ liệu..." /></div>
+  if (query.isLoading) return <div className="center-state"><Spin description="Đang tải dữ liệu..." /></div>
   if (query.isError) return <Alert type="error" showIcon message="Không thể tải dữ liệu" description="Vui lòng thử lại hoặc liên hệ quản trị viên nếu lỗi tiếp diễn." />
   if (!query.data || empty) return <Empty description="Chưa có dữ liệu" />
   return <>{children(query.data)}</>

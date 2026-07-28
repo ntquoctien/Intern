@@ -21,13 +21,14 @@ builder.Services.AddCors(options =>
 });
 builder.Services.AddApplicationServices();
 builder.Services.AddStudentJwtAuthentication(builder.Configuration);
-builder.Services.AddSingleton<ReadOnlyCommandInterceptor>();
+builder.Services.AddAuthorization(options =>
+    options.AddPolicy("AdminOnly", policy =>
+        policy.RequireAuthenticatedUser().RequireClaim("role", "Admin")));
 var connectionString = builder.Configuration.GetConnectionString("CommunicationDb")
     ?? throw new InvalidOperationException("Connection string 'CommunicationDb' was not found.");
 
-builder.Services.AddDbContext<CommunicationDbContext>((services, options) =>
-    options.UseSqlServer(connectionString)
-        .AddInterceptors(services.GetRequiredService<ReadOnlyCommandInterceptor>()));
+builder.Services.AddDbContext<CommunicationDbContext>(options =>
+    options.UseSqlServer(connectionString));
 
 var app = builder.Build();
 

@@ -1,4 +1,5 @@
 using CommunicationService.Application.DTOs.StudentAccess;
+using CommunicationService.Application.DTOs.InternshipVerification;
 using CommunicationService.Application.Interfaces;
 using CommunicationService.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
@@ -52,7 +53,13 @@ public sealed class StudentFormRequestService(CommunicationDbContext dbContext) 
                 : null,
             request.CreationDate,
             request.UpdateDate,
-            request.Status,
+            request.Status == FormRequestWorkflowStatuses.Approved
+                ? 2
+                : request.EmployerVerifiedStatus == 2
+                    ? 3
+                    : request.EmployerVerifiedStatus == 1
+                        ? 1
+                        : 0,
             request.ApprovalName,
             request.Note);
 }

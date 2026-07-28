@@ -41,8 +41,9 @@ export function StudentLoginPage() {
     <Card className="student-login-card">
       <Typography.Title id="student-login-title" level={2}>Đăng nhập</Typography.Title>
       <Typography.Paragraph type="secondary">Sử dụng mã số sinh viên và mật khẩu để tiếp tục.</Typography.Paragraph>
-        {new URLSearchParams(location.search).get('reason') === 'expired' && <Alert type="warning" showIcon message="Phiên đã hết hạn. Vui lòng đăng nhập lại." />}
-        {error && <Alert type="error" showIcon message={error} />}
+        {new URLSearchParams(location.search).get('reason') === 'expired' && <Alert type="warning" showIcon title="Phiên đã hết hạn. Vui lòng đăng nhập lại." />}
+        {new URLSearchParams(location.search).get('reason') === 'unauthorized' && <Alert type="warning" showIcon title="Phiên đăng nhập không hợp lệ. Vui lòng đăng nhập lại." />}
+        {error && <Alert type="error" showIcon title={error} />}
         <Form layout="vertical" onFinish={submit}>
           <Form.Item name="studentCode" label="Mã số sinh viên" rules={[{ required: true, message: 'Vui lòng nhập MSSV' }, { max: 100 }]}>
             <Input autoFocus autoComplete="username" placeholder="Nhập mã số sinh viên" />

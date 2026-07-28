@@ -22,13 +22,11 @@ builder.Services.AddCors(options =>
 builder.Services.AddApplicationServices();
 builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddStudentJwtAuthentication(builder.Configuration);
-builder.Services.AddSingleton<ReadOnlyCommandInterceptor>();
 var connectionString = builder.Configuration.GetConnectionString("AcademicDb")
     ?? throw new InvalidOperationException("Connection string 'AcademicDb' was not found.");
 
-builder.Services.AddDbContext<AcademicDbContext>((services, options) =>
-    options.UseSqlServer(connectionString)
-        .AddInterceptors(services.GetRequiredService<ReadOnlyCommandInterceptor>()));
+builder.Services.AddDbContext<AcademicDbContext>(options =>
+    options.UseSqlServer(connectionString));
 
 var app = builder.Build();
 

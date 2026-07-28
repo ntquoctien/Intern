@@ -23,6 +23,12 @@ public partial class FormRequest
 
     public int Status { get; set; }
 
+    public Guid? EmployerToken { get; set; }
+
+    public int EmployerVerifiedStatus { get; set; }
+
+    public string? VerificationData { get; set; }
+
     public bool IsDeleted { get; set; }
 
     public virtual FormTemplate? FormTemplate { get; set; }

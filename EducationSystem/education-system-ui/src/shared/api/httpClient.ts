@@ -18,7 +18,11 @@ httpClient.interceptors.response.use(
   (error) => {
     if (axios.isAxiosError(error) && error.response?.status === 401 && !error.config?.url?.endsWith('/login')) {
       handleStudentUnauthorized()
-      if (window.location.pathname.startsWith('/student')) window.location.assign('/student/login?reason=expired')
+      if (window.location.pathname.startsWith('/student')) {
+        const code = (error.response.data as ApiResponse<unknown> | undefined)?.error?.code
+        const reason = code === 'STUDENT_TOKEN_EXPIRED' ? 'expired' : 'unauthorized'
+        window.location.assign(`/student/login?reason=${reason}`)
+      }
     }
     return Promise.reject(error)
   },

@@ -1,6 +1,7 @@
 import { Navigate, createBrowserRouter, useLocation } from 'react-router-dom'
 import { MainLayout } from '../layouts/MainLayout'
 import { StudentProtectedLayout } from '../features/student/StudentLayout'
+import { VerifyInternshipPage } from '../features/internship/VerifyInternshipPage'
 import {
   StudentAnnouncementsPage,
   StudentAttendancePage,
@@ -12,6 +13,7 @@ import {
   StudentLoginPage,
   StudentProfilePage,
   StudentProgramPage,
+  StudentResumeBuilderPage,
   StudentSchedulePage,
   StudentSubjectsPage,
   StudentTuitionPage,
@@ -43,6 +45,7 @@ export function LegacyRedirect({ to }: { to: string }) {
 
 export const router = createBrowserRouter([
   { path: '/student/login', element: <StudentLoginPage /> },
+  { path: '/verify-internship', element: <VerifyInternshipPage /> },
   {
     element: <StudentProtectedLayout />,
     children: [
@@ -50,6 +53,7 @@ export const router = createBrowserRouter([
       { path: '/student/dashboard', element: <StudentDashboardPage /> },
       { path: '/student/profile', element: <StudentProfilePage /> },
       { path: '/student/program', element: <StudentProgramPage /> },
+      { path: '/student/resume-builder', element: <StudentResumeBuilderPage /> },
       { path: '/student/subjects', element: <StudentSubjectsPage /> },
       { path: '/student/schedule', element: <StudentSchedulePage /> },
       { path: '/student/exam-results', element: <StudentExamResultsPage /> },
@@ -59,6 +63,7 @@ export const router = createBrowserRouter([
       { path: '/student/documents', element: <StudentDocumentsPage /> },
       { path: '/student/tuition', element: <StudentTuitionPage /> },
       { path: '/student/form-requests', element: <StudentFormRequestsPage /> },
+      { path: '/communication/form-requests', element: <StudentFormRequestsPage /> },
     ],
   },
   {
@@ -91,7 +96,6 @@ export const router = createBrowserRouter([
       { path: '/exam/exam-results', element: <LegacyRedirect to="/management/assessment/results" /> },
       { path: '/exam/questions', element: <LegacyRedirect to="/management/assessment/question-suites" /> },
       { path: '/identity/users', element: <LegacyRedirect to="/management/people/users" /> },
-      { path: '/communication/form-requests', element: <LegacyRedirect to="/management/forms/requests" /> },
       { path: '*', element: <Navigate to="/management/overview" replace /> },
     ],
   },

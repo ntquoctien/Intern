@@ -11,9 +11,11 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IStudentIdentityResolver, StudentIdentityResolver>();
         services.AddScoped<IStudentSelfService, StudentSelfService>();
         services.AddScoped<IManagementReadService, ManagementReadService>();
-        services.AddHttpClient<IIdentityUserClient, IdentityUserClient>(client =>
+        services.AddHttpClient<IIdentityUserClient, IdentityUserClient>((serviceProvider, client) =>
         {
-            client.BaseAddress = new Uri("http://localhost:5001");
+            var configuration = serviceProvider.GetRequiredService<IConfiguration>();
+            client.BaseAddress = new Uri(
+                configuration["ServiceEndpoints:IdentityBaseUrl"] ?? "http://localhost:5001");
             client.Timeout = TimeSpan.FromSeconds(3);
         });
         services.AddScoped<IFacultyQueryService, FacultyQueryService>();
@@ -28,6 +30,8 @@ public static class ServiceCollectionExtensions
         services.AddScoped<ISemesterTuitionQueryService, SemesterTuitionQueryService>();
         services.AddScoped<IEvaluationCriteriaQueryService, EvaluationCriteriaQueryService>();
         services.AddScoped<IStudentEvaluationQueryService, StudentEvaluationQueryService>();
+        services.AddScoped<IResumeDataService, ResumeDataService>();
+        services.AddScoped<IStudentInternshipService, StudentInternshipService>();
         return services;
     }
 }

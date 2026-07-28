@@ -1,4 +1,6 @@
+using System.Text.Json;
 using CommunicationService.Application.DTOs.FormRequests;
+using CommunicationService.Application.DTOs.InternshipVerification;
 using CommunicationService.Application.Interfaces;
 using CommunicationService.Infrastructure.Persistence;
 using CommunicationService.Infrastructure.Persistence.Entities;
@@ -9,6 +11,7 @@ namespace CommunicationService.Application.Services;
 
 public sealed class FormRequestQueryService : IFormRequestQueryService
 {
+    private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
     private readonly CommunicationDbContext _dbContext;
 
     public FormRequestQueryService(CommunicationDbContext dbContext)
@@ -29,7 +32,14 @@ public sealed class FormRequestQueryService : IFormRequestQueryService
 
         if (filters?.Status is { } status)
         {
-            source = source.Where(x => x.Status == status);
+            source = status switch
+            {
+                0 => source.Where(x => x.Status != 2 && x.EmployerVerifiedStatus == 0),
+                1 => source.Where(x => x.Status != 2 && x.EmployerVerifiedStatus == 1),
+                2 => source.Where(x => x.Status == 2),
+                3 => source.Where(x => x.Status != 2 && x.EmployerVerifiedStatus == 2),
+                _ => source
+            };
         }
 
         if (filters?.FromDate is { } fromDate)
@@ -48,23 +58,40 @@ public sealed class FormRequestQueryService : IFormRequestQueryService
             source = source.Where(x => x.ApprovalName.Contains(search) || x.Note.Contains(search));
         }
         var totalItems = await source.CountAsync(cancellationToken);
-        var items = await ApplySorting(source, query)
+        var rows = await ApplySorting(source, query)
             .Skip((pageNumber - 1) * pageSize)
             .Take(pageSize)
-            .Select(x => new FormRequestListItemDto
+            .Select(x => new
                     {
-                        Id = x.Id,
-                        CreationDate = x.CreationDate,
-                        UpdateDate = x.UpdateDate,
-                        StudentId = x.StudentId,
-                        FormTemplateId = x.FormTemplateId,
-                        ApprovalId = x.ApprovalId,
-                        ApprovalName = x.ApprovalName,
-                        Note = x.Note,
-                        Status = x.Status,
-                        IsDeleted = x.IsDeleted
+                        Entity = x,
+                        TemplateName = x.FormTemplate != null ? x.FormTemplate.Name : null
                     })
             .ToListAsync(cancellationToken);
+        var items = rows.Select(row =>
+        {
+            var document = DeserializeInternshipDocument(row.Entity.VerificationData);
+            return new FormRequestListItemDto
+            {
+                Id = row.Entity.Id,
+                CreationDate = row.Entity.CreationDate,
+                UpdateDate = row.Entity.UpdateDate,
+                StudentId = row.Entity.StudentId,
+                FormTemplateId = row.Entity.FormTemplateId,
+                ApprovalId = row.Entity.ApprovalId,
+                ApprovalName = row.Entity.ApprovalName,
+                Note = row.Entity.Note,
+                Status = row.Entity.Status,
+                EmployerVerifiedStatus = row.Entity.EmployerVerifiedStatus,
+                RequestType = document is not null
+                    ? "Đơn xác nhận thực tập doanh nghiệp"
+                    : row.TemplateName ?? "Yêu cầu dịch vụ sinh viên",
+                StudentCode = document?.Student?.StudentCode ?? string.Empty,
+                StudentName = document?.Student?.StudentName ?? string.Empty,
+                CompanyName = document?.Declaration.CompanyName,
+                Position = document?.Declaration.Position,
+                IsDeleted = row.Entity.IsDeleted
+            };
+        }).ToList();
 
         return new PagedResult<FormRequestListItemDto>
         {
@@ -78,23 +105,49 @@ public sealed class FormRequestQueryService : IFormRequestQueryService
 
     public async Task<FormRequestDetailDto?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        return await _dbContext.FormRequests
+        var row = await _dbContext.FormRequests
             .AsNoTracking()
             .Where(x => x.Id == id && !x.IsDeleted)
-            .Select(x => new FormRequestDetailDto
+            .Select(x => new
                     {
-                        Id = x.Id,
-                        CreationDate = x.CreationDate,
-                        UpdateDate = x.UpdateDate,
-                        StudentId = x.StudentId,
-                        FormTemplateId = x.FormTemplateId,
-                        ApprovalId = x.ApprovalId,
-                        ApprovalName = x.ApprovalName,
-                        Note = x.Note,
-                        Status = x.Status,
-                        IsDeleted = x.IsDeleted
+                        Entity = x,
+                        TemplateName = x.FormTemplate != null ? x.FormTemplate.Name : null
                     })
             .FirstOrDefaultAsync(cancellationToken);
+        if (row is null)
+        {
+            return null;
+        }
+
+        var document = DeserializeInternshipDocument(row.Entity.VerificationData);
+        return new FormRequestDetailDto
+        {
+            Id = row.Entity.Id,
+            CreationDate = row.Entity.CreationDate,
+            UpdateDate = row.Entity.UpdateDate,
+            StudentId = row.Entity.StudentId,
+            FormTemplateId = row.Entity.FormTemplateId,
+            ApprovalId = row.Entity.ApprovalId,
+            ApprovalName = row.Entity.ApprovalName,
+            Note = row.Entity.Note,
+            Status = row.Entity.Status,
+            EmployerVerifiedStatus = row.Entity.EmployerVerifiedStatus,
+            RequestType = document is not null
+                ? "Đơn xác nhận thực tập doanh nghiệp"
+                : row.TemplateName ?? "Yêu cầu dịch vụ sinh viên",
+            StudentCode = document?.Student?.StudentCode ?? string.Empty,
+            StudentName = document?.Student?.StudentName ?? string.Empty,
+            CompanyName = document?.Declaration.CompanyName,
+            Position = document?.Declaration.Position,
+            MentorEmail = document?.Declaration.MentorEmail,
+            StartDate = document?.Declaration.StartDate,
+            EndDate = document?.Declaration.EndDate,
+            TaskDescription = document?.Declaration.TaskDescription,
+            EmployerScore = document?.EmployerAssessment?.Score,
+            EmployerEvaluationNotes = document?.EmployerAssessment?.EvaluationNotes,
+            EmployerVerifiedAt = document?.EmployerAssessment?.VerifiedAt,
+            IsDeleted = row.Entity.IsDeleted
+        };
     }
 
     private static IQueryable<FormRequest> ApplySorting(IQueryable<FormRequest> source, QueryParameters query)
@@ -116,4 +169,20 @@ public sealed class FormRequestQueryService : IFormRequestQueryService
         };
     }
 
+    private static InternshipVerificationDocument? DeserializeInternshipDocument(string? json)
+    {
+        if (string.IsNullOrWhiteSpace(json))
+        {
+            return null;
+        }
+
+        try
+        {
+            return JsonSerializer.Deserialize<InternshipVerificationDocument>(json, JsonOptions);
+        }
+        catch (JsonException)
+        {
+            return null;
+        }
+    }
 }

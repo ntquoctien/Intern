@@ -1,1 +1,1 @@
-export { StudentFormRequestsPage } from '../../StudentPages'
+export { FormRequests, StudentFormRequestsPage } from './FormRequests'

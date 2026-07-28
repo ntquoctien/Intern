@@ -51,3 +51,5 @@ Thumbs.db
 .env
 .env.*
 !.env.example
+EducationSystem/connectionstrings.Development.json
+EducationSystem/connectionstrings.Development.json

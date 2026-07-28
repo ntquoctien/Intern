@@ -82,7 +82,7 @@ export function DetailDrawer<T extends RecordItem>({
   const hidden = new Set([...defaultHiddenFields, ...hiddenFields])
 
   return (
-    <Drawer title={title} open={open} width={640} onClose={onClose}>
+    <Drawer title={title} open={open} size={640} onClose={onClose}>
       {loading ? <Spin /> : null}
       {!loading && !record ? <Empty description="No detail data" /> : null}
       {!loading && record ? (

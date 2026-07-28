@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using AcademicService.Infrastructure.Persistence.Entities;
+using EducationSystem.Services.Academic.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace AcademicService.Infrastructure.Persistence;
@@ -31,6 +32,10 @@ public partial class AcademicDbContext : DbContext
     public virtual DbSet<SemesterTuition> SemesterTuitions { get; set; }
 
     public virtual DbSet<Student> Students { get; set; }
+
+    public virtual DbSet<StudentInternship> StudentInternships { get; set; }
+
+    public virtual DbSet<StudentProject> StudentProjects { get; set; }
 
     public virtual DbSet<StudentEvaluation> StudentEvaluations { get; set; }
 
@@ -200,6 +205,115 @@ public partial class AcademicDbContext : DbContext
             entity.HasOne(d => d.Major).WithMany(p => p.Students)
                 .HasForeignKey(d => d.MajorId)
                 .OnDelete(DeleteBehavior.ClientSetNull);
+        });
+
+        modelBuilder.Entity<StudentProject>(entity =>
+        {
+            entity.ToTable("StudentProjects", "academic", table =>
+                table.HasCheckConstraint("CK_StudentProjects_TeamSize", "[TeamSize] >= 1"));
+
+            entity.HasKey(e => e.ProjectId)
+                .HasName("PK_StudentProjects");
+
+            entity.HasIndex(e => e.StudentId, "IX_StudentProjects_StudentID");
+
+            entity.HasIndex(e => e.MappedCourseId, "IX_StudentProjects_MappedCourseID");
+
+            entity.Property(e => e.ProjectId)
+                .HasColumnName("ProjectID")
+                .UseIdentityColumn();
+
+            entity.Property(e => e.StudentId)
+                .HasColumnName("StudentID");
+
+            entity.Property(e => e.ProjectName)
+                .HasMaxLength(255)
+                .IsRequired();
+
+            entity.Property(e => e.TechStack)
+                .HasMaxLength(255)
+                .IsUnicode(false)
+                .IsRequired();
+
+            entity.Property(e => e.ProjectDescription)
+                .HasColumnType("nvarchar(max)");
+
+            entity.Property(e => e.SourceCodeUrl)
+                .HasMaxLength(255)
+                .IsUnicode(false);
+
+            entity.Property(e => e.TeamSize)
+                .HasDefaultValue(1);
+
+            entity.Property(e => e.MyRole)
+                .HasMaxLength(100);
+
+            entity.Property(e => e.MyContributions)
+                .HasColumnType("nvarchar(max)");
+
+            entity.Property(e => e.MappedCourseId)
+                .HasColumnName("MappedCourseID");
+
+            entity.HasOne<Student>()
+                .WithMany()
+                .HasForeignKey(e => e.StudentId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("FK_StudentProjects_Students_StudentID");
+
+            entity.HasOne<Subject>()
+                .WithMany()
+                .HasForeignKey(e => e.MappedCourseId)
+                .OnDelete(DeleteBehavior.SetNull)
+                .HasConstraintName("FK_StudentProjects_Subjects_MappedCourseID");
+        });
+
+        modelBuilder.Entity<StudentInternship>(entity =>
+        {
+            entity.ToTable("StudentInternships", "academic", table =>
+                table.HasCheckConstraint(
+                    "CK_StudentInternships_DateRange",
+                    "[EndDate] IS NULL OR [EndDate] >= [StartDate]"));
+
+            entity.HasKey(e => e.InternshipId)
+                .HasName("PK_StudentInternships");
+
+            entity.HasIndex(e => e.StudentId, "IX_StudentInternships_StudentID");
+
+            entity.HasIndex(e => e.FormRequestId, "IX_StudentInternships_FormRequestID");
+
+            entity.Property(e => e.InternshipId)
+                .HasColumnName("InternshipID")
+                .UseIdentityColumn();
+
+            entity.Property(e => e.StudentId)
+                .HasColumnName("StudentID");
+
+            entity.Property(e => e.CompanyName)
+                .HasMaxLength(255)
+                .IsRequired();
+
+            entity.Property(e => e.Position)
+                .HasMaxLength(100)
+                .IsRequired();
+
+            entity.Property(e => e.StartDate)
+                .HasColumnType("date");
+
+            entity.Property(e => e.EndDate)
+                .HasColumnType("date");
+
+            entity.Property(e => e.TaskDescription)
+                .HasColumnType("nvarchar(max)");
+
+            entity.Property(e => e.FormRequestId)
+                .HasColumnName("FormRequestID")
+                .HasColumnType("uniqueidentifier");
+
+            entity.HasOne<Student>()
+                .WithMany()
+                .HasForeignKey(e => e.StudentId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("FK_StudentInternships_Students_StudentID");
         });
 
         modelBuilder.Entity<StudentEvaluation>(entity =>

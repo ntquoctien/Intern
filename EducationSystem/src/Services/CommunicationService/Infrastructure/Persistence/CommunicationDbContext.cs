@@ -24,7 +24,10 @@ public partial class CommunicationDbContext : DbContext
 
         modelBuilder.Entity<FormRequest>(entity =>
         {
-            entity.ToTable("FormRequests", "communication");
+            entity.ToTable("FormRequests", "communication", table =>
+                table.HasCheckConstraint(
+                    "CK_FormRequests_EmployerVerifiedStatus",
+                    "[EmployerVerifiedStatus] IN (0, 1, 2)"));
 
             entity.HasIndex(e => e.ApprovalId, "IX_FormRequests_ApprovalId");
 
@@ -32,7 +35,23 @@ public partial class CommunicationDbContext : DbContext
 
             entity.HasIndex(e => e.StudentId, "IX_FormRequests_StudentId");
 
+            entity.HasIndex(e => e.EmployerToken, "UX_FormRequests_EmployerToken")
+                .IsUnique()
+                .HasFilter("[EmployerToken] IS NOT NULL");
+
             entity.Property(e => e.Id).ValueGeneratedNever();
+
+            entity.Property(e => e.EmployerToken)
+                .HasColumnName("EmployerToken")
+                .HasColumnType("uniqueidentifier");
+
+            entity.Property(e => e.EmployerVerifiedStatus)
+                .HasColumnName("EmployerVerifiedStatus")
+                .HasDefaultValue(0);
+
+            entity.Property(e => e.VerificationData)
+                .HasColumnName("VerificationData")
+                .HasColumnType("nvarchar(max)");
 
             entity.HasOne(d => d.FormTemplate).WithMany(p => p.FormRequests).HasForeignKey(d => d.FormTemplateId);
         });

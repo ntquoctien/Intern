@@ -40,7 +40,32 @@ export type StudentEvaluationPage = { items: StudentEvaluationItem[]; pageNumber
 export type ManagementAnnouncement = { announcementId: string; rawType: number; rawNotificationType?: number | null; rawStatus: number; message: string; creationDate: string; enforceRead: boolean; safeDeepLink?: string | null; deepLinkParameter?: string | null; entityObjectId: string; recipientCount: number; recipientSummary: string }
 export type ManagementAnnouncementPage = { items: ManagementAnnouncement[]; pageNumber: number; pageSize: number; totalItems: number; statusCounts: Record<string, number>; enforceReadCount: number }
 export type ManagementFormTemplate = { id: string; name: string; documentUrl?: string | null; isDeleted: boolean }
-export type ManagementFormRequest = { id: string; creationDate: string; updateDate: string; studentId: string; formTemplateId?: string | null; approvalId?: string | null; approvalName: string; note: string; status: number; isDeleted: boolean }
+export type ManagementFormRequest = {
+  id: string
+  creationDate: string
+  updateDate: string
+  studentId: string
+  formTemplateId?: string | null
+  approvalId?: string | null
+  approvalName: string
+  note: string
+  status: number
+  employerVerifiedStatus: number
+  requestType: string
+  studentCode: string
+  studentName: string
+  companyName?: string | null
+  position?: string | null
+  mentorEmail?: string | null
+  startDate?: string | null
+  endDate?: string | null
+  taskDescription?: string | null
+  employerScore?: number | null
+  employerEvaluationNotes?: string | null
+  employerVerifiedAt?: string | null
+  isDeleted: boolean
+}
+export type InternshipApprovalResult = { requestId: string; internshipId: number; approvedAt: string }
 export type SafeSystemSetting = { settingId: string; key: string; displayValue: string; isMasked: boolean }
 export type ManagementSystemOverview = { settings: SafeSystemSetting[]; settingCount: number; auditCount: number; deviceCount: number; resetRequestCount: number; devicesByType: { rawDeviceType: number; count: number }[]; recentAudits: { auditId: string; rawAction: number; creationDate: string; rawRecordEntity?: number | null; recordDescription: string }[] }
 export type RawResult = { examResultId: string; studentId: string; examName: string; examDate: string; rawResult?: number | null; rawCombinedResult?: number | null; description?: string | null }
@@ -92,6 +117,7 @@ export const managementApi = {
   formTemplates: async (params: Record<string, string | number | undefined>) => { const response = await httpClient.get<ApiResponse<PagedData<ManagementFormTemplate>>>(`${communicationOrigin}/api/communication/form-templates`, { params }); return response.data.data as PagedData<ManagementFormTemplate> },
   formRequests: async (params: Record<string, string | number | undefined>) => { const response = await httpClient.get<ApiResponse<PagedData<ManagementFormRequest>>>(`${communicationOrigin}/api/communication/form-requests`, { params }); return response.data.data as PagedData<ManagementFormRequest> },
   formRequest: async (id: string) => { const response = await httpClient.get<ApiResponse<ManagementFormRequest>>(`${communicationOrigin}/api/communication/form-requests/${id}`); return response.data.data as ManagementFormRequest },
+  approveInternship: async (id: string) => { const response = await httpClient.post<ApiResponse<InternshipApprovalResult>>(`${communicationOrigin}/api/communication/form-requests/admin-approve/${id}`); return response.data.data as InternshipApprovalResult },
   systemOverview: () => read<ManagementSystemOverview>(identityOrigin, 'system/overview'),
   results: () => read<RawResult[]>(examOrigin, 'exam-results'),
   resultSummary: () => read<ResultSummary>(examOrigin, 'exam-results/summary'),
