@@ -45,6 +45,19 @@ public sealed class StudentInternshipService(
         await dbContext.Database.OpenConnectionAsync(cancellationToken);
         try
         {
+            // Backward compatible with databases created by the first Phase 1
+            // script, which used a filtered unique index on FormRequestID.
+            await dbContext.Database.ExecuteSqlRawAsync(
+                """
+                SET ANSI_NULLS ON;
+                SET ANSI_PADDING ON;
+                SET ANSI_WARNINGS ON;
+                SET ARITHABORT ON;
+                SET CONCAT_NULL_YIELDS_NULL ON;
+                SET QUOTED_IDENTIFIER ON;
+                SET NUMERIC_ROUNDABORT OFF;
+                """,
+                cancellationToken);
             await using var transaction = await dbContext.Database.BeginTransactionAsync(
                 IsolationLevel.Serializable,
                 cancellationToken);
