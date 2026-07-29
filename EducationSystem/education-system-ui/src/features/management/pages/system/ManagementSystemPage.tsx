@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { AuditOutlined, DatabaseOutlined, LaptopOutlined, LockOutlined, ReloadOutlined, SafetyCertificateOutlined, SearchOutlined } from '@ant-design/icons'
+import { AuditOutlined, DatabaseOutlined, FileProtectOutlined, LaptopOutlined, LockOutlined, ReloadOutlined, SafetyCertificateOutlined, SearchOutlined } from '@ant-design/icons'
 import { Alert, Button, Card, Input, Skeleton, Statistic, Table, Tabs, Tag, type TableColumnsType } from 'antd'
 import dayjs from 'dayjs'
 import { managementApi, type SafeSystemSetting } from '../../managementApi'
@@ -14,6 +14,7 @@ export function ManagementSystemPage() {
   const data = overview.data
   const settingColumns: TableColumnsType<SafeSystemSetting> = [{ title: 'Key', dataIndex: 'key' }, { title: 'Giá trị', render: (_, item) => <span className={item.isMasked ? 'masked-setting' : ''}>{item.displayValue}</span> }]
   return <div className="system-page">
+    <OutcomeImportEntry />
     <Alert className="system-sensitive-alert" type="warning" showIcon icon={<SafetyCertificateOutlined />} message={<b>DỮ LIỆU NHẠY CẢM</b>} description="Khu vực hệ thống có thể chứa dữ liệu nhạy cảm. Chỉ sử dụng đúng mục đích và tuân thủ chính sách bảo mật." closable />
     <Tabs className="system-tabs" items={[{ key: 'overview', label: 'Tổng quan' }, { key: 'settings', label: 'Cấu hình' }, { key: 'audit', label: 'Audit' }, { key: 'devices', label: 'Thiết bị' }, { key: 'resets', label: 'Hỗ trợ reset mật khẩu' }]} />
     <Card className="dashboard-panel system-overview-card" title="Tổng quan hệ thống">
@@ -32,6 +33,13 @@ export function ManagementSystemPage() {
       <Alert className="system-security-note" type="info" showIcon icon={<SafetyCertificateOutlined />} message={<><b>Lưu ý bảo mật</b><ul><li>Không hiển thị password hash, password salt, reset secret, push identifier hoặc dữ liệu định danh đầy đủ.</li><li>Chỉ System Admin mới có quyền truy cập khu vực này.</li><li>Phase hiện tại chỉ đọc, không sửa cấu hình hoặc thực hiện reset.</li></ul></>} />
     </Card>
   </div>
+}
+
+function OutcomeImportEntry() {
+  return <Card className="outcome-system-entry">
+    <div><span><FileProtectOutlined /></span><div><b>Chuẩn đầu ra CLO/PLO</b><p>Import DOCX, theo dõi LLM phân tích và kiểm duyệt dữ liệu trước khi đưa vào bộ lọc CV.</p></div></div>
+    <Button type="primary" href="/management/system/outcomes">Quản lý CLO/PLO</Button>
+  </Card>
 }
 
 function SystemSummary({ icon, title, value, suffix, tone }: { icon: React.ReactNode; title: string; value: number; suffix: string; tone: string }) { return <Card className={`system-summary system-summary-${tone}`}><span>{icon}</span><div><Statistic title={title} value={value} formatter={value => number.format(Number(value))} /><small>{suffix}</small></div></Card> }

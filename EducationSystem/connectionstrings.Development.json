@@ -4,6 +4,7 @@
     "IdentityDb": "Server=.\\SOFTWAREINTERN;Database=TayDoV2;Integrated Security=True;TrustServerCertificate=True;",
     "AcademicDb": "Server=.\\SOFTWAREINTERN;Database=TayDoV2;Integrated Security=True;TrustServerCertificate=True;",
     "ExamDb": "Server=.\\SOFTWAREINTERN;Database=TayDoV2;Integrated Security=True;TrustServerCertificate=True;",
-    "CommunicationDb": "Server=.\\SOFTWAREINTERN;Database=TayDoV2;Integrated Security=True;TrustServerCertificate=True;"
+    "CommunicationDb": "Server=.\\SOFTWAREINTERN;Database=TayDoV2;Integrated Security=True;TrustServerCertificate=True;",
+    "CareerDb": "Server=.\\SOFTWAREINTERN;Database=TayDoV2;Integrated Security=True;TrustServerCertificate=True;"
   }
 }
