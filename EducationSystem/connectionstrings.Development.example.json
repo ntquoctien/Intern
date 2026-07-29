@@ -3,6 +3,7 @@
     "IdentityDb": "Server=YOUR_SQL_SERVER;Database=YOUR_DATABASE;User Id=identity_user;Password=YOUR_PASSWORD;TrustServerCertificate=True;",
     "AcademicDb": "Server=YOUR_SQL_SERVER;Database=YOUR_DATABASE;User Id=academic_user;Password=YOUR_PASSWORD;TrustServerCertificate=True;",
     "ExamDb": "Server=YOUR_SQL_SERVER;Database=YOUR_DATABASE;User Id=exam_user;Password=YOUR_PASSWORD;TrustServerCertificate=True;",
-    "CommunicationDb": "Server=YOUR_SQL_SERVER;Database=YOUR_DATABASE;User Id=communication_user;Password=YOUR_PASSWORD;TrustServerCertificate=True;"
+    "CommunicationDb": "Server=YOUR_SQL_SERVER;Database=YOUR_DATABASE;User Id=communication_user;Password=YOUR_PASSWORD;TrustServerCertificate=True;",
+    "CareerDb": "Server=YOUR_SQL_SERVER;Database=YOUR_DATABASE;User Id=career_user;Password=YOUR_PASSWORD;TrustServerCertificate=True;"
   }
 }

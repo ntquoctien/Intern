@@ -27,7 +27,8 @@ $services = @(
     @{ Name = "IdentityService"; Port = 5001 },
     @{ Name = "AcademicService"; Port = 5002 },
     @{ Name = "ExamService"; Port = 5003 },
-    @{ Name = "CommunicationService"; Port = 5004 }
+    @{ Name = "CommunicationService"; Port = 5004 },
+    @{ Name = "CareerService"; Port = 5005 }
 )
 
 foreach ($service in $services) {

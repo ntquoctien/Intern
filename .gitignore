@@ -35,6 +35,7 @@ EducationSystem/.*-perf-check*/
 EducationSystem/.*-runtime-check*/
 EducationSystem/.run/
 EducationSystem/.tmp/
+EducationSystem/.data/
 
 # IDE, OS, logs, and local environment files
 .vs/

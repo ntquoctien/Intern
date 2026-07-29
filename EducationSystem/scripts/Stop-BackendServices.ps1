@@ -24,7 +24,7 @@ Get-ChildItem -Path $runDir -Filter "*.pid" | ForEach-Object {
 # A failed start can overwrite a PID file while the previous apphost still owns
 # the service port. Stop only the four exact development service process names
 # so stale processes cannot keep DLLs locked or hide a newly-added endpoint.
-@("IdentityService", "AcademicService", "ExamService", "CommunicationService") |
+@("IdentityService", "AcademicService", "ExamService", "CommunicationService", "CareerService") |
     ForEach-Object {
         $serviceName = $_
         Get-Process -Name $serviceName -ErrorAction SilentlyContinue |
