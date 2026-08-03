@@ -1,5 +1,6 @@
 using CareerService.Application;
 using Microsoft.AspNetCore.Mvc;
+using SharedKernel;
 
 namespace CareerService.Infrastructure;
 
@@ -16,6 +17,18 @@ public sealed class OutcomeExceptionMiddleware(
         catch (OutcomeImportException exception)
         {
             await WriteProblem(context, exception.StatusCode, exception.ErrorCode, exception.Message);
+        }
+        catch (DownstreamApiException exception)
+        {
+            await WriteProblem(context, exception.StatusCode, exception.ErrorCode, exception.Message);
+        }
+        catch (UnauthorizedAccessException exception)
+        {
+            await WriteProblem(
+                context,
+                StatusCodes.Status401Unauthorized,
+                StudentErrorCodes.Unauthorized,
+                exception.Message);
         }
         catch (Exception exception)
         {

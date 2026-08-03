@@ -1,3 +1,5 @@
+using CareerService.Application.DTOs.Resume;
+
 namespace CareerService.Application;
 
 public interface IOutcomeFileStorage
@@ -9,7 +11,10 @@ public interface IOutcomeFileStorage
 
 public interface IOutcomeDocumentParser
 {
-    Task<IReadOnlyList<DocumentBlockData>> ParseAsync(Stream stream, CancellationToken cancellationToken);
+    Task<IReadOnlyList<DocumentBlockData>> ParseAsync(
+        Stream stream,
+        string contentType,
+        CancellationToken cancellationToken);
 }
 
 public sealed record OutcomeExtractionProviderRequest(
@@ -41,4 +46,50 @@ public interface IOutcomeImportProcessor
 {
     Task<bool> ProcessNextAsync(CancellationToken cancellationToken);
     Task ProcessAsync(long batchId, CancellationToken cancellationToken);
+}
+
+public interface ILlmResumeGeneratorService
+{
+    Task<OptimizedResumeResponseDto> GenerateOptimizedResumeAsync(
+        ResumePromptPayloadDto promptPayload,
+        CancellationToken cancellationToken);
+}
+
+public interface IResumeContextHydrationService
+{
+    Task<ResumePromptPayloadDto> HydrateResumeContextAsync(
+        PrepareResumePayloadRequestDto request,
+        Guid authenticatedStudentId,
+        Guid? authenticatedUserId,
+        string bearerToken,
+        CancellationToken cancellationToken);
+}
+
+public interface IPdfOcrService
+{
+    Task<IReadOnlyList<DocumentBlockData>> RecognizeAsync(
+        ReadOnlyMemory<byte> pdf,
+        CancellationToken cancellationToken);
+}
+
+public interface IAiOutcomeMappingProvider
+{
+    Task<OutcomeExtractionProviderResult> MapAsync(
+        OutcomeExtractionProviderRequest request,
+        CancellationToken cancellationToken);
+}
+
+public interface IVectorMatchClient
+{
+    Task<VectorMatchResponseContract> MatchAsync(
+        VectorMatchRequestContract request,
+        CancellationToken cancellationToken);
+}
+
+public interface IAcademicResumeClient
+{
+    Task<AcademicResumeContextContract> GetContextAsync(
+        Guid studentId,
+        string bearerToken,
+        CancellationToken cancellationToken);
 }

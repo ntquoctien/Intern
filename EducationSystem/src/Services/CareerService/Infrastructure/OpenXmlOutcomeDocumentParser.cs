@@ -5,7 +5,7 @@ using DocumentFormat.OpenXml.Wordprocessing;
 
 namespace CareerService.Infrastructure;
 
-public sealed class OpenXmlOutcomeDocumentParser : IOutcomeDocumentParser
+public sealed class OpenXmlOutcomeDocumentParser
 {
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
 

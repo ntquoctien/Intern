@@ -1,0 +1,804 @@
+/* Resume Builder Wizard Styles */
+.resume-builder-wizard {
+  min-height: 100vh;
+  background: #f0f2f5;
+  padding: 24px;
+}
+
+.wizard-header {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.wizard-header h3 {
+  margin-bottom: 8px;
+}
+
+.wizard-steps-container {
+  max-width: 900px;
+  margin: 0 auto 24px;
+  background: #fff;
+  padding: 24px;
+  border-radius: 8px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+}
+
+.wizard-steps {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.wizard-content {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  max-width: 1600px;
+  margin: 0 auto;
+}
+
+.wizard-left-panel {
+  min-width: 0;
+}
+
+.wizard-right-panel {
+  min-width: 0;
+  position: sticky;
+  top: 24px;
+  height: fit-content;
+}
+
+/* Step Card Styles */
+.step-card {
+  border-radius: 8px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+}
+
+.step-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.step-icon {
+  font-size: 24px;
+  color: #1890ff;
+  margin-top: 4px;
+}
+
+.form-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.form-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 500;
+  color: #262626;
+}
+
+.char-count {
+  margin-left: auto;
+  font-weight: normal;
+  color: #8c8c8c;
+  font-size: 12px;
+}
+
+.step-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 16px;
+  border-top: 1px solid #f0f0f0;
+}
+
+.loading-text {
+  margin-top: 8px;
+  display: block;
+  text-align: center;
+}
+
+/* Step 2 - Courses */
+.clo-legend {
+  padding: 12px;
+  background: #fafafa;
+  border-radius: 6px;
+}
+
+.course-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.course-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid #e8e8e8;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.course-item:hover {
+  border-color: #1890ff;
+  background: #f6ffed;
+}
+
+.course-item.selected {
+  border-color: #52c41a;
+  background: #f6ffed;
+}
+
+.course-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.contact-form-section {
+  padding: 14px;
+  border: 1px solid #d9e2f2;
+  border-radius: 8px;
+  background: #f8fbff;
+}
+
+.contact-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.contact-form-grid .ant-input-affix-wrapper:nth-child(3) {
+  grid-column: 1 / -1;
+}
+
+.course-rank {
+  width: 26px;
+  height: 26px;
+  flex: 0 0 26px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: #f0f2f5;
+  color: #667085;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.course-rank.top {
+  color: #faad14;
+  background: #fff7e6;
+}
+
+.course-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.course-title {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  min-width: 0;
+}
+
+.course-recommendation-tags {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex: 0 0 auto;
+}
+
+.course-name {
+  font-size: 14px;
+  color: #262626;
+}
+
+.course-meta {
+  display: flex;
+  gap: 16px;
+  font-size: 12px;
+}
+
+.course-relevance {
+  color: #0958d9;
+  font-weight: 600;
+}
+
+.course-relevance-bar {
+  height: 4px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #e6f4ff;
+  margin: 3px 0 5px;
+}
+
+.course-relevance-bar span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #69b1ff, #1677ff);
+}
+
+.matched-outcomes {
+  display: grid;
+  gap: 6px;
+  margin-top: 5px;
+  padding: 9px 10px;
+  border-radius: 6px;
+  background: #f7f9fc;
+}
+
+.matched-outcomes-title {
+  color: #344054;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.matched-outcome {
+  display: flex;
+  align-items: flex-start;
+  gap: 5px;
+  color: #475467;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.matched-outcome .ant-tag {
+  flex: 0 0 auto;
+  margin-inline-end: 0;
+}
+
+.course-outcomes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 4px;
+}
+
+.outcome-tag {
+  font-size: 11px;
+}
+
+.step-summary {
+  padding: 12px;
+  background: #fafafa;
+  border-radius: 6px;
+  text-align: center;
+}
+
+/* Step 3 - Evidence */
+.section-container {
+  padding: 16px;
+  background: #fafafa;
+  border-radius: 8px;
+}
+
+.section-container h5 {
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.project-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.evidence-card {
+  background: #fff;
+}
+
+.evidence-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.internship-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.internship-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px;
+  background: #fff;
+  border: 1px solid #e8e8e8;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.internship-item:hover {
+  border-color: #1890ff;
+}
+
+.internship-item.selected {
+  border-color: #52c41a;
+  background: #f6ffed;
+}
+
+.internship-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.internship-duration {
+  font-size: 12px;
+}
+
+.internship-desc {
+  font-size: 12px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Step 4 - Preview & Export */
+.summary-section {
+  padding: 16px;
+  background: #fafafa;
+  border-radius: 8px;
+}
+
+.summary-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.summary-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.optimize-section {
+  padding: 24px;
+  background: #f0f5ff;
+  border-radius: 8px;
+  text-align: center;
+}
+
+.metrics-section {
+  padding: 16px;
+  background: #fafafa;
+  border-radius: 8px;
+}
+
+.metrics-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.metric-item {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.metric-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+/* A4 Preview Container */
+.a4-preview-container {
+  background: #f0f2f5;
+  border-radius: 8px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 200px);
+  min-height: 600px;
+}
+
+.a4-preview-container.fullscreen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1000;
+  border-radius: 0;
+  height: 100vh;
+}
+
+.a4-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  background: #fff;
+  border-bottom: 1px solid #e8e8e8;
+}
+
+.a4-toolbar-spacer {
+  flex: 1;
+}
+
+.a4-spin {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+}
+
+.a4-spin > .ant-spin-container {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.toolbar-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.zoom-level {
+  min-width: 50px;
+  text-align: center;
+  font-weight: 500;
+}
+
+.a4-viewport {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: 24px;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+}
+
+.a4-paper-stage {
+  position: relative;
+  flex: 0 0 auto;
+}
+
+.a4-paper {
+  width: 794px; /* A4 width at 96dpi */
+  height: 1123px; /* A4 height at 96dpi */
+  background: #fff;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  padding: 46px 52px;
+  box-sizing: border-box;
+  position: absolute;
+  inset: 0 auto auto 0;
+  transform-origin: top left;
+}
+
+.a4-edit-hint {
+  flex: 0 0 auto;
+  margin: 0;
+  padding: 7px 12px;
+  background: #fff;
+  border-top: 1px solid #e4e7ec;
+  color: #667085;
+  font-size: 12px;
+  text-align: center;
+}
+
+/* CV Content Styles */
+.cv-draft,
+.cv-optimized {
+  font-family: Inter, 'Segoe UI', Arial, sans-serif;
+  font-size: 10.5pt;
+  line-height: 1.42;
+  color: #25324b;
+}
+
+.cv-header,
+.cv-header-optimized {
+  text-align: left;
+  margin-bottom: 16px;
+  padding: 0 0 12px;
+  border-bottom: 3px solid #173d73;
+}
+
+.cv-header h1,
+.cv-header-optimized h1 {
+  font-size: 24pt;
+  line-height: 1.1;
+  font-weight: 750;
+  letter-spacing: -0.5px;
+  margin: 0 0 7px;
+  text-transform: uppercase;
+  color: #173d73;
+}
+
+.cv-sub-header {
+  display: flex;
+  justify-content: flex-start;
+  flex-wrap: wrap;
+  gap: 5px 0;
+  color: #667085;
+  font-size: 9.5pt;
+}
+
+.cv-sub-header span + span::before {
+  content: '•';
+  color: #98a2b3;
+  margin: 0 8px;
+}
+
+.cv-target-role {
+  margin: 0 0 6px;
+  font-size: 11pt;
+  text-transform: uppercase;
+  letter-spacing: 0.35px;
+  color: #173d73;
+  font-weight: 700;
+}
+
+.cv-contact-line {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px 0;
+  color: #475467;
+  font-size: 9pt;
+}
+
+.cv-contact-item + .cv-contact-item::before {
+  content: '•';
+  margin: 0 7px;
+  color: #98a2b3;
+}
+
+.cv-contact-line a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.cv-section {
+  margin-bottom: 14px;
+}
+
+.cv-section h2 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 10.5pt;
+  line-height: 1.2;
+  font-weight: 800;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  color: #173d73;
+  border: 0;
+  padding: 0;
+  margin: 0 0 8px;
+}
+
+.cv-section h2::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: #d0d5dd;
+}
+
+.cv-item {
+  margin-bottom: 9px;
+  break-inside: avoid;
+}
+
+.cv-item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
+.cv-item-role,
+.cv-item-duration {
+  color: #475467;
+  font-size: 9.5pt;
+  font-weight: 600;
+}
+
+.cv-item-tech,
+.cv-item-company {
+  color: #667085;
+  font-size: 9.2pt;
+  font-style: normal;
+  margin: 2px 0;
+}
+
+.cv-bullets {
+  margin: 5px 0 0 18px;
+  padding: 0;
+}
+
+.cv-bullets li {
+  margin-bottom: 2px;
+  padding-left: 2px;
+}
+
+.cv-item ul {
+  margin: 4px 0 0 20px;
+  padding: 0;
+}
+
+.cv-item ul li {
+  margin-bottom: 2px;
+}
+
+.cv-skills-list {
+  display: grid;
+  gap: 4px;
+}
+
+.cv-skill-line {
+  display: grid;
+  grid-template-columns: 145px 1fr;
+  gap: 8px;
+  margin: 0;
+  font-size: 9.4pt;
+  line-height: 1.4;
+  break-inside: avoid;
+}
+
+.cv-skill-line > strong {
+  color: #344054;
+}
+
+.cv-skill-entry:not(:last-child)::after {
+  content: ' · ';
+  color: #98a2b3;
+}
+
+.cv-education-meta,
+.cv-highlighted-courses {
+  margin: 3px 0 0;
+  color: #475467;
+  font-size: 9.4pt;
+}
+
+.cv-highlighted-courses strong {
+  color: #344054;
+}
+
+.cv-summary {
+  margin: 0;
+  color: #344054;
+  text-align: justify;
+}
+
+.cv-optimized [contenteditable='true']:hover {
+  outline: 1px dashed #84adff;
+  outline-offset: 2px;
+  background: #eff8ff;
+}
+
+/* Print Styles */
+@media print {
+  .resume-builder-wizard {
+    padding: 0;
+    background: #fff;
+  }
+
+  .wizard-header,
+  .wizard-steps-container,
+  .wizard-left-panel,
+  .a4-toolbar {
+    display: none !important;
+  }
+
+  .wizard-content {
+    display: block;
+    max-width: none;
+  }
+
+  .wizard-right-panel {
+    position: static;
+  }
+
+  .a4-preview-container {
+    height: auto;
+    min-height: auto;
+    background: #fff;
+    border-radius: 0;
+    overflow: visible;
+  }
+
+  .a4-viewport {
+    overflow: visible;
+    padding: 0;
+  }
+
+  .a4-paper-stage {
+    width: 210mm !important;
+    height: 297mm !important;
+  }
+
+  .a4-paper {
+    width: 210mm;
+    height: 297mm;
+    box-shadow: none;
+    transform: none !important;
+    padding: 14mm;
+    position: static;
+  }
+
+  .a4-edit-hint {
+    display: none;
+  }
+}
+
+/* Responsive */
+@media (max-width: 1200px) {
+  .wizard-content {
+    grid-template-columns: 1fr;
+  }
+
+  .wizard-right-panel {
+    position: static;
+    order: -1;
+  }
+
+  .a4-preview-container {
+    height: 500px;
+  }
+}
+
+@media (max-width: 768px) {
+  .resume-builder-wizard {
+    padding: 12px;
+  }
+
+  .wizard-steps-container {
+    padding: 16px;
+    overflow-x: auto;
+  }
+
+  .summary-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .contact-form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .contact-form-grid .ant-input-affix-wrapper:nth-child(3) {
+    grid-column: auto;
+  }
+
+  .action-buttons {
+    flex-direction: column;
+  }
+
+  .action-buttons button {
+    width: 100%;
+  }
+}

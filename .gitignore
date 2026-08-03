@@ -35,7 +35,6 @@ EducationSystem/.*-perf-check*/
 EducationSystem/.*-runtime-check*/
 EducationSystem/.run/
 EducationSystem/.tmp/
-EducationSystem/.data/
 
 # IDE, OS, logs, and local environment files
 .vs/
@@ -52,5 +51,7 @@ Thumbs.db
 .env
 .env.*
 !.env.example
-EducationSystem/connectionstrings.Development.json
+.venv/
+**/.venv/
+EducationSystem/build_output.txt
 EducationSystem/connectionstrings.Development.json

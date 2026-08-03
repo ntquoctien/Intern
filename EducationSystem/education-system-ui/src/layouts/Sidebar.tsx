@@ -1,16 +1,85 @@
-import { CustomerServiceOutlined, SafetyCertificateOutlined } from '@ant-design/icons'
+import {
+  BookOutlined,
+  FileTextOutlined,
+  ReadOutlined,
+  TeamOutlined,
+  UserOutlined,
+} from '@ant-design/icons'
 import { Menu } from 'antd'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { currentManagementNavigation, managementNavigation, type ManagementRole } from '../app/managementNavigation'
+import { NAVIGATION_LABELS } from '../shared/constants/labels'
 
-export function Sidebar({ role = 'Administrator', onNavigate }: { role?: ManagementRole; onNavigate?: () => void }) {
+const menuItems = [
+  {
+    key: 'academic',
+    icon: <ReadOutlined />,
+    label: NAVIGATION_LABELS.ACADEMIC,
+    children: [
+      { key: '/academic/students', label: NAVIGATION_LABELS.STUDENTS },
+      { key: '/academic/subjects', label: NAVIGATION_LABELS.SUBJECTS },
+      { key: '/academic/subject-teachings', label: NAVIGATION_LABELS.SUBJECT_TEACHINGS },
+      { key: '/academic/subject-students', label: NAVIGATION_LABELS.SUBJECT_STUDENTS },
+      { key: '/academic/subject-schedules', label: NAVIGATION_LABELS.SUBJECT_SCHEDULES },
+      { key: '/academic/attendances', label: NAVIGATION_LABELS.ATTENDANCES },
+    ],
+  },
+  {
+    key: 'exam',
+    icon: <BookOutlined />,
+    label: NAVIGATION_LABELS.EXAM,
+    children: [
+      { key: '/exam/exam-results', label: NAVIGATION_LABELS.EXAM_RESULTS },
+      { key: '/exam/questions', label: NAVIGATION_LABELS.QUESTIONS },
+    ],
+  },
+  {
+    key: 'identity',
+    icon: <UserOutlined />,
+    label: NAVIGATION_LABELS.IDENTITY,
+    children: [{ key: '/identity/users', label: NAVIGATION_LABELS.USERS }],
+  },
+  {
+    key: 'communication',
+    icon: <TeamOutlined />,
+    label: NAVIGATION_LABELS.COMMUNICATION,
+    children: [{ key: '/communication/form-requests', label: NAVIGATION_LABELS.FORM_REQUESTS }],
+  },
+]
+
+function openKey(pathname: string) {
+  if (pathname.startsWith('/exam')) return 'exam'
+  if (pathname.startsWith('/identity')) return 'identity'
+  if (pathname.startsWith('/communication')) return 'communication'
+  return 'academic'
+}
+
+type SidebarProps = {
+  onNavigate?: () => void
+}
+
+export function Sidebar({ onNavigate }: SidebarProps) {
   const location = useLocation()
   const navigate = useNavigate()
-  const items = managementNavigation.filter((item) => item.roles.includes(role)).map((item) => ({ key: item.path, icon: item.icon, label: item.label }))
 
-  return <div className="management-sidebar">
-    <div className="university-brand"><SafetyCertificateOutlined /><span>ĐẠI HỌC<br />VIỆT NAM</span></div>
-    <Menu theme="dark" mode="inline" items={items} selectedKeys={[currentManagementNavigation(location.pathname).path]} onClick={({ key }) => { navigate(key); onNavigate?.() }} />
-    <div className="support-card"><CustomerServiceOutlined /><div><b>Bạn cần hỗ trợ?</b><span>Trung tâm hỗ trợ</span></div></div>
-  </div>
+  const handleNavigate = (key: string) => {
+    navigate(key)
+    onNavigate?.()
+  }
+
+  return (
+    <>
+      <div className="app-logo">
+        <FileTextOutlined style={{ marginRight: 8 }} />
+        EducationSystem
+      </div>
+      <Menu
+        theme="dark"
+        mode="inline"
+        items={menuItems}
+        defaultOpenKeys={[openKey(location.pathname)]}
+        selectedKeys={[location.pathname]}
+        onClick={({ key }) => handleNavigate(key)}
+      />
+    </>
+  )
 }

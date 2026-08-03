@@ -11,7 +11,7 @@ namespace CareerService.Application;
 
 public sealed class OutcomeImportService(
     CareerDbContext dbContext,
-    DocxFileValidator fileValidator,
+    OutcomeDocumentFileValidator fileValidator,
     IOutcomeFileStorage fileStorage,
     IOutcomeValidationService validationService,
     OutcomeQualityEvaluator qualityEvaluator,
@@ -85,7 +85,7 @@ public sealed class OutcomeImportService(
         ActorContext actor,
         CancellationToken cancellationToken)
     {
-        fileValidator.Validate(fileName, contentType, content);
+        var extension = fileValidator.Validate(fileName, contentType, content);
         var hasSubjectContext = subjectExternalId.HasValue ||
                                 !string.IsNullOrWhiteSpace(subjectCode) ||
                                 !string.IsNullOrWhiteSpace(subjectName);
@@ -126,9 +126,9 @@ public sealed class OutcomeImportService(
         if (duplicate.HasValue)
             throw new OutcomeImportException(
                 "DUPLICATE_IMPORT",
-                $"The same DOCX already exists as import batch {duplicate.Value}.", 409);
+                $"The same document already exists as import batch {duplicate.Value}.", 409);
 
-        var storageKey = $"outcome-imports/{Guid.NewGuid():N}/source.docx";
+        var storageKey = $"outcome-imports/{Guid.NewGuid():N}/source{extension}";
         await fileStorage.SaveAsync(storageKey, content, cancellationToken);
         var now = timeProvider.GetUtcNow().UtcDateTime;
         var entity = new OutcomeImportBatch

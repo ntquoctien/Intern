@@ -64,10 +64,13 @@ public sealed class OutcomeImportProcessor(
 
             await Stage(batch, OutcomeProcessingStages.ParsingDocument, 8, cancellationToken);
             await using var source = await fileStorage.OpenReadAsync(batch.StorageKey, cancellationToken);
-            var blocks = await parser.ParseAsync(source, cancellationToken);
+            var blocks = await parser.ParseAsync(
+                source,
+                batch.ContentType,
+                cancellationToken);
             if (blocks.Count == 0)
                 throw new OutcomeImportException(
-                    "DOCUMENT_EMPTY", "No readable content was found in the DOCX.", 422);
+                    "DOCUMENT_EMPTY", "No readable content was found in the document.", 422);
 
             await dbContext.OutcomeDocumentBlocks
                 .Where(item => item.ImportBatchId == batch.Id)

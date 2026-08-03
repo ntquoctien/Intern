@@ -1,18 +1,44 @@
 const persistInSession = import.meta.env.VITE_STUDENT_SESSION_STORAGE === 'true'
 const storageKey = 'education.student.access-token'
-let accessToken: string | null = persistInSession ? sessionStorage.getItem(storageKey) : null
+
+function readStoredToken() {
+  try {
+    return persistInSession
+      ? sessionStorage.getItem(storageKey)
+      : localStorage.getItem(storageKey) ?? sessionStorage.getItem(storageKey)
+  } catch {
+    return null
+  }
+}
+
+let accessToken: string | null = readStoredToken()
 let unauthorizedHandler: (() => void) | undefined
 
 export function getStudentToken() { return accessToken }
 
 export function setStudentToken(token: string) {
   accessToken = token
-  if (persistInSession) sessionStorage.setItem(storageKey, token)
+  try {
+    if (persistInSession) {
+      sessionStorage.setItem(storageKey, token)
+      localStorage.removeItem(storageKey)
+    } else {
+      localStorage.setItem(storageKey, token)
+      sessionStorage.setItem(storageKey, token)
+    }
+  } catch {
+    // Ignore storage failures in private mode.
+  }
 }
 
 export function clearStudentToken() {
   accessToken = null
-  sessionStorage.removeItem(storageKey)
+  try {
+    sessionStorage.removeItem(storageKey)
+    localStorage.removeItem(storageKey)
+  } catch {
+    // Ignore storage failures.
+  }
 }
 
 export function setStudentUnauthorizedHandler(handler?: () => void) { unauthorizedHandler = handler }
