@@ -16,7 +16,7 @@ const MAX_AWARDS = 20
 const MAX_SUBJECT_IDS = 100
 const MAX_INTERNSHIP_IDS = 100
 const MAX_INT32 = 2_147_483_647
-const OPTIMIZE_REQUEST_TIMEOUT_MS = 180_000
+const OPTIMIZE_REQUEST_TIMEOUT_MS = 310_000
 
 function trimToMax(value: string, maximumLength: number) {
   return value.trim().slice(0, maximumLength)
@@ -32,7 +32,7 @@ function normalizeProjectId(projectId: number) {
  */
 async function postOptimizeResume(state: ResumeBuilderState, studentId: string) {
   const selectedUiProjects = state.uiProjects
-    .filter(project => project.projectName.trim())
+    .filter(project => project.isSelectedForCv === true && project.projectName.trim())
     .slice(0, MAX_UI_PROJECTS)
 
   const response = await httpClient.post<ApiResponse<OptimizedResumeResponseDto>>(

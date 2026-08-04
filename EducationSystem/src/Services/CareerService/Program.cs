@@ -98,11 +98,11 @@ builder.Services.PostConfigure<ResumeLlmOptions>(settings =>
             settings.BaseUrl,
             builder.Configuration[$"{VaultLlmOptions.SectionName}:BaseUrl"]);
         settings.Model = FirstConfigured(
-            builder.Configuration[$"{VaultLlmOptions.SectionName}:Model"],
-            settings.Model);
+            settings.Model,
+            builder.Configuration[$"{VaultLlmOptions.SectionName}:Model"]);
         settings.ApiKey = FirstConfigured(
-            builder.Configuration[$"{VaultLlmOptions.SectionName}:ApiKey"],
-            settings.ApiKey);
+            settings.ApiKey,
+            builder.Configuration[$"{VaultLlmOptions.SectionName}:ApiKey"]);
     }
 });
 builder.Services.AddOptions<ManagementAuthOptions>()

@@ -33,16 +33,16 @@ public sealed class EducationBlockDto
 
 public sealed class CategorizedSkillsDto
 {
-    public List<SkillItemDto> KnowledgeDomain { get; set; } = [];
-    public List<SkillItemDto> FunctionalSkills { get; set; } = [];
-    public List<SkillItemDto> InterpersonalSkills { get; set; } = [];
+    public List<CompactSkillItemDto> KnowledgeDomain { get; set; } = [];
+    public List<CompactSkillItemDto> FunctionalSkills { get; set; } = [];
+    public List<CompactSkillItemDto> InterpersonalSkills { get; set; } = [];
 }
 
-public sealed class SkillItemDto
+public sealed class CompactSkillItemDto
 {
     public string SkillName { get; set; } = string.Empty;
     public string Proficiency { get; set; } = string.Empty;
-    public string Description { get; set; } = string.Empty;
+    public List<string> Keywords { get; set; } = [];
 }
 
 public sealed class OptimizedProjectDto

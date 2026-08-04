@@ -248,3 +248,8 @@ Chỉ dùng cho development. Trên production, luôn dùng environment variables
 ```
 
 2. **Đừng commit file này vào Git** - thêm vào `.gitignore`
+
+
+
+[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+

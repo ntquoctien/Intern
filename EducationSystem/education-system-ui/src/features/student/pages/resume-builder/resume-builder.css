@@ -516,26 +516,26 @@
 .cv-draft,
 .cv-optimized {
   font-family: Inter, 'Segoe UI', Arial, sans-serif;
-  font-size: 10.5pt;
-  line-height: 1.42;
-  color: #25324b;
+  font-size: 9.2pt;
+  line-height: 1.33;
+  color: #333;
 }
 
 .cv-header,
 .cv-header-optimized {
   text-align: left;
-  margin-bottom: 16px;
-  padding: 0 0 12px;
-  border-bottom: 3px solid #173d73;
+  margin-bottom: 12px;
+  padding: 0 0 8px;
+  border-bottom: 2px solid #173d73;
 }
 
 .cv-header h1,
 .cv-header-optimized h1 {
-  font-size: 24pt;
-  line-height: 1.1;
-  font-weight: 750;
-  letter-spacing: -0.5px;
-  margin: 0 0 7px;
+  font-size: 16pt;
+  line-height: 1.15;
+  font-weight: 800;
+  letter-spacing: 0.2px;
+  margin: 0 0 4px;
   text-transform: uppercase;
   color: #173d73;
 }
@@ -556,12 +556,12 @@
 }
 
 .cv-target-role {
-  margin: 0 0 6px;
+  margin: 0 0 4px;
   font-size: 11pt;
   text-transform: uppercase;
-  letter-spacing: 0.35px;
-  color: #173d73;
-  font-weight: 700;
+  letter-spacing: 0.25px;
+  color: #64748b;
+  font-weight: 600;
 }
 
 .cv-contact-line {
@@ -584,22 +584,22 @@
 }
 
 .cv-section {
-  margin-bottom: 14px;
+  margin-bottom: 10px;
 }
 
 .cv-section h2 {
   display: flex;
   align-items: center;
-  gap: 10px;
-  font-size: 10.5pt;
-  line-height: 1.2;
+  gap: 8px;
+  font-size: 11pt;
+  line-height: 1.25;
   font-weight: 800;
   letter-spacing: 0.8px;
   text-transform: uppercase;
   color: #173d73;
   border: 0;
   padding: 0;
-  margin: 0 0 8px;
+  margin: 0 0 6px;
 }
 
 .cv-section h2::after {
@@ -610,7 +610,7 @@
 }
 
 .cv-item {
-  margin-bottom: 9px;
+  margin-bottom: 7px;
   break-inside: avoid;
 }
 
@@ -620,29 +620,37 @@
   align-items: baseline;
 }
 
+.cv-item-header > strong {
+  font-size: 10pt;
+  line-height: 1.3;
+}
+
 .cv-item-role,
 .cv-item-duration {
   color: #475467;
-  font-size: 9.5pt;
+  font-size: 9pt;
   font-weight: 600;
 }
 
 .cv-item-tech,
 .cv-item-company {
   color: #667085;
-  font-size: 9.2pt;
+  font-size: 9pt;
   font-style: normal;
   margin: 2px 0;
 }
 
 .cv-bullets {
-  margin: 5px 0 0 18px;
+  margin: 3px 0 0 16px;
   padding: 0;
 }
 
 .cv-bullets li {
-  margin-bottom: 2px;
+  margin-bottom: 1px;
   padding-left: 2px;
+  color: #4a5568;
+  font-size: 9.2pt;
+  line-height: 1.33;
 }
 
 .cv-item ul {
@@ -656,26 +664,29 @@
 
 .cv-skills-list {
   display: grid;
-  gap: 4px;
+  gap: 3px;
 }
 
 .cv-skill-line {
-  display: grid;
-  grid-template-columns: 145px 1fr;
-  gap: 8px;
+  display: block;
   margin: 0;
-  font-size: 9.4pt;
-  line-height: 1.4;
+  font-size: 9.2pt;
+  line-height: 1.33;
   break-inside: avoid;
 }
 
 .cv-skill-line > strong {
   color: #344054;
+  margin-right: 4px;
+}
+
+.cv-skill-name {
+  font-weight: 600;
 }
 
 .cv-skill-entry:not(:last-child)::after {
-  content: ' · ';
-  color: #98a2b3;
+  content: '; ';
+  color: #667085;
 }
 
 .cv-education-meta,
@@ -702,7 +713,34 @@
 }
 
 /* Print Styles */
+@page {
+  size: A4 portrait;
+  margin: 0;
+}
+
 @media print {
+  html,
+  body,
+  #root {
+    width: 210mm !important;
+    height: 297mm !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+    background: #fff !important;
+  }
+
+  /* Isolate the CV from Ant Layout and the two-column wizard. Keeping the
+     ancestors in the print layout can offset half of the paper off-page. */
+  body * {
+    visibility: hidden !important;
+  }
+
+  #printable-resume,
+  #printable-resume * {
+    visibility: visible !important;
+  }
+
   .resume-builder-wizard {
     padding: 0;
     background: #fff;
@@ -743,12 +781,24 @@
   }
 
   .a4-paper {
-    width: 210mm;
-    height: 297mm;
-    box-shadow: none;
+    position: fixed !important;
+    inset: 0 auto auto 0 !important;
+    width: 210mm !important;
+    height: 297mm !important;
+    margin: 0 !important;
+    padding: 14mm !important;
+    overflow: hidden !important;
+    box-shadow: none !important;
     transform: none !important;
-    padding: 14mm;
-    position: static;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  .a4-paper > .cv-draft,
+  .a4-paper > .cv-optimized {
+    width: calc(100% / var(--print-content-scale, 1));
+    transform: scale(var(--print-content-scale, 1));
+    transform-origin: top left;
   }
 
   .a4-edit-hint {

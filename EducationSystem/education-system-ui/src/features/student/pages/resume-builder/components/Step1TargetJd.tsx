@@ -134,8 +134,14 @@ export function Step1TargetJd() {
       // VectorMatch là tầng nâng cao: nếu dịch vụ phân tích JD không khả dụng
       // thì vẫn hiển thị môn học theo điểm số thay vì chặn luồng.
       const vectorMatchUnavailable = prepareResult.status === 'rejected'
+        || prepareResult.value.data.data?.isFallbackMode === true
       if (vectorMatchUnavailable) {
-        console.warn('Vector match unavailable, falling back to raw scores:', prepareResult.reason)
+        console.warn(
+          'Vector match unavailable, falling back to raw scores:',
+          prepareResult.status === 'rejected'
+            ? prepareResult.reason
+            : 'CareerService returned fallback mode',
+        )
       }
       const matchedSubjects =
         prepareResult.status === 'fulfilled'
@@ -147,7 +153,9 @@ export function Step1TargetJd() {
       )
 
       const rankedCourses = data.eligibleCourses.map(c => {
-        const match = matchBySubjectId.get(c.subjectId.toLowerCase())
+        const match = vectorMatchUnavailable
+          ? undefined
+          : matchBySubjectId.get(c.subjectId.toLowerCase())
         const outcomes = match?.courseOutcomes ?? []
         const outcomeByName = new Map<string, MatchedSubjectOutcome>()
         for (const outcome of outcomes) {
@@ -186,7 +194,11 @@ export function Step1TargetJd() {
         }
       })
 
-      const hasVectorRecommendations = matchedSubjects.length > 0
+      // Fallback responses also contain matchedSubjects ranked by score. They
+      // must not be treated as vector matches, otherwise every score-fallback
+      // course is removed by the vector-only filter below.
+      const hasVectorRecommendations =
+        !vectorMatchUnavailable && matchedSubjects.length > 0
       const courses = rankedCourses
         .filter(course => !hasVectorRecommendations || course.recommendationSource === 'vector')
         .sort((a, b) => {

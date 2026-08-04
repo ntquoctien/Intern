@@ -148,7 +148,7 @@ export function Step4PreviewExport() {
         />
       )}
 
-      {optimizedCvResult && (
+      {optimizedCvResult && !optimizeMutation.isError && (
         <>
           <Alert
             style={{ marginTop: 16 }}
@@ -228,4 +228,3 @@ export function Step4PreviewExport() {
     </Card>
   )
 }
-

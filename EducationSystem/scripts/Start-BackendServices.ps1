@@ -8,19 +8,32 @@ $root = Split-Path -Parent $PSScriptRoot
 $runDir = Join-Path $root ".run"
 New-Item -ItemType Directory -Path $runDir -Force | Out-Null
 
-# Development services require one shared signing key. Keep it ephemeral when
-# the caller has not supplied a real secret; never write it to the repository.
+# Development services require one shared signing key. Reuse a local key across
+# partial restarts so a newly-started service can still validate tokens issued
+# by services that were already running. The .run directory is gitignored.
 if ([string]::IsNullOrWhiteSpace($env:StudentJwt__SigningKey)) {
-    $jwtBytes = New-Object byte[] 48
-    $randomNumberGenerator = [System.Security.Cryptography.RandomNumberGenerator]::Create()
-    try {
-        $randomNumberGenerator.GetBytes($jwtBytes)
+    $jwtKeyFile = Join-Path $runDir "student-jwt-signing-key"
+    if (Test-Path -LiteralPath $jwtKeyFile -PathType Leaf) {
+        $storedJwtKey = (Get-Content -LiteralPath $jwtKeyFile -Raw).Trim()
+        if ([Text.Encoding]::UTF8.GetByteCount($storedJwtKey) -ge 32) {
+            $env:StudentJwt__SigningKey = $storedJwtKey
+            Write-Host "Reusing the local development Student JWT signing key."
+        }
     }
-    finally {
-        $randomNumberGenerator.Dispose()
+
+    if ([string]::IsNullOrWhiteSpace($env:StudentJwt__SigningKey)) {
+        $jwtBytes = New-Object byte[] 48
+        $randomNumberGenerator = [System.Security.Cryptography.RandomNumberGenerator]::Create()
+        try {
+            $randomNumberGenerator.GetBytes($jwtBytes)
+        }
+        finally {
+            $randomNumberGenerator.Dispose()
+        }
+        $env:StudentJwt__SigningKey = [Convert]::ToBase64String($jwtBytes)
+        [IO.File]::WriteAllText($jwtKeyFile, $env:StudentJwt__SigningKey, (New-Object Text.UTF8Encoding($false)))
+        Write-Host "Generated a local development Student JWT signing key."
     }
-    $env:StudentJwt__SigningKey = [Convert]::ToBase64String($jwtBytes)
-    Write-Host "Generated an ephemeral Student JWT signing key for this development run."
 }
 
 $services = @(

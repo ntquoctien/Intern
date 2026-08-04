@@ -49,7 +49,7 @@ public sealed class ResumeLlmOptions
 {
     public const string SectionName = "ResumeLLM";
     public string Provider { get; set; } = "Vault";
-    public string Model { get; set; } = "kr/claude-haiku-4.5";
+    public string Model { get; set; } = "gpt-5.6-sol";
     public string ApiKey { get; set; } = string.Empty;
     public string BaseUrl { get; set; } = "https://newapi.vault.io.vn/v1";
     public int TimeoutSeconds { get; set; } = 300;

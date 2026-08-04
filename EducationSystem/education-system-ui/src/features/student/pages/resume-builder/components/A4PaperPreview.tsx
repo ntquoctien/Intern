@@ -168,7 +168,7 @@ export function A4PaperPreview({ showToolbar = true }: A4PaperPreviewProps) {
         contactInfo={contactInfo}
         targetRole={targetRole}
         selectedCourses={eligibleCourses.filter(c => selectedSubjectIds.includes(c.subjectId))}
-        uiProjects={uiProjects}
+        uiProjects={uiProjects.filter(project => project.isSelectedForCv === true)}
         selectedInternships={approvedInternships.filter(i =>
           selectedInternshipIds.includes(i.internshipId),
         )}
@@ -416,7 +416,7 @@ type OptimizedCvContentProps = {
   contactInfo: ResumeContactInfo
   selectedCourses: EligibleCourse[]
   onSummaryCommit: (value: string) => void
-  onSkillCommit: (group: OptimizedSkillGroup, index: number, value: string) => void
+  onSkillCommit: (group: OptimizedSkillGroup, index: number, keywords: string[]) => void
   onBulletCommit: (
     section: OptimizedBulletSection,
     index: number,
@@ -441,21 +441,26 @@ function OptimizedCvContent({
   ) => {
     if (skills.length === 0) return null
     return (
-      <p className="cv-skill-line">
+      <div className="cv-skill-line">
         <strong>{title}:</strong>
         <span>
           {skills.map((skill, index) => (
             <span className="cv-skill-entry" key={index}>
-              {skill.skillName}
-              {skill.description && ' — '}
-              <EditableText
-                value={skill.description}
-                onCommit={value => onSkillCommit(group, index, value)}
-              />
+              <span className="cv-skill-name">{skill.skillName}:</span>{' '}
+              {(skill.keywords ?? []).length > 0 ? (
+                <EditableText
+                  value={(skill.keywords ?? []).join(', ')}
+                  onCommit={value => onSkillCommit(
+                    group,
+                    index,
+                    value.split(',').map(keyword => keyword.trim()).filter(Boolean),
+                  )}
+                />
+              ) : skill.proficiency}
             </span>
           ))}
         </span>
-      </p>
+      </div>
     )
   }
 
@@ -475,9 +480,9 @@ function OptimizedCvContent({
       <div className="cv-section cv-skills-section">
         <h2>Năng lực chuyên môn</h2>
         <div className="cv-skills-list">
-          {renderSkillGroup('Kiến thức', 'knowledgeDomain', cv.skills.knowledgeDomain)}
+          {renderSkillGroup('Kiến thức chuyên môn', 'knowledgeDomain', cv.skills.knowledgeDomain)}
           {renderSkillGroup('Kỹ năng nghề nghiệp', 'functionalSkills', cv.skills.functionalSkills)}
-          {renderSkillGroup('Kỹ năng cá nhân', 'interpersonalSkills', cv.skills.interpersonalSkills)}
+          {renderSkillGroup('Kỹ năng mềm & Quy trình', 'interpersonalSkills', cv.skills.interpersonalSkills)}
         </div>
       </div>
 

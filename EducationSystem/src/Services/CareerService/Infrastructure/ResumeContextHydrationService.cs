@@ -8,7 +8,8 @@ namespace CareerService.Infrastructure;
 
 public sealed class ResumeContextHydrationService(
     IVectorMatchClient vectorMatchClient,
-    IAcademicResumeClient academicResumeClient) : IResumeContextHydrationService
+    IAcademicResumeClient academicResumeClient,
+    ILogger<ResumeContextHydrationService> logger) : IResumeContextHydrationService
 {
     private static readonly Regex HtmlTagPattern =
         new("<[^>]*>", RegexOptions.Compiled | RegexOptions.CultureInvariant);
@@ -97,12 +98,33 @@ public sealed class ResumeContextHydrationService(
             vectorRequest, cancellationToken);
         var academicTask = academicResumeClient.GetContextAsync(
             request.StudentId, bearerToken, cancellationToken);
-        await Task.WhenAll(vectorTask, academicTask);
-        var vector = await vectorTask;
-        var academic = await academicTask;
+        try
+        {
+            await Task.WhenAll(vectorTask, academicTask);
+        }
+        catch
+        {
+            // Await the individual tasks below so AcademicService failures still
+            // propagate while a VectorMatchService outage can use raw data.
+        }
 
-        EnsureOwnership(
-            request.StudentId, authenticatedUserId, vector, academic);
+        var academic = await academicTask;
+        VectorMatchResponseContract? vector = null;
+        try
+        {
+            vector = await vectorTask;
+        }
+        catch (Exception exception) when (
+            IsVectorMatchUnavailable(exception, cancellationToken))
+        {
+            logger.LogWarning(
+                exception,
+                "VectorMatchService is unavailable for student {StudentId}; " +
+                "using score-based resume context.",
+                request.StudentId);
+        }
+
+        EnsureOwnership(request.StudentId, authenticatedUserId, vector, academic);
 
         var selectedSet = selectedIds.ToHashSet();
         var courses = academic.EligibleCourses
@@ -111,7 +133,7 @@ public sealed class ResumeContextHydrationService(
             .ToDictionary(
                 course => course.SubjectCode.Trim(),
                 StringComparer.OrdinalIgnoreCase);
-        var matchedBySubject = vector.TopMatchedOutcomes
+        var matchedBySubject = (vector?.TopMatchedOutcomes ?? [])
             .Where(match => courses.ContainsKey(match.SubjectCode.Trim()))
             .GroupBy(
                 match => match.SubjectCode.Trim(),
@@ -134,28 +156,79 @@ public sealed class ResumeContextHydrationService(
             JobDescription = CleanPromptText(request.JobDescription, 10_000),
             CurrentSummaryDraft = NullIfBlank(
                 CleanPromptText(request.CurrentSummaryDraft, 3_000)),
-            MatchedSubjects = matchedBySubject
-                .Select(group => HydrateSubject(courses[group.Key], group))
-                .Where(subject => subject.CourseOutcomes.Count > 0)
-                .OrderByDescending(subject =>
-                    subject.CourseOutcomes.Max(outcome => outcome.SimilarityScore))
-                .ThenBy(subject => subject.SubjectCode)
-                .ToList(),
+            MatchedSubjects = vector is null
+                ? HydrateScoreFallbackSubjects(courses.Values, selectedSet, request.TopK)
+                : matchedBySubject
+                    .Select(group => HydrateSubject(courses[group.Key], group))
+                    .Where(subject => subject.CourseOutcomes.Count > 0)
+                    .OrderByDescending(subject =>
+                        subject.CourseOutcomes.Max(outcome => outcome.SimilarityScore))
+                    .ThenBy(subject => subject.SubjectCode)
+                    .ToList(),
             Projects = HydrateProjects(request.UiProjects, academic.Projects),
             Internships = HydrateInternships(
                 request.SelectedInternshipIds,
                 academic.ApprovedInternships),
             Certifications = HydrateTextList(request.Certifications, 20, 255),
             AwardsAndActivities = HydrateTextList(request.AwardsAndActivities, 20, 500),
-            IsFallbackMode = vector.IsFallback
+            IsFallbackMode = vector?.IsFallback ?? true
         };
+    }
+
+    private static bool IsVectorMatchUnavailable(
+        Exception exception,
+        CancellationToken cancellationToken) =>
+        exception is HttpRequestException or DownstreamApiException ||
+        exception is TaskCanceledException && !cancellationToken.IsCancellationRequested;
+
+    private static List<HydratedMatchedSubjectDto> HydrateScoreFallbackSubjects(
+        IEnumerable<AcademicResumeCourseContract> courses,
+        IReadOnlySet<Guid> selectedSubjectIds,
+        int topK)
+    {
+        var fallbackCourses = courses
+            .Where(course => selectedSubjectIds.Count == 0 ||
+                             selectedSubjectIds.Contains(course.SubjectId))
+            .OrderByDescending(course => course.Score)
+            .ThenBy(course => course.SubjectCode);
+
+        if (selectedSubjectIds.Count == 0)
+            fallbackCourses = fallbackCourses.Take(Math.Clamp(topK, 1, 100))
+                .OrderByDescending(course => course.Score)
+                .ThenBy(course => course.SubjectCode);
+
+        return fallbackCourses
+            .Select(course => new HydratedMatchedSubjectDto
+            {
+                SubjectId = course.SubjectId,
+                SubjectCode = Clean(course.SubjectCode, 100),
+                SubjectName = Clean(course.SubjectName, 255),
+                CreditPoint = Math.Max(course.CreditPoint, 0),
+                Score = Convert.ToDouble(course.Score),
+                CourseOutcomes = course.CourseOutcomes
+                    .Select(outcome => new HydratedOutcomeDto
+                    {
+                        OutcomeCode = Clean(outcome.Name, 100),
+                        Name = Clean(outcome.Name, 200),
+                        Description = CleanPromptText(outcome.Description, 4_000),
+                        SimilarityScore = 0,
+                        ProgressionLevel = string.Empty
+                    })
+                    .Where(outcome => outcome.Name.Length > 0 ||
+                                      outcome.Description.Length > 0)
+                    .ToList()
+            })
+            .ToList();
     }
 
     private static List<HydratedProjectDto> HydrateProjects(
         IReadOnlyList<UiProjectOverrideDto>? uiProjects,
         IReadOnlyList<AcademicResumeProjectContract> academicProjects)
     {
-        if (uiProjects is { Count: > 0 })
+        // A non-null list is the user's explicit selection. In particular, an
+        // empty list means "include no projects" and must not expand back to
+        // every project in AcademicService.
+        if (uiProjects is not null)
         {
             var ownedProjectIds = academicProjects
                 .Select(project => project.ProjectId)
@@ -245,10 +318,10 @@ public sealed class ResumeContextHydrationService(
     private static void EnsureOwnership(
         Guid requestedStudentId,
         Guid? authenticatedUserId,
-        VectorMatchResponseContract vector,
+        VectorMatchResponseContract? vector,
         AcademicResumeContextContract academic)
     {
-        if (vector.StudentId != requestedStudentId ||
+        if (vector is not null && vector.StudentId != requestedStudentId ||
             academic.Student.StudentId != requestedStudentId ||
             authenticatedUserId.HasValue &&
             academic.Student.UserId != authenticatedUserId.Value)

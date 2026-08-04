@@ -83,6 +83,27 @@ function loadPersistedState(): ResumeBuilderState {
         projectId: safeProjectId,
       }
     })
+    const migratedOptimizedCv = parsed.optimizedCvResult
+      ? {
+          ...parsed.optimizedCvResult,
+          skills: Object.fromEntries(
+            Object.entries(parsed.optimizedCvResult.skills).map(([group, skills]) => [
+              group,
+              skills.map(skill => {
+                const legacy = skill as typeof skill & { description?: string }
+                return {
+                  ...skill,
+                  keywords: Array.isArray(skill.keywords)
+                    ? skill.keywords
+                    : legacy.description?.trim()
+                      ? [legacy.description.trim()]
+                      : [],
+                }
+              }),
+            ]),
+          ) as OptimizedResumeResponseDto['skills'],
+        }
+      : null
     return {
       ...initialState,
       ...parsed,
@@ -90,6 +111,7 @@ function loadPersistedState(): ResumeBuilderState {
       selectedSubjectIds: (parsed.selectedSubjectIds ?? [])
         .filter(subjectId => migratedCourseIds.has(subjectId)),
       uiProjects: migratedProjects,
+      optimizedCvResult: migratedOptimizedCv,
       // Trạng thái transient không khôi phục
       isLoadingContext: false,
       isOptimizingAi: false,
@@ -249,14 +271,14 @@ function resumeBuilderReducer(state: ResumeBuilderState, action: ResumeBuilderAc
     case 'UPDATE_OPTIMIZED_SKILL': {
       const cv = state.optimizedCvResult
       if (!cv) return state
-      const { group, index, description } = action.payload
+      const { group, index, keywords } = action.payload
       return {
         ...state,
         optimizedCvResult: {
           ...cv,
           skills: {
             ...cv.skills,
-            [group]: cv.skills[group].map((skill, i) => (i === index ? { ...skill, description } : skill)),
+            [group]: cv.skills[group].map((skill, i) => (i === index ? { ...skill, keywords } : skill)),
           },
         },
       }
@@ -329,7 +351,7 @@ export interface ResumeStoreContextType {
   preparePayload: (payload: PrepareResumePayloadRequestDto) => void
   setOptimizedResult: (result: OptimizedResumeResponseDto) => void
   updateOptimizedSummary: (summary: string) => void
-  updateOptimizedSkill: (group: OptimizedSkillGroup, index: number, description: string) => void
+  updateOptimizedSkill: (group: OptimizedSkillGroup, index: number, keywords: string[]) => void
   updateOptimizedBullet: (section: OptimizedBulletSection, index: number, bulletIndex: number, value: string) => void
   reset: () => void
 }
@@ -392,8 +414,8 @@ export const ResumeStoreProvider: React.FC<{ children: React.ReactNode }> = ({ c
   const setOptimizedResult = useCallback((result: OptimizedResumeResponseDto) => dispatch({ type: 'SET_OPTIMIZED_RESULT', payload: result }), [])
   const updateOptimizedSummary = useCallback((summary: string) => dispatch({ type: 'UPDATE_OPTIMIZED_SUMMARY', payload: summary }), [])
   const updateOptimizedSkill = useCallback(
-    (group: OptimizedSkillGroup, index: number, description: string) =>
-      dispatch({ type: 'UPDATE_OPTIMIZED_SKILL', payload: { group, index, description } }),
+    (group: OptimizedSkillGroup, index: number, keywords: string[]) =>
+      dispatch({ type: 'UPDATE_OPTIMIZED_SKILL', payload: { group, index, keywords } }),
     [],
   )
   const updateOptimizedBullet = useCallback(

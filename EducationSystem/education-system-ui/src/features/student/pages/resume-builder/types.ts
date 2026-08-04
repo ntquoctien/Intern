@@ -86,7 +86,7 @@ export type UiProjectOverride = {
 export type OptimizedSkill = {
   skillName: string
   proficiency: 'Thành thạo' | 'Khá tốt' | 'Nền tảng'
-  description: string
+  keywords: string[]
 }
 
 export type OptimizedResumeResponseDto = {
@@ -216,6 +216,6 @@ export type ResumeBuilderAction =
   | { type: 'PREPARE_PAYLOAD'; payload: PrepareResumePayloadRequestDto }
   | { type: 'SET_OPTIMIZED_RESULT'; payload: OptimizedResumeResponseDto }
   | { type: 'UPDATE_OPTIMIZED_SUMMARY'; payload: string }
-  | { type: 'UPDATE_OPTIMIZED_SKILL'; payload: { group: OptimizedSkillGroup; index: number; description: string } }
+  | { type: 'UPDATE_OPTIMIZED_SKILL'; payload: { group: OptimizedSkillGroup; index: number; keywords: string[] } }
   | { type: 'UPDATE_OPTIMIZED_BULLET'; payload: { section: OptimizedBulletSection; index: number; bulletIndex: number; value: string } }
   | { type: 'RESET' }

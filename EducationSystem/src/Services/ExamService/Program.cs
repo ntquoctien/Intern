@@ -1,6 +1,7 @@
 using ExamService.Application;
 using ExamService.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
+using SharedKernel;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,16 +13,21 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("FrontendDev", policy =>
-        policy.WithOrigins("http://localhost:5173", "http://127.0.0.1:5173")
+        policy.SetIsOriginAllowed(origin =>
+            Uri.TryCreate(origin, UriKind.Absolute, out var uri)
+            && (uri.Host == "localhost" || uri.Host == "127.0.0.1"))
             .AllowAnyHeader()
             .AllowAnyMethod());
 });
 builder.Services.AddApplicationServices();
+builder.Services.AddStudentJwtAuthentication(builder.Configuration);
+builder.Services.AddSingleton<ReadOnlyCommandInterceptor>();
 var connectionString = builder.Configuration.GetConnectionString("ExamDb")
     ?? throw new InvalidOperationException("Connection string 'ExamDb' was not found.");
 
-builder.Services.AddDbContext<ExamDbContext>(options =>
-    options.UseSqlServer(connectionString));
+builder.Services.AddDbContext<ExamDbContext>((services, options) =>
+    options.UseSqlServer(connectionString)
+        .AddInterceptors(services.GetRequiredService<ReadOnlyCommandInterceptor>()));
 
 var app = builder.Build();
 
@@ -33,6 +39,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.MapControllers();
 

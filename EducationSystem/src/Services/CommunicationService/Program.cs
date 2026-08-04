@@ -1,6 +1,7 @@
 using CommunicationService.Application;
 using CommunicationService.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
+using SharedKernel;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,11 +13,17 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("FrontendDev", policy =>
-        policy.WithOrigins("http://localhost:5173", "http://127.0.0.1:5173")
+        policy.SetIsOriginAllowed(origin =>
+            Uri.TryCreate(origin, UriKind.Absolute, out var uri)
+            && (uri.Host == "localhost" || uri.Host == "127.0.0.1"))
             .AllowAnyHeader()
             .AllowAnyMethod());
 });
 builder.Services.AddApplicationServices();
+builder.Services.AddStudentJwtAuthentication(builder.Configuration);
+builder.Services.AddAuthorization(options =>
+    options.AddPolicy("AdminOnly", policy =>
+        policy.RequireAuthenticatedUser().RequireClaim("role", "Admin")));
 var connectionString = builder.Configuration.GetConnectionString("CommunicationDb")
     ?? throw new InvalidOperationException("Connection string 'CommunicationDb' was not found.");
 
@@ -33,6 +40,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.MapControllers();
 

@@ -115,7 +115,8 @@ public static partial class ResumeMetricsEvaluator
             generated.ProfessionalSummary
         };
         parts.AddRange(AllSkills(generated.Skills).SelectMany(skill =>
-            new[] { skill.SkillName, skill.Proficiency, skill.Description }));
+            new[] { skill.SkillName, skill.Proficiency }
+                .Concat(skill.Keywords ?? [])));
         parts.AddRange(generated.Projects.SelectMany(project =>
             new[]
             {
@@ -135,7 +136,7 @@ public static partial class ResumeMetricsEvaluator
         return string.Join(' ', parts);
     }
 
-    private static IEnumerable<SkillItemDto> AllSkills(CategorizedSkillsDto skills) =>
+    private static IEnumerable<CompactSkillItemDto> AllSkills(CategorizedSkillsDto skills) =>
         skills.KnowledgeDomain
             .Concat(skills.FunctionalSkills)
             .Concat(skills.InterpersonalSkills);
