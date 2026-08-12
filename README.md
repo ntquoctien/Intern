@@ -1,255 +1,163 @@
-# Hướng Dẫn Cài Đặt và Khởi Chạy Local (Bare-Metal Local Setup Guide)
-## Dự Án EducationSystem (Hệ Thống Quản Lý Giáo Dục)
+# Hướng Dẫn Cài Đặt Và Vận Hành Hệ Thống (Education System Setup Guide)
+## Dự Án EducationSystem — Trường Cao Đẳng Tây Đô (Tay Do College - TDC)
 
 ---
 
-## 📌 1. Bối Cảnh & Lý Do Không Sử Dụng Docker (Context & Motivation)
+## 📌 1. Tổng Quan Hệ Thống & Bối Cảnh Vận Hành
 
-Dự án **EducationSystem** bao gồm 6 dịch vụ Microservices (.NET 8 & Python FastAPI) và 1 ứng dụng React Frontend.
+Hệ thống **EducationSystem** cho **Trường Cao Đẳng Tây Đô** bao gồm 6 dịch vụ Microservices (.NET 8 & Python FastAPI) và 1 ứng dụng React Frontend SPA:
 
-⚠️ **LÝ DO KHÔNG SỬ DỤNG DOCKER TRONG MÔI TRƯỜNG HIỆN TẠI:**
-- Do các lỗi về encoding và thiếu font tiếng Việt trong môi trường Docker Container (Linux container cơ bản), các file PDF báo cáo/CV sinh viên và log hệ thống xuất ra bị **lỗi hiển thị font chữ tiếng Việt (corrupted fonts/encoding issues)**.
-- Do đó, tài liệu này hướng dẫn chi tiết quy trình **Bare-Metal Local Setup** — cài đặt và vận hành toàn bộ hệ thống trực tiếp trên hệ điều hành host (Windows/macOS/Linux) nhằm đảm bảo hiển thị chuẩn tiếng Việt, hiệu năng tối ưu và dễ dàng debug trong quá trình phát triển.
-
----
-
-## 🛠️ 2. Yêu Cầu Hệ Thống (Section A: Prerequisites)
-
-Trước khi thực hiện setup, hãy đảm bảo máy tính cá nhân của bạn đã cài đặt đầy đủ các công cụ sau:
-
-1. **.NET SDK 8.0:**
-   - Phiên bản: `.NET 8.0 SDK` (Ví dụ: `8.0.4xx`).
-   - Tải về: [Microsoft .NET 8.0 Download](https://dotnet.microsoft.com/download/dotnet/8.0)
-   - Kiểm tra lệnh: `dotnet --version`
-
-2. **Node.js & npm:**
-   - Phiên bản: `Node.js v20 LTS` hoặc `v22` (npm v10+).
-   - Tải về: [Node.js Official Site](https://nodejs.org/)
-   - Kiểm tra lệnh: `node --version`, `npm --version`
-
-3. **Python 3.10+ (Cho VectorMatchService):**
-   - Phiên bản: `Python 3.10` trở lên.
-   - Kiểm tra lệnh: `python --version` hoặc `python3 --version`
-
-4. **Microsoft SQL Server 2022 & Microsoft ODBC Driver:**
-   - Phiên bản: `SQL Server 2022` (Bản Developer hoặc Express Edition) cài đặt cục bộ.
-   - Yêu cầu thêm: **Microsoft ODBC Driver 18 for SQL Server** (dùng cho kết nối pyodbc từ Python VectorMatchService).
-   - Công cụ quản trị: `SQL Server Management Studio (SSMS)` hoặc `sqlcmd`.
+1. **IdentityService (.NET 8 - Port 5001)**: Quản lý đăng nhập, cấp phát JWT token, phân quyền tài khoản (Sinh viên, Giảng viên, Quản trị).
+2. **AcademicService (.NET 8 - Port 5002)**: Quản lý thông tin khoa, ngành học, chương trình đào tạo, sinh viên, môn học và điểm số.
+3. **ExamService (.NET 8 - Port 5003)**: Quản lý ngân hàng câu hỏi, đề thi và tổ chức thi trực tuyến.
+4. **CommunicationService (.NET 8 - Port 5004)**: Quản lý thông báo, mẫu biểu và tự động gửi email xác nhận thực tập qua SMTP Gmail.
+5. **CareerService (.NET 8 / BFF - Port 5005)**: Quản lý lộ trình hướng nghiệp, tích hợp LLM (Groq Qwen 3.5 27B / Gemini 3.5 Flash) để tự động tạo và tối ưu CV sinh viên.
+6. **VectorMatchService (Python 3.11 FastAPI - Port 5006)**: Dịch vụ trí tuệ nhân tạo khớp nối chuẩn đầu ra (CLO/PLO) và gợi ý môn học bằng thuật toán nhúng Vector (Sentence-BERT & FAISS).
+7. **EducationSystem UI (React 19 / Vite 8 - Port 5173)**: Giao diện người dùng SPA cho sinh viên và ban quản lý.
 
 ---
 
-## 🚀 3. Quy Trình Cài Đặt Chi Tiết (Section B: Step-by-Step Local Ingestion Workflow)
+## 🛠️ 2. Yêu Cầu Tiền Đề (Prerequisites)
+
+Trước khi khởi chạy hệ thống, máy tính phát triển cần cài đặt đầy đủ các thành phần:
+
+1. **.NET 8.0 SDK**:
+   - Kiểm tra bằng lệnh: `dotnet --version` (Yêu cầu `8.0.x`)
+2. **Node.js & npm**:
+   - Kiểm tra bằng lệnh: `node -v` (Yêu cầu Node `v20 LTS` trở lên)
+3. **Microsoft SQL Server**:
+   - Đã cài đặt SQL Server local (Bản Developer hoặc Express Edition) và **đã restore CSDL `TayDoV2`**.
+4. **(Tùy chọn) Python 3.11+**:
+   - Dùng cho `VectorMatchService`. Nếu máy chưa cài Python, hệ thống sẽ tự động chuyển sang cơ chế **Fallback điểm số môn học** mà không làm gián đoạn các dịch vụ khác.
 
 ---
 
-### 🗄️ Bước 1: Khởi Tạo Cơ Sở Dữ Liệu Cục Bộ (Local Database Ingestion)
+## ⚙️ 3. Cấu Hình Chuỗi Kết Nối CSDL (ConnectionStrings)
 
-Hệ thống quản lý 47 bảng dữ liệu phân bổ trên 5 Schema chính: `identity`, `academic`, `exam`, `communication`, `career` thuộc CSDL **`TayDoV2`** (hoặc `EducationDb`).
+Tệp cấu hình kết nối CSDL nằm tại:
+`EducationSystem/connectionstrings.Development.json`
 
-#### 1.1. Cấu hình Connection String
-Tạo tệp cấu hình local `connectionstrings.Development.json` tại thư mục `EducationSystem/`:
-```powershell
-cd D:\_intern\Intern\EducationSystem
-Copy-Item .\connectionstrings.Development.example.json .\connectionstrings.Development.json
-```
+Đảm bảo chuỗi kết nối trỏ chính xác về SQL Server local trên máy của bạn (Ví dụ: `TIENNGUYEN\SOFTWAREINTERN` hoặc `localhost`):
 
-Cập nhật chuỗi kết nối trong `connectionstrings.Development.json` (dùng Windows Authentication hoặc SQL Authentication):
 ```json
 {
   "ConnectionStrings": {
-    "IdentityDb": "Server=localhost;Database=TayDoV2;Trusted_Connection=True;TrustServerCertificate=True;MultipleActiveResultSets=True",
-    "AcademicDb": "Server=localhost;Database=TayDoV2;Trusted_Connection=True;TrustServerCertificate=True;MultipleActiveResultSets=True",
-    "ExamDb": "Server=localhost;Database=TayDoV2;Trusted_Connection=True;TrustServerCertificate=True;MultipleActiveResultSets=True",
-    "CommunicationDb": "Server=localhost;Database=TayDoV2;Trusted_Connection=True;TrustServerCertificate=True;MultipleActiveResultSets=True",
-    "CareerDb": "Server=localhost;Database=TayDoV2;Trusted_Connection=True;TrustServerCertificate=True;MultipleActiveResultSets=True"
+    "IdentityDb": "Server=TIENNGUYEN\\SOFTWAREINTERN;Database=TayDoV2;Trusted_Connection=True;TrustServerCertificate=True;MultipleActiveResultSets=True;",
+    "AcademicDb": "Server=TIENNGUYEN\\SOFTWAREINTERN;Database=TayDoV2;Trusted_Connection=True;TrustServerCertificate=True;MultipleActiveResultSets=True;",
+    "ExamDb": "Server=TIENNGUYEN\\SOFTWAREINTERN;Database=TayDoV2;Trusted_Connection=True;TrustServerCertificate=True;MultipleActiveResultSets=True;",
+    "CommunicationDb": "Server=TIENNGUYEN\\SOFTWAREINTERN;Database=TayDoV2;Trusted_Connection=True;TrustServerCertificate=True;MultipleActiveResultSets=True;",
+    "CareerDb": "Server=TIENNGUYEN\\SOFTWAREINTERN;Database=TayDoV2;Trusted_Connection=True;TrustServerCertificate=True;MultipleActiveResultSets=True;"
+  },
+  "StudentJwt": {
+    "SigningKey": "a5t1gKZ7udcVv/jY/ghdYGN7BUSbAvPzC7Ph2C9sbMvOmBhiBOeEi/VQ+XWy6urr"
   }
 }
 ```
-*(Hoặc dùng .NET User Secrets / `appsettings.Development.json` cho từng dự án).*
 
-#### 1.2. Chạy Migration EF Core & SQL Scripts
-Thực thi tuần tự lệnh EF Core Migration cho 5 DbContext:
-```powershell
-dotnet ef database update --project src/Services/IdentityService/IdentityService.csproj
-dotnet ef database update --project src/Services/AcademicService/AcademicService.csproj
-dotnet ef database update --project src/Services/ExamService/ExamService.csproj
-dotnet ef database update --project src/Services/CommunicationService/CommunicationService.csproj
-dotnet ef database update --project src/Services/CareerService/CareerService.csproj
-```
-
-**Hoặc chạy bộ Script khôi phục CSDL trong `database/scripts/` bằng SSMS hoặc `sqlcmd`:**
-```powershell
-# Chạy nhóm Script Career Schema
-sqlcmd -S "localhost" -d "TayDoV2" -E -b -f 65001 -i ".\database\scripts\career\001_create_career_schema.sql"
-sqlcmd -S "localhost" -d "TayDoV2" -E -b -f 65001 -i ".\database\scripts\career\002_create_career_tables.sql"
-sqlcmd -S "localhost" -d "TayDoV2" -E -b -f 65001 -i ".\database\scripts\career\003_seed_progression_levels.sql"
-sqlcmd -S "localhost" -d "TayDoV2" -E -b -f 65001 -i ".\database\scripts\career\004_create_career_indexes.sql"
-sqlcmd -S "localhost" -d "TayDoV2" -E -b -f 65001 -i ".\database\scripts\career\005_verify_career_schema.sql"
-
-# Chạy nhóm Script Import & Kiểm duyệt
-sqlcmd -S "localhost" -d "TayDoV2" -E -b -f 65001 -i ".\database\scripts\career-import\001_create_import_tables.sql"
-sqlcmd -S "localhost" -d "TayDoV2" -E -b -f 65001 -i ".\database\scripts\career-import\002_create_import_constraints.sql"
-sqlcmd -S "localhost" -d "TayDoV2" -E -b -f 65001 -i ".\database\scripts\career-import\003_create_import_indexes.sql"
-sqlcmd -S "localhost" -d "TayDoV2" -E -b -f 65001 -i ".\database\scripts\career-import\004_add_subject_selection.sql"
-sqlcmd -S "localhost" -d "TayDoV2" -E -b -f 65001 -i ".\database\scripts\career-import\005_verify_import_schema.sql"
-sqlcmd -S "localhost" -d "TayDoV2" -E -b -f 65001 -i ".\database\scripts\career-import\006_add_approved_outcome_document.sql"
-```
+*Lưu ý: Thay đổi `"TIENNGUYEN\\SOFTWAREINTERN"` thành tên SQL Server Instance trên máy của bạn.*
 
 ---
 
-### 🐍 Bước 2: Cài Đặt và Chạy VectorMatchService (Python / FastAPI)
+## 🔑 4. Cấu Hình Biến Môi Trường & User Secrets
 
-Dịch vụ **VectorMatchService** phục vụ cho việc khớp nối dữ liệu và tìm kiếm vector (Vector Search), chạy trên **Port 5006**.
+### A. Tệp `.env` cho VectorMatchService (Python AI)
+Tệp nằm tại đường dẫn: `EducationSystem/src/Services/VectorMatchService/.env`
 
-1. **Di chuyển vào thư mục dịch vụ Vector:**
-   ```powershell
-   cd D:\_intern\Intern\EducationSystem\src\Services\VectorMatchService
-   ```
+Nội dung mẫu `.env`:
+```env
+VECTOR_ACADEMIC_DB_CONNECTION_STRING=
+VECTOR_CAREER_DB_CONNECTION_STRING=
+VECTOR_MODEL_NAME=sentence-transformers/multi-qa-MiniLM-L6-cos-v1
+VECTOR_MODEL_DEVICE=cpu
+VECTOR_ELIGIBLE_GPA_THRESHOLD=7.0
+VECTOR_INDEX_TTL_SECONDS=900
+VECTOR_INTERNAL_API_KEY=
+```
 
-2. **Khởi tạo và kích hoạt môi trường ảo Python (`venv`):**
-   ```powershell
-   python -m venv .venv
-   .\.venv\Scripts\Activate.ps1
-   ```
+### B. Cấu hình User Secrets cho LLM AI (Groq & Gemini)
+Dịch vụ `CareerService` hỗ trợ hai mô hình LLM chính: **Groq Qwen_3.5_27B** và **Gemini 3.5 Flash**.
 
-3. **Cài đặt thư viện phụ thuộc:**
-   ```powershell
-   pip install -r requirements.txt
-   ```
+Để thiết lập API Key bảo mật qua `dotnet user-secrets`, mở PowerShell tại thư mục `EducationSystem`:
 
-4. **Tạo tệp cấu hình `.env`:**
-   Tạo tệp `src\Services\VectorMatchService\.env` từ tệp `.env.example`:
-   ```env
-   DRIVER={ODBC Driver 18 for SQL Server}
-   SERVER=127.0.0.1,1433
-   DATABASE=TayDoV2
-   UID=sa
-   PWD=YourPassword123
-   TrustServerCertificate=yes
-   Encrypt=no
-   ```
-
-5. **Khởi chạy Dịch vụ Python (Port 5006):**
-   Chạy thủ công:
-   ```powershell
-   uvicorn main:app --host 127.0.0.1 --port 5006 --reload
-   ```
-   *(Hoặc sử dụng script có sẵn: `..\..\..\scripts\Start-VectorMatchService.ps1`)*.
-
----
-
-### ⚙️ Bước 3: Cấu Hình và Khởi Chạy 5 Dịch Vụ .NET 8 (Backend Services)
-
-Danh sách các Microservices .NET 8 và cổng HTTP tương ứng:
-
-| Dịch Vụ Backend | Base Route | Port HTTP Cục Bộ |
-| :--- | :--- | :--- |
-| **IdentityService** | `/api/identity` | `http://localhost:5001` |
-| **AcademicService** | `/api/academic` | `http://localhost:5002` |
-| **ExamService** | `/api/exam` | `http://localhost:5003` |
-| **CommunicationService** | `/api/communication` | `http://localhost:5004` |
-| **CareerService** | `/api/career` | `http://localhost:5005` |
-
-#### 3.1. Cập nhật endpoint gọi nội bộ (BFF Client Configuration)
-Trong môi trường Bare-Metal local, đảm bảo các endpoint giao tiếp giữa các service (như trong `CareerService/appsettings.json` hoặc biến môi trường) được trỏ về **`localhost`** thay vì DNS container:
-- Đổi `http://academic-service:5002` ➔ `http://localhost:5002`
-- Đổi `http://identity-service:5001` ➔ `http://localhost:5001`
-- Đổi `http://vector-service:5006` ➔ `http://localhost:5006`
-
-#### 3.2. Lệnh khởi chạy cục bộ từng dịch vụ
-Đứng tại thư mục `EducationSystem`:
 ```powershell
-dotnet run --project src/Services/IdentityService/IdentityService.csproj --launch-profile http
-dotnet run --project src/Services/AcademicService/AcademicService.csproj --launch-profile http
-dotnet run --project src/Services/ExamService/ExamService.csproj --launch-profile http
-dotnet run --project src/Services/CommunicationService/CommunicationService.csproj --launch-profile http
-dotnet run --project src/Services/CareerService/CareerService.csproj --launch-profile http
+# Cấu hình Groq LLM (Qwen 3.5 27B)
+dotnet user-secrets set "LLM:Provider" "Groq" --project .\src\Services\CareerService\CareerService.csproj
+dotnet user-secrets set "LLM:Model" "qwen/qwen3.5-27b" --project .\src\Services\CareerService\CareerService.csproj
+dotnet user-secrets set "LLM:ApiKey" "<API_KEY_GROQ_CỦA_BẠN>" --project .\src\Services\CareerService\CareerService.csproj
+
+# (Tùy chọn) Cấu hình Gemini 3.5 Flash
+dotnet user-secrets set "Gemini:ApiKey" "<API_KEY_GEMINI_CỦA_BẠN>" --project .\src\Services\CareerService\CareerService.csproj
+```
+
+### C. Cấu hình Gmail SMTP cho Dịch Vụ Email
+Thiết lập tài khoản gửi Email thông báo thực tập sinh viên cho `CommunicationService`:
+
+```powershell
+dotnet user-secrets set "InternshipEmail:SmtpHost" "smtp.gmail.com" --project .\src\Services\CommunicationService\CommunicationService.csproj
+dotnet user-secrets set "InternshipEmail:SmtpPort" "587" --project .\src\Services\CommunicationService\CommunicationService.csproj
+dotnet user-secrets set "InternshipEmail:Username" "email_cua_ban@gmail.com" --project .\src\Services\CommunicationService\CommunicationService.csproj
+dotnet user-secrets set "InternshipEmail:Password" "<MA_UNG_DUNG_GMAIL>" --project .\src\Services\CommunicationService\CommunicationService.csproj
+dotnet user-secrets set "InternshipEmail:FromName" "Cổng sinh viên Cao Đẳng Tây Đô" --project .\src\Services\CommunicationService\CommunicationService.csproj
 ```
 
 ---
 
-### 💻 Bước 4: Cài Đặt và Khởi Động React Frontend
+## 🚀 5. Quy Trình Khởi Chạy Hệ Thống
 
-1. **Di chuyển vào thư mục Frontend:**
-   ```powershell
-   cd D:\_intern\Intern\EducationSystem\education-system-ui
-   ```
-
-2. **Cài đặt các gói Dependency:**
-   ```powershell
-   npm ci
-   ```
-
-3. **Cấu hình tệp `.env.local` / `.env.development`:**
-   Tạo tệp `education-system-ui/.env.local` để trỏ trực tiếp về cổng backend localhost:
-   ```dotenv
-   VITE_RESUME_API_MODE=live
-   VITE_AI_OPTIMIZE_MODE=live
-
-   VITE_IDENTITY_API_BASE=http://localhost:5001/api/identity
-   VITE_ACADEMIC_API_BASE=http://localhost:5002/api/academic
-   VITE_EXAM_API_BASE=http://localhost:5003/api/exam
-   VITE_COMMUNICATION_API_BASE=http://localhost:5004/api/communication
-
-   VITE_IDENTITY_API_ORIGIN=http://localhost:5001
-   VITE_ACADEMIC_API_ORIGIN=http://localhost:5002
-   VITE_EXAM_API_ORIGIN=http://localhost:5003
-   VITE_COMMUNICATION_API_ORIGIN=http://localhost:5004
-   VITE_CAREER_API_ORIGIN=http://localhost:5005
-   VITE_AI_API_ORIGIN=http://localhost:5005
-   ```
-
-4. **Khởi chạy ứng dụng Frontend React (Vite):**
-   ```powershell
-   npm run dev -- --host 127.0.0.1
-   ```
-   Ứng dụng sẽ chạy tại địa chỉ: **`http://127.0.0.1:5173`**.
-
----
-
-### 🚀 Bước 5: Khởi Động Tự Động Toàn Bộ Bằng Script Tiện Ích (One-Click Startup)
-
-Repository cung cấp script PowerShell tiện ích `Start-Dev.ps1` để tự động hóa toàn bộ việc khởi chạy 5 dịch vụ .NET, 1 dịch vụ Python và Frontend chỉ với 1 câu lệnh:
+Mở cửa sổ **PowerShell** và di chuyển vào thư mục `EducationSystem`:
 
 ```powershell
-cd D:\_intern\Intern\EducationSystem
+cd D:\Intern_IT\Intern\EducationSystem
+```
 
-# (Tùy chọn) Gán API key AI nếu dùng tính năng CV/CLO-PLO
-$env:ResumeLLM__Provider = "Vault"
-$env:ResumeLLM__Model = "gpt-5.6-sol"
-$env:ResumeLLM__BaseUrl = "https://newapi.vault.io.vn/v1"
-$env:ResumeLLM__ApiKey = "YOUR_API_KEY"
+### A. Khởi chạy TOÀN BỘ Hệ thống (Backend + Frontend)
+Sử dụng script PowerShell tự động hóa:
 
-# Thực thi script khởi chạy toàn bộ
+```powershell
 .\scripts\Start-Dev.ps1
 ```
 
-**Script `Start-Dev.ps1` sẽ tự động thực hiện:**
-- Khởi tạo thư mục `.run/` chứa log và PID.
-- Tạo hoặc sử dụng lại khóa ký JWT cục bộ tại `.run/student-jwt-signing-key`.
-- Khởi động 5 dịch vụ .NET 8 (Ports 5001 - 5005).
-- Tự động gọi `Start-VectorMatchService.ps1` để chạy dịch vụ Python Vector (Port 5006).
-- Mở Frontend React Vite tại cổng `5173`.
+**Script `Start-Dev.ps1` sẽ tự động:**
+1. Khởi tạo khóa ký JWT dùng chung tại `.run/student-jwt-signing-key`.
+2. Khởi chạy dịch vụ Python Vector Match (Port 5006).
+3. Biên dịch và khởi chạy 5 dịch vụ .NET Microservices (Ports 5001 - 5005).
+4. Khởi chạy Frontend React Vite tại địa chỉ `http://127.0.0.1:5173`.
 
-Để dừng toàn bộ dịch vụ backend đang chạy ẩn:
+### B. Chỉ khởi chạy Backend Microservices
+```powershell
+.\scripts\Start-BackendServices.ps1
+```
+
+### C. Tắt toàn bộ các dịch vụ Backend đang chạy
 ```powershell
 .\scripts\Stop-BackendServices.ps1
 ```
 
 ---
 
-## 📊 4. Tổng Kết Bảng Cổng Kết Nối (Port Mapping Table)
+## 🌐 6. Bảng Cổng Kết Nối & Địa Chỉ Truy Cập
 
-| Thành Phần | Công Nghệ | Endpoint / Port Local |
+| Dịch Vụ / Thành Phần | Mô Tả | Địa Chỉ Endpoint / Swagger |
 | :--- | :--- | :--- |
-| **React Frontend** | React + Vite | `http://127.0.0.1:5173` |
-| **IdentityService** | .NET 8 Web API | `http://localhost:5001/swagger` |
-| **AcademicService** | .NET 8 Web API | `http://localhost:5002/swagger` |
-| **ExamService** | .NET 8 Web API | `http://localhost:5003/swagger` |
-| **CommunicationService** | .NET 8 Web API | `http://localhost:5004/swagger` |
-| **CareerService** | .NET 8 Web API | `http://localhost:5005/swagger` |
-| **VectorMatchService** | Python FastAPI | `http://localhost:5006/health` |
-| **Database SQL Server** | MSSQL 2022 | `127.0.0.1:1433` (Database `TayDoV2`) |
+| **React Frontend SPA** | Giao diện quản lý học tập & thực tập | **`http://127.0.0.1:5173`** |
+| **IdentityService** | Xác thực JWT & Quản lý Tài khoản | `http://localhost:5001/swagger` |
+| **AcademicService** | Quản lý Đào tạo, Môn học & Sinh viên | `http://localhost:5002/swagger` |
+| **ExamService** | Khảo thí & Ngân hàng câu hỏi | `http://localhost:5003/swagger` |
+| **CommunicationService** | Thông báo & Gửi Email tự động | `http://localhost:5004/swagger` |
+| **CareerService** | Tối ưu CV AI & Hướng nghiệp | `http://localhost:5005/swagger` |
+| **VectorMatchService** | Dịch vụ AI Vector Search | `http://127.0.0.1:5006/docs` |
+| **SQL Server Database** | Cơ sở dữ liệu Cục bộ `TayDoV2` | `127.0.0.1:1433` |
 
 ---
-*Hoàn tất quy trình Bare-Metal Local Setup. Hệ thống đảm bảo hiển thị chuẩn 100% tiếng Việt trên các bản in PDF và log!*
+
+## 🛠️ 7. Xử Lý Lỗi Thường Gặp (Troubleshooting)
+
+1. **Lỗi `Error 26` / `Error 40` (Không thể kết nối CSDL)**:
+   - Kiểm tra xem dịch vụ SQL Server (`MSSQLSERVER` hoặc `SOFTWAREINTERN`) trên Windows Services đã ở trạng thái **Running** chưa.
+   - Kiểm tra tên Server trong `connectionstrings.Development.json` đã khớp với tên máy local chưa.
+
+2. **Lỗi `Port in use` (Cổng 5001-5005 bị chiếm dụng)**:
+   - Chạy script giải phóng cổng: `.\scripts\Stop-BackendServices.ps1`
+
+3. **Lỗi chưa cài Python 3.11**:
+   - `Start-Dev.ps1` đã tích hợp cơ chế tự động bắt ngoại lệ. Nếu máy chưa cài Python, hệ thống tự động cảnh báo và chuyển sang cơ chế **Fallback theo điểm môn học** giúp hệ thống vẫn vận hành bình thường.

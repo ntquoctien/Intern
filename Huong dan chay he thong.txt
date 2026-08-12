@@ -1,0 +1,104 @@
+===============================================================================
+               HƯỚNG DẪN CHẠY HỆ THỐNG HỌC TẬP & THỰC TẬP TDC
+                     (TÂY ĐÔ COLLEGE EDUCATION SYSTEM)
+===============================================================================
+
+1. YÊU CẦU TIỀN ĐỀ (PREREQUISITES)
+-------------------------------------------------------------------------------
+- Hệ điều hành: Windows 10/11
+- .NET SDK 8.0 (Kiểm tra bằng lệnh: dotnet --version)
+- Node.js 20+ và npm (Kiểm tra bằng lệnh: node -v)
+- MS SQL Server (Đã restore CSDL TayDoV2)
+- (Tùy chọn) Python 3.11 nếu chạy dịch vụ AI VectorMatchService
+
+2. CẤU HÌNH CƠ SỞ DỮ LIỆU (CONNECTIONSTRINGS)
+-------------------------------------------------------------------------------
+Tệp cấu hình chuỗi kết nối nằm tại:
+   EducationSystem\connectionstrings.Development.json
+
+Cấu hình mẫu kết nối trực tiếp CSDL local bằng Windows Authentication:
+
+{
+  "ConnectionStrings": {
+    "IdentityDb": "Server=TIENNGUYEN\\SOFTWAREINTERN;Database=TayDoV2;Trusted_Connection=True;TrustServerCertificate=True;MultipleActiveResultSets=True;",
+    "AcademicDb": "Server=TIENNGUYEN\\SOFTWAREINTERN;Database=TayDoV2;Trusted_Connection=True;TrustServerCertificate=True;MultipleActiveResultSets=True;",
+    "ExamDb": "Server=TIENNGUYEN\\SOFTWAREINTERN;Database=TayDoV2;Trusted_Connection=True;TrustServerCertificate=True;MultipleActiveResultSets=True;",
+    "CommunicationDb": "Server=TIENNGUYEN\\SOFTWAREINTERN;Database=TayDoV2;Trusted_Connection=True;TrustServerCertificate=True;MultipleActiveResultSets=True;",
+    "CareerDb": "Server=TIENNGUYEN\\SOFTWAREINTERN;Database=TayDoV2;Trusted_Connection=True;TrustServerCertificate=True;MultipleActiveResultSets=True;"
+  },
+  "StudentJwt": {
+    "SigningKey": "a5t1gKZ7udcVv/jY/ghdYGN7BUSbAvPzC7Ph2C9sbMvOmBhiBOeEi/VQ+XWy6urr"
+  }
+}
+
+* Lưu ý: Đổi "TIENNGUYEN\\SOFTWAREINTERN" thành tên Server SQL Server trên máy của bạn nếu khác.
+
+3. CẤU HÌNH MÔI TRƯỜNG (.ENV & USER SECRETS)
+-------------------------------------------------------------------------------
+A. Tệp .env cho VectorMatchService (Python AI Service):
+   - Đường dẫn: EducationSystem\src\Services\VectorMatchService\.env
+   - Nội dung mẫu:
+     VECTOR_ACADEMIC_DB_CONNECTION_STRING=
+     VECTOR_CAREER_DB_CONNECTION_STRING=
+     VECTOR_MODEL_NAME=sentence-transformers/multi-qa-MiniLM-L6-cos-v1
+     VECTOR_MODEL_DEVICE=cpu
+     VECTOR_ELIGIBLE_GPA_THRESHOLD=7.0
+     VECTOR_INDEX_TTL_SECONDS=900
+     VECTOR_INTERNAL_API_KEY=
+
+B. User Secrets cho các dịch vụ .NET (Tùy chọn thiết lập nâng cao):
+   - Cài đặt LLM API Key cho CareerService (Groq / Gemini 3.5 Flash):
+     cd EducationSystem
+     dotnet user-secrets set "LLM:Provider" "Groq" --project .\src\Services\CareerService\CareerService.csproj
+     dotnet user-secrets set "LLM:Model" "qwen/qwen3.5-27b" --project .\src\Services\CareerService\CareerService.csproj
+     dotnet user-secrets set "LLM:ApiKey" "<GROQ_API_KEY_CỦA_BẠN>" --project .\src\Services\CareerService\CareerService.csproj
+     dotnet user-secrets set "Gemini:ApiKey" "<GEMINI_3.5_FLASH_API_KEY_CỦA_BẠN>" --project .\src\Services\CareerService\CareerService.csproj
+
+   - Cài đặt Gmail SMTP cho CommunicationService (Gửi Email thực tập):
+     dotnet user-secrets set "InternshipEmail:SmtpHost" "smtp.gmail.com" --project .\src\Services\CommunicationService\CommunicationService.csproj
+     dotnet user-secrets set "InternshipEmail:SmtpPort" "587" --project .\src\Services\CommunicationService\CommunicationService.csproj
+     dotnet user-secrets set "InternshipEmail:Username" "email_cua_ban@gmail.com" --project .\src\Services\CommunicationService\CommunicationService.csproj
+     dotnet user-secrets set "InternshipEmail:Password" "<MA_UNG_DUNG_GMAIL>" --project .\src\Services\CommunicationService\CommunicationService.csproj
+     dotnet user-secrets set "InternshipEmail:FromName" "Cổng sinh viên Cao Đẳng Tây Đô" --project .\src\Services\CommunicationService\CommunicationService.csproj
+
+4. SCRIPT KHỞI CHẠY HỆ THỐNG FULL
+-------------------------------------------------------------------------------
+Mở cửa sổ PowerShell và di chuyển vào thư mục EducationSystem:
+
+   cd D:\Intern_IT\Intern\EducationSystem
+
+A. Lệnh khởi chạy TOÀN BỘ Hệ thống (Backend + Frontend):
+   
+   .\scripts\Start-Dev.ps1
+
+B. Lệnh chỉ khởi chạy các dịch vụ Backend (.NET Microservices):
+
+   .\scripts\Start-BackendServices.ps1
+
+C. Lệnh tắt toàn bộ các dịch vụ Backend đang chạy:
+
+   .\scripts\Stop-BackendServices.ps1
+
+5. ĐỊA CHỈ TRUY CẬP HỆ THỐNG
+-------------------------------------------------------------------------------
+- Giao diện Web SPA (React + Vite):
+  http://127.0.0.1:5173
+
+- Cổng Swagger API cho các Microservice:
+  1. IdentityService (Xác thực & Người dùng) : http://localhost:5001/swagger
+  2. AcademicService (Đào tạo & Môn học)   : http://localhost:5002/swagger
+  3. ExamService (Khảo thí & Ngân hàng đề) : http://localhost:5003/swagger
+  4. CommunicationService (Thông báo & Email): http://localhost:5004/swagger
+  5. CareerService (Hướng nghiệp & CV LLM)  : http://localhost:5005/swagger
+  6. VectorMatchService (AI Vector Service)  : http://127.0.0.1:5006/docs
+
+6. XỬ LÝ LỖI THƯỜNG GẶP (TROUBLESHOOTING)
+-------------------------------------------------------------------------------
+- Lỗi không mở được CSDL (Error 26 / Error 40):
+  + Kiểm tra tên SQL Server Instance trong connectionstrings.Development.json đã đúng tên máy chưa.
+  + Kiểm tra dịch vụ SQL Server (MSSQLSERVER/SOFTWAREINTERN) trong Windows Services đã Started chưa.
+
+- Lỗi Port in use (Cổng bị chiếm dụng):
+  + Chạy lệnh .\scripts\Stop-BackendServices.ps1 để giải phóng cổng.
+
+===============================================================================
