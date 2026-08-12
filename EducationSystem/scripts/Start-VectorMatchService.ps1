@@ -40,21 +40,19 @@ function Convert-ToVectorOdbcConnectionString {
 
     $sourceBuilder = [System.Data.Common.DbConnectionStringBuilder]::new()
     $sourceBuilder.set_ConnectionString($ConnectionString)
-    if (-not $sourceBuilder.ContainsKey("Server") -or
-        -not $sourceBuilder.ContainsKey("Database") -or
-        -not $sourceBuilder.ContainsKey("User Id") -or
-        -not $sourceBuilder.ContainsKey("Password")) {
-        throw "VectorMatchService requires SQL-authenticated development connections."
-    }
 
     $odbcBuilder = [System.Data.Odbc.OdbcConnectionStringBuilder]::new()
     $odbcBuilder.Driver = "ODBC Driver 18 for SQL Server"
-    # The local SQL instance is configured on a fixed port. Using the port
-    # avoids SQL Browser/name-resolution differences between .NET and pyodbc.
-    $odbcBuilder["Server"] = "127.0.0.1,1433"
-    $odbcBuilder["Database"] = $sourceBuilder["Database"]
-    $odbcBuilder["Uid"] = $sourceBuilder["User Id"]
-    $odbcBuilder["Pwd"] = $sourceBuilder["Password"]
+    $serverVal = if ($sourceBuilder.ContainsKey("Server")) { $sourceBuilder["Server"] } else { "127.0.0.1" }
+    $odbcBuilder["Server"] = $serverVal
+    $odbcBuilder["Database"] = if ($sourceBuilder.ContainsKey("Database")) { $sourceBuilder["Database"] } else { "TayDoV2" }
+
+    if ($sourceBuilder.ContainsKey("User Id") -and $sourceBuilder.ContainsKey("Password")) {
+        $odbcBuilder["Uid"] = $sourceBuilder["User Id"]
+        $odbcBuilder["Pwd"] = $sourceBuilder["Password"]
+    } else {
+        $odbcBuilder["Trusted_Connection"] = "yes"
+    }
     $odbcBuilder["Encrypt"] = "no"
     $odbcBuilder["TrustServerCertificate"] = "yes"
     return $odbcBuilder.ConnectionString
