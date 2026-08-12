@@ -57,7 +57,7 @@ Mô hình này đem lại:
 
    CareerService --REST--> AcademicService :5002
         |             \--> VectorMatchService :5006 -- S-BERT --> FAISS
-        \----------------> Gemini / Groq / OpenAI hoặc provider tương thích
+        \----------------> Gemini / Groq
 ```
 
 Frontend hiện gọi trực tiếp từng service bằng URL cấu hình; repository chưa có API Gateway chung, message broker hay gRPC. `CareerService` đóng vai trò **BFF/Context Hydrator** riêng cho nghiệp vụ CV, không phải gateway toàn hệ thống.
@@ -74,9 +74,9 @@ Frontend hiện gọi trực tiếp từng service bằng URL cấu hình; repos
 | Vector matching | Python 3.10, FastAPI | API semantic matching độc lập tại cổng `5006` |
 | Embedding | Sentence-BERT `multi-qa-MiniLM-L6-cos-v1` | Mã hóa JD và nội dung CLO thành dense vector cosine |
 | Vector index | FAISS | Tìm kiếm top-K dense vector hiệu năng cao |
-| LLM | Gemini, Groq, OpenAI hoặc provider tương thích cấu hình | Trích xuất CLO/PLO và biên tập CV theo JSON nghiêm ngặt |
+| LLM | Gemini (Gemini 3.5 Flash), Groq (Qwen_3.5_27B) | Trích xuất CLO/PLO và biên tập CV theo JSON nghiêm ngặt |
 
-> **Trạng thái triển khai:** mã nguồn Python của `VectorMatchService` nằm tại `src/Services/VectorMatchService`; `Start-Dev.ps1` gọi script khởi động riêng cho cổng `5006`. `CareerService` có HTTP client và vẫn fallback theo điểm học phần khi dịch vụ vector không khả dụng.
+> **Trạng thái triển khai:** mã nguồn Python của `VectorMatchService` nằm tại `src/Services/VectorMatchService`; dịch vụ được tự động khởi chạy và tích hợp khi dùng Docker Compose tại cổng `5006`. `CareerService` có HTTP client và vẫn fallback theo điểm học phần khi dịch vụ vector không khả dụng.
 
 ### 2.4. Quy tắc sở hữu dữ liệu
 
@@ -289,7 +289,7 @@ Kết quả vector phải được giao với tập học phần thực sự thu
 
 #### Bước 4 — Làm sạch và sinh bằng LLM
 
-`LlmResumeGeneratorService` xây prompt từ context đã hydrate. Trước khi gọi Gemini, Groq, OpenAI hoặc provider tương thích cấu hình, service:
+`LlmResumeGeneratorService` xây prompt từ context đã hydrate. Trước khi gọi Gemini (Gemini 3.5 Flash), Groq (Qwen_3.5_27B) hoặc provider tương thích cấu hình, service:
 
 - loại HTML, script/active content, ký tự điều khiển, email, URL và số điện thoại;
 - coi JD/nội dung người dùng là dữ liệu không tin cậy, không phải system instruction;

@@ -82,7 +82,7 @@ export function VerifyInternshipPage() {
     {messageContext}
     <Card className="verify-internship-card mx-auto my-12 max-w-2xl rounded-2xl border bg-white shadow-xl" loading={contextQuery.isFetching}>
       <header className="verification-brand">
-        <span className="verification-emblem">TDU</span>
+        <span className="verification-emblem">TDC</span>
         <div><b>CỔNG XÁC THỰC THỰC TẬP</b><strong>Cao Đẳng Tây Đô</strong></div>
       </header>
 

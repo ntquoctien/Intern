@@ -32,7 +32,7 @@ export function StudentLoginPage() {
   return <main className="student-login-shell">
     <section className="student-login-panel" aria-labelledby="student-login-title">
       <header className="student-login-brand">
-        <span className="student-login-brand-mark" aria-hidden="true">TDU</span>
+        <span className="student-login-brand-mark" aria-hidden="true">TDC</span>
         <div>
           <strong>TRƯỜNG CAO ĐẲNG TÂY ĐÔ</strong>
           <span>CỔNG THÔNG TIN SINH VIÊN</span>

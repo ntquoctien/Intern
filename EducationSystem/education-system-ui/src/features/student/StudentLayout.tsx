@@ -31,7 +31,7 @@ export function StudentProtectedLayout() {
 
   return <Layout className="student-shell">
     <Layout.Sider className="student-sider" breakpoint="lg" collapsedWidth={0} width={260}>
-      <div className="student-brand"><span className="student-brand-emblem">TDU</span><span>CỔNG SINH VIÊN<small>Cao Đẳng Tây Đô</small></span></div>
+      <div className="student-brand"><span className="student-brand-emblem">TDC</span><span>CỔNG SINH VIÊN<small>Cao Đẳng Tây Đô</small></span></div>
       <Menu className="student-navigation" mode="inline" selectedKeys={[location.pathname]} items={menuItems} onClick={({ key }) => navigate(key)} />
       <div className="student-sider-help"><b>Bạn cần hỗ trợ?</b><span>Trung tâm trợ giúp</span></div>
     </Layout.Sider>
@@ -46,7 +46,7 @@ export function StudentProtectedLayout() {
         </Space>
       </Layout.Header>
       <Layout.Content className="student-content"><Outlet /></Layout.Content>
-      <Drawer className="student-mobile-drawer" placement="left" size={280} open={mobileMenuOpen} onClose={() => setMobileMenuOpen(false)} destroyOnHidden title={<span className="student-drawer-title"><span className="student-brand-emblem">TDU</span>CỔNG SINH VIÊN</span>}>
+      <Drawer className="student-mobile-drawer" placement="left" size={280} open={mobileMenuOpen} onClose={() => setMobileMenuOpen(false)} destroyOnHidden title={<span className="student-drawer-title"><span className="student-brand-emblem">TDC</span>CỔNG SINH VIÊN</span>}>
         <Menu mode="inline" selectedKeys={[location.pathname]} items={menuItems} onClick={({ key }) => { navigate(key); setMobileMenuOpen(false) }} />
         <Button className="student-drawer-logout" icon={<LogoutOutlined />} onClick={() => { logout(); setMobileMenuOpen(false); navigate('/student/login', { replace: true }) }}>Đăng xuất</Button>
       </Drawer>

@@ -17,7 +17,7 @@ export function HeaderBar({ onOpenMenu }: { onOpenMenu?: () => void }) {
       <div><Typography.Title level={2}>{title}</Typography.Title><Breadcrumb items={current.breadcrumb.map((item) => ({ title: item }))} /></div>
     </div>
     <div className="header-controls">
-      <label>Phạm vi đơn vị<Select value="university" options={[{ value: 'university', label: 'Trường Đại học Việt Nam' }]} /></label>
+      <label>Phạm vi đơn vị<Select value="university" options={[{ value: 'university', label: 'Trường Cao Đẳng Tây Đô' }]} /></label>
       <label>Khoa/Đơn vị<Select value="all" options={[{ value: 'all', label: 'Tất cả' }]} /></label>
       <div className="refresh-info"><span>Cập nhật dữ liệu</span><b>{dayjs().format('HH:mm, DD/MM/YYYY')}</b></div>
       <Button icon={<ReloadOutlined />} onClick={() => queryClient.invalidateQueries()}>Làm mới</Button>

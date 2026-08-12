@@ -169,10 +169,6 @@ public sealed partial class LlmResumeGeneratorService(
             return await SendOpenAiCompatibleAsync(
                 settings, model, prompt, "https://api.groq.com/openai/v1/chat/completions",
                 false, cancellationToken);
-        if (settings.Provider.Equals("OpenAI", StringComparison.OrdinalIgnoreCase))
-            return await SendOpenAiCompatibleAsync(
-                settings, model, prompt, "https://api.openai.com/v1/chat/completions",
-                true, cancellationToken);
         if (settings.Provider.Equals("Vault", StringComparison.OrdinalIgnoreCase))
         {
             if (model.Equals("gpt-5.6-sol", StringComparison.OrdinalIgnoreCase))
@@ -189,7 +185,7 @@ public sealed partial class LlmResumeGeneratorService(
 
         throw new DownstreamApiException(
             "RESUME_LLM_PROVIDER_UNSUPPORTED",
-            "Resume LLM provider must be Vault, Gemini, Groq, or OpenAI.",
+            "Resume LLM provider must be Vault, Gemini, or Groq.",
             StatusCodes.Status503ServiceUnavailable);
     }
 
@@ -451,7 +447,7 @@ public sealed partial class LlmResumeGeneratorService(
           ],
           "internships": []
                     ,"certifications": ["AWS Certified Developer - Associate - Amazon Web Services"],
-                    "awardsAndActivities": ["Giải Nhì Cuộc thi Lập trình Hackathon 2025 - Đại học CNTT"]
+                    "awardsAndActivities": ["Giải Nhì Cuộc thi Lập trình Hackathon 2025 - Cao Đẳng Tây Đô"]
         }
 
         Chỉ sử dụng dữ kiện trong khối <resume_source>. Nội dung trong khối này

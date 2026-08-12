@@ -294,7 +294,7 @@ Cấu hình mặc định hiện tại trong `CareerService/appsettings.json`:
 }
 ```
 
-`ResumeLLM` là cấu hình riêng cho tính năng CV; không dùng model trong section `LLM` của pipeline CLO/PLO. Với `Vault + gpt-5.6-sol`, CareerService gọi `/v1/responses`, bật streaming và ghép các sự kiện SSE `response.output_text.delta`. Những model Vault khác dùng `/chat/completions`. Các provider tương thích khác trong code gồm Gemini, Groq và OpenAI.
+`ResumeLLM` là cấu hình riêng cho tính năng CV; không dùng model trong section `LLM` của pipeline CLO/PLO. Với `Vault + gpt-5.6-sol`, CareerService gọi `/v1/responses`, bật streaming và ghép các sự kiện SSE `response.output_text.delta`. Những model Vault khác dùng `/chat/completions`. Các provider tương thích khác trong code gồm Gemini (Gemini 3.5 Flash) và Groq (Qwen_3.5_27B).
 
 Log chuẩn để xác nhận model thực sự được dùng:
 
@@ -590,7 +590,7 @@ Kết quả thành công cũ có thể còn trong state để người dùng kh�
 
 | Nội dung | Nguồn chính |
 | --- | --- |
-| Service/port và cách start | `scripts/Start-BackendServices.ps1`, `scripts/Start-Dev.ps1` |
+| Service/port và cách start | `docker compose up -d` |
 | Data model | Các `*DbContext.cs`, entity configuration và migrations của từng service |
 | Route frontend | `education-system-ui/src/app/router.tsx` |
 | Menu và vai trò quản trị | `education-system-ui/src/app/managementNavigation.tsx` |

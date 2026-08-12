@@ -370,7 +370,7 @@ function DraftCvContent({
         <h2>Học vấn</h2>
         <div className="cv-item cv-education-item">
           <div className="cv-item-header">
-            <strong>Cao Đắng Tây Đô</strong>
+            <strong>Cao Đẳng Tây Đô</strong>
             {studentInfo.academicYear && <span className="cv-item-duration">{studentInfo.academicYear}</span>}
           </div>
           <p className="cv-education-meta">
@@ -532,7 +532,7 @@ function OptimizedCvContent({
         <h2>Học vấn</h2>
         <div className="cv-item cv-education-item">
           <div className="cv-item-header">
-            <strong>Cao Đắng Tây Đô</strong>
+            <strong>Cao Đẳng Tây Đô</strong>
             <span className="cv-item-duration">{cv.education.durationText}</span>
           </div>
           <p className="cv-education-meta">

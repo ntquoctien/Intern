@@ -212,12 +212,12 @@ const initialResumeData: ResumeData = {
     phone: '093 812 2406',
     location: 'Cần Thơ, Việt Nam',
     major: 'Công nghệ thông tin',
-    university: 'Cao Đắng Tây Đô',
+    university: 'Cao Đẳng Tây Đô',
     gpa: 7.54,
   },
   selectedCourses: ['web', 'database', 'software'],
   projects: [{
-    name: 'EducationSystem – Cổng thông tin đại học',
+    name: 'EducationSystem – Cổng thông tin Cao Đẳng Tây Đô',
     techStack: 'React 19, TypeScript, ASP.NET Core, PostgreSQL',
     githubUrl: 'github.com/minhanh/education-system',
     scale: 'team',
@@ -636,7 +636,7 @@ export function AICVBuilderWorkspace() {
               </CvSection>
             )}
             <CvSection title="Học vấn">
-              <div className="cv-entry-title"><b>Cao Đắng Tây Đô</b><span>2023 – 2027</span></div>
+              <div className="cv-entry-title"><b>Cao Đẳng Tây Đô</b><span>2023 – 2027</span></div>
               <p><span {...inlineProps('studentInfo', 'major')}>{resumeData.studentInfo.major}</span> · GPA {resumeData.studentInfo.gpa.toFixed(2)} · MSSV {resumeData.studentInfo.studentCode}</p>
             </CvSection>
           </article>

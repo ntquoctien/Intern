@@ -26,7 +26,7 @@ public sealed class SmtpInternshipVerificationEmailSender(
         using var message = new MailMessage
         {
             From = new MailAddress(settings.FromAddress, settings.FromName, Encoding.UTF8),
-            Subject = $"[Cao Đắng Tây Đô] Xác nhận thông tin thực tập tại {companyName}",
+            Subject = $"[Cao Đẳng Tây Đô] Xác nhận thông tin thực tập tại {companyName}",
             SubjectEncoding = Encoding.UTF8,
             BodyEncoding = Encoding.UTF8,
             IsBodyHtml = true,
@@ -97,7 +97,7 @@ public sealed class SmtpInternshipVerificationEmailSender(
                 </div>
                 <div style="padding:28px">
                   <p>Kính gửi Quý doanh nghiệp <strong>{{safeCompany}}</strong>,</p>
-                  <p>Một sinh viên Cao Đắng Tây Đô đã khai báo quá trình thực tập tại doanh nghiệp và đề nghị người hướng dẫn xác nhận thông tin.</p>
+                  <p>Một sinh viên Cao Đẳng Tây Đô đã khai báo quá trình thực tập tại doanh nghiệp và đề nghị người hướng dẫn xác nhận thông tin.</p>
                   <p style="margin:26px 0">
                     <a href="{{safeLink}}" style="display:inline-block;background:#002140;color:#fff;text-decoration:none;padding:13px 22px;border-radius:9px;font-weight:700">
                       Xác nhận thông tin thực tập

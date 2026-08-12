@@ -18,7 +18,7 @@ ResumeOptimizationController.cs
 3. LLM Processing
 
 LlmResumeGeneratorService.GenerateOptimizedResumeAsync()
-→ Calls Azure OpenAI / provider API with:
+→ Calls Gemini / Groq / provider API with:
    - systemInstruction (our updated prompt)
    - userPrompt (JSON payload with all context)
    - responseFormat (JSON schema for structured output)
@@ -127,6 +127,6 @@ Key Points:
 Stage	What Happens	Data Source
 LLM Input	Receives context payload (student data + courses + projects)	DB + User selections
 LLM Processing	Generates natural language CV content	AI model
-LLM Output	Returns structured JSON with skills, bullets, summary	OpenAI API
+LLM Output	Returns structured JSON with skills, bullets, summary	Gemini / Groq API
 Post-Guard	Overrides LLM output with verified DB data	Database (source of truth)
 Frontend Render	Displays clean inline skill rows + editable content	Validated DTO

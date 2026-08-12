@@ -16,7 +16,7 @@ import type {
 } from '../types'
 import { createTemporaryProjectId } from '../utils/localIds'
 
-const STORAGE_KEY = 'tdu.resume-builder.wizard.v1'
+const STORAGE_KEY = 'tdc.resume-builder.wizard.v1'
 
 const MIN_ZOOM = 0.3
 const MAX_ZOOM = 2

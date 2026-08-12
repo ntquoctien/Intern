@@ -91,7 +91,7 @@ Mở `src/Services/CareerService/appsettings.json` và cấu hình:
 - `TimeoutSeconds`: 300 (tối ưu hóa CV có thể mất thời gian)
 - `MaxRetries`: 2 (retry tự động nếu LLM tạm thời không khả dụng)
 
-### Tùy Chọn 2: Dùng Provider Khác (Groq, Gemini, OpenAI)
+### Tùy Chọn 2: Dùng Provider Khác (Groq, Gemini)
 
 Nếu muốn dùng provider khác thay vì Vault:
 

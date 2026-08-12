@@ -97,7 +97,7 @@ public sealed class InternshipVerificationService(
         var student = document.Student;
         return new InternshipVerificationContextDto(
             document.Declaration.CompanyName,
-            student?.StudentName ?? "Sinh viên Cao Đắng Tây Đô",
+            student?.StudentName ?? "Sinh viên Cao Đẳng Tây Đô",
             student?.StudentCode ?? string.Empty,
             document.Declaration.Position,
             document.Declaration.StartDate,
