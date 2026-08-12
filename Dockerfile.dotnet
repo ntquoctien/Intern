@@ -1,0 +1,55 @@
+# Parameterized multi-stage Dockerfile for .NET 8 Microservices in EducationSystem
+# Usage example: docker build -f Dockerfile.dotnet --build-arg SERVICE_NAME=IdentityService -t identity-service .
+
+ARG SERVICE_NAME=IdentityService
+
+# ==============================================================================
+# Stage 1: Build & Restore Dependencies
+# ==============================================================================
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+ARG SERVICE_NAME
+
+WORKDIR /src
+
+# Copy SharedKernel project file and restore layer cache
+COPY src/BuildingBlocks/SharedKernel/SharedKernel.csproj src/BuildingBlocks/SharedKernel/
+
+# Copy target service project file
+COPY src/Services/${SERVICE_NAME}/${SERVICE_NAME}.csproj src/Services/${SERVICE_NAME}/
+
+# Restore NuGet dependencies
+RUN dotnet restore src/Services/${SERVICE_NAME}/${SERVICE_NAME}.csproj
+
+# Copy complete source code
+COPY src/BuildingBlocks/SharedKernel/ src/BuildingBlocks/SharedKernel/
+COPY src/Services/${SERVICE_NAME}/ src/Services/${SERVICE_NAME}/
+
+# Build service in Release mode
+WORKDIR /src/src/Services/${SERVICE_NAME}
+RUN dotnet build ${SERVICE_NAME}.csproj -c Release -o /app/build
+
+# ==============================================================================
+# Stage 2: Publish Artifacts
+# ==============================================================================
+FROM build AS publish
+ARG SERVICE_NAME
+RUN dotnet publish ${SERVICE_NAME}.csproj -c Release -o /app/publish /p:UseAppHost=false
+
+# ==============================================================================
+# Stage 3: Runtime Environment
+# ==============================================================================
+FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS final
+ARG SERVICE_NAME
+WORKDIR /app
+
+# Copy published binaries
+COPY --from=publish /app/publish .
+
+# Run as non-root unprivileged user 'app'
+USER app
+
+# Set environment variable for DLL execution
+ENV SERVICE_DLL=${SERVICE_NAME}.dll
+
+# Launch service executable
+ENTRYPOINT ["sh", "-c", "exec dotnet $SERVICE_DLL"]

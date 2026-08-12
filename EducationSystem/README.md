@@ -1,125 +1,88 @@
-# Education Management System
+# Education Management System (EducationSystem)
+## Hướng Dẫn Cài Đặt và Khởi Chạy Local (Bare-Metal Local Setup Guide - Non-Docker)
 
-Backend skeleton cho dự án Education Management System theo kiến trúc Schema-per-Service / Modular Microservices.
+---
 
-Phase hiện tại vẫn là skeleton, nhưng đã có nền tảng EF Core để chuẩn bị cho CRUD. Mỗi service đã có `DbContext` riêng, default schema riêng và migration đầu tay riêng theo schema-per-service.
+## 📌 1. Bối Cảnh & Lý Do Không Sử Dụng Docker (Context & Motivation)
 
-## Công nghệ
+⚠️ **LÝ DO KHÔNG SỬ DỤNG DOCKER TRONG MÔI TRƯỜNG HIỆN TẠI:**
+Do các lỗi về encoding và thiếu font tiếng Việt trong môi trường Docker Container (Linux container cơ bản), các file PDF báo cáo/CV sinh viên và log hệ thống xuất ra bị **lỗi hiển thị font chữ tiếng Việt (corrupted fonts/encoding issues)**. 
+Do đó, tài liệu này hướng dẫn chi tiết quy trình **Bare-Metal Local Setup** — cài đặt và vận hành toàn bộ hệ thống trực tiếp trên hệ điều hành host (Windows/macOS/Linux) nhằm đảm bảo hiển thị chuẩn tiếng Việt, hiệu năng tối ưu và dễ dàng debug trong quá trình phát triển.
 
-- .NET 8
-- ASP.NET Core Web API
-- Entity Framework Core
-- SQL Server
-- REST API
-- Swagger/OpenAPI
-- Modular Microservices
-- Schema-per-Service
-- Clean Architecture ở mức khung thư mục
-- SharedKernel
+---
 
-## Kiến trúc
+## 🛠️ 2. Yêu Cầu Hệ Thống (Prerequisites)
 
-Solution `EducationSystem` gồm 4 service độc lập. Mỗi service đại diện cho một boundary nghiệp vụ và sẽ sở hữu một schema database riêng trong phase sau.
+1. **Runtime .NET:** .NET SDK 8.0 (`dotnet --version`)
+2. **NodeJS:** Node.js v20 LTS hoặc v22 (`node --version`, `npm --version`)
+3. **Python:** Python 3.10+ (cho dịch vụ VectorMatchService)
+4. **Database:** Microsoft SQL Server 2022 (Developer hoặc Express Edition) cài đặt cục bộ + Microsoft ODBC Driver 18 for SQL Server.
 
-```text
-EducationSystem/
-├── EducationSystem.sln
-├── src/
-│   ├── Services/
-│   │   ├── IdentityService/
-│   │   ├── AcademicService/
-│   │   ├── ExamService/
-│   │   └── CommunicationService/
-│   └── BuildingBlocks/
-│       └── SharedKernel/
-├── docs/
-│   ├── architecture.md
-│   └── api-convention.md
-└── README.md
-```
+---
 
-## Danh sách service
+## 🚀 3. Quy Trình Cài Đặt Chi Tiết
 
-| Service | Base route | Schema tương lai | HTTP | HTTPS |
-| --- | --- | --- | --- | --- |
-| IdentityService | `/api/identity` | `identity` | `5001` | `7001` |
-| AcademicService | `/api/academic` | `academic` | `5002` | `7002` |
-| ExamService | `/api/exam` | `exam` | `5003` | `7003` |
-| CommunicationService | `/api/communication` | `communication` | `5004` | `7004` |
+### Bước 1: Khởi Tạo Cơ Sở Dữ Liệu Cục Bộ (Local Database Ingestion)
+- Đảm bảo file `connectionstrings.Development.json` tại thư mục solution kết nối đến SQL Server:
+  `Server=localhost;Database=TayDoV2;Trusted_Connection=True;TrustServerCertificate=True;`
+- Thực thi tuần tự lệnh EF Core Migration cho 5 DbContext hoặc nạp các script SQL trong `database/scripts/`:
+  ```powershell
+  dotnet ef database update --project src/Services/IdentityService/IdentityService.csproj
+  dotnet ef database update --project src/Services/AcademicService/AcademicService.csproj
+  dotnet ef database update --project src/Services/ExamService/ExamService.csproj
+  dotnet ef database update --project src/Services/CommunicationService/CommunicationService.csproj
+  dotnet ef database update --project src/Services/CareerService/CareerService.csproj
+  ```
 
-## Cách chạy
+### Bước 2: Cài Đặt và Chạy VectorMatchService (Python / FastAPI)
+- Di chuyển vào `src/Services/VectorMatchService`, tạo và kích hoạt `venv`:
+  ```powershell
+  python -m venv .venv
+  .\.venv\Scripts\Activate.ps1
+  pip install -r requirements.txt
+  ```
+- Tạo tệp `.env` cấu hình ODBC:
+  `DRIVER={ODBC Driver 18 for SQL Server};SERVER=127.0.0.1,1433;DATABASE=TayDoV2;UID=sa;PWD=...`
+- Khởi chạy trên cổng `http://localhost:5006`.
 
-Thiết lập connection string bằng user secrets hoặc biến môi trường trước khi chạy migration/runtime:
+### Bước 3: Cấu Hình và Khởi Chạy 5 Dịch Vụ .NET 8 (Backend Services)
+Cổng HTTP các dịch vụ:
+- IdentityService -> `http://localhost:5001`
+- AcademicService -> `http://localhost:5002`
+- ExamService -> `http://localhost:5003`
+- CommunicationService -> `http://localhost:5004`
+- CareerService -> `http://localhost:5005`
 
+Đảm bảo cấu hình BFF / Client endpoints trỏ về `localhost` thay vì DNS container (`http://academic-service:5002` ➔ `http://localhost:5002`).
+
+### Bước 4: Cài Đặt và Khởi Động React Frontend
+- Di chuyển vào `education-system-ui`, cài đặt `npm ci`.
+- Cấu hình `.env.local`: `VITE_RESUME_API_MODE=live`, `VITE_AI_OPTIMIZE_MODE=live`, trỏ các base URL về các cổng localhost 5001-5005 tương ứng.
+- Chạy môi trường dev: `npm run dev -- --host 127.0.0.1` (`http://127.0.0.1:5173`).
+
+### Bước 5: Khởi Động Tự Động Tất Cả (One-Click Startup)
+Thực thi script tiện ích có sẵn trong repository:
 ```powershell
-dotnet user-secrets set "ConnectionStrings:SqlServer" "Server=localhost;Database=EducationSystem;User Id=sa;Password=Your_password123;TrustServerCertificate=True;MultipleActiveResultSets=True" --project src\Services\IdentityService\IdentityService.csproj
+.\scripts\Start-Dev.ps1
 ```
+*(Script sẽ tự động khởi chạy 5 services .NET, 1 service Python VectorMatchService và React Frontend).*
 
-Hoặc đặt biến môi trường:
-
+Dừng các service backend:
 ```powershell
-$env:ConnectionStrings__SqlServer = "Server=localhost;Database=EducationSystem;User Id=sa;Password=Your_password123;TrustServerCertificate=True;MultipleActiveResultSets=True"
+.\scripts\Stop-BackendServices.ps1
 ```
 
-Chạy build toàn solution:
+---
 
-```powershell
-cd D:\Intern_IT\Intern\EducationSystem
-dotnet build
-```
+## 📊 4. Bảng Cổng Kết Nối (Port Mapping)
 
-Chạy từng service:
-
-```powershell
-dotnet run --project src\Services\IdentityService\IdentityService.csproj --launch-profile http
-dotnet run --project src\Services\AcademicService\AcademicService.csproj --launch-profile http
-dotnet run --project src\Services\ExamService\ExamService.csproj --launch-profile http
-dotnet run --project src\Services\CommunicationService\CommunicationService.csproj --launch-profile http
-```
-
-Swagger:
-
-- IdentityService: `http://localhost:5001/swagger`
-- AcademicService: `http://localhost:5002/swagger`
-- ExamService: `http://localhost:5003/swagger`
-- CommunicationService: `http://localhost:5004/swagger`
-
-## Endpoint hiện có
-
-Health:
-
-- `GET /api/identity/health`
-- `GET /api/academic/health`
-- `GET /api/exam/health`
-- `GET /api/communication/health`
-
-Service info:
-
-- `GET /api/identity/info`
-- `GET /api/academic/info`
-- `GET /api/exam/info`
-- `GET /api/communication/info`
-
-## Trạng thái hiện tại
-
-- Đã có EF Core DbContext cho từng service.
-- Đã có migration đầu tay cho từng schema.
-- Chưa có DTO.
-- Chưa có Entity.
-- Chưa có Repository.
-- Chưa có CRUD API thật cho 37 bảng.
-- Chưa có RabbitMQ.
-- Chưa có gRPC.
-- Chưa có API Gateway.
-- Chưa có Docker.
-- Chưa có UI.
-
-## Future scope
-
-- Scaffold EF Core theo từng schema/service.
-- Tạo DTOs, Entities, Repository nếu cần.
-- Tạo CRUD APIs cho các bảng nghiệp vụ.
-- Thêm JWT authentication/authorization.
-- Tích hợp UI.
-- Cân nhắc API Gateway khi cần một entry point chung.
-- Cân nhắc RabbitMQ hoặc gRPC khi có nhu cầu giao tiếp liên service.
+| Dịch Vụ | Port Local | URL Swagger / Health |
+| :--- | :--- | :--- |
+| **React Frontend** | `5173` | `http://127.0.0.1:5173` |
+| **IdentityService** | `5001` | `http://localhost:5001/swagger` |
+| **AcademicService** | `5002` | `http://localhost:5002/swagger` |
+| **ExamService** | `5003` | `http://localhost:5003/swagger` |
+| **CommunicationService** | `5004` | `http://localhost:5004/swagger` |
+| **CareerService** | `5005` | `http://localhost:5005/swagger` |
+| **VectorMatchService** | `5006` | `http://localhost:5006/health` |
+| **SQL Server** | `1433` | Database `TayDoV2` |

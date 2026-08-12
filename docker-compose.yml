@@ -1,0 +1,265 @@
+version: '3.8'
+
+services:
+  # ============================================================================
+  # Database Service: MS SQL Server 2022 Developer Edition
+  # ============================================================================
+  mssql:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: educationsystem-mssql
+    restart: always
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_SA_PASSWORD=Your_password123!
+    ports:
+      - "1433:1433"
+    volumes:
+      - mssql-data:/var/opt/mssql
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P 'Your_password123!' -C -Q 'SELECT 1' || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 15s
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+    networks:
+      - educationsystem-network
+
+  # ============================================================================
+  # Database Seeder Container (Zero-Config DB Wait & Initialization)
+  # ============================================================================
+  db-init:
+    build:
+      context: ./EducationSystem/database/scripts
+      dockerfile: Dockerfile
+    container_name: educationsystem-db-init
+    environment:
+      - MSSQL_HOST=mssql
+      - MSSQL_PORT=1433
+      - MSSQL_SA_PASSWORD=Your_password123!
+      - DB_NAME=TayDoV2
+    depends_on:
+      mssql:
+        condition: service_healthy
+    networks:
+      - educationsystem-network
+
+  # ============================================================================
+  # 1. IdentityService (.NET 8 Web API) - Port 5001
+  # ============================================================================
+  identity-service:
+    build:
+      context: ./EducationSystem
+      dockerfile: Dockerfile.dotnet
+      args:
+        SERVICE_NAME: IdentityService
+    container_name: educationsystem-identity-service
+    restart: always
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_HTTP_PORTS=5001
+      - ConnectionStrings__IdentityDb=Server=mssql,1433;Database=TayDoV2;User Id=sa;Password=Your_password123!;TrustServerCertificate=True;MultipleActiveResultSets=True
+      - StudentLogin__AcademicServiceBaseUrl=http://academic-service:5002
+    ports:
+      - "5001:5001"
+    depends_on:
+      mssql:
+        condition: service_healthy
+      db-init:
+        condition: service_completed_successfully
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+    networks:
+      - educationsystem-network
+
+  # ============================================================================
+  # 2. AcademicService (.NET 8 Web API) - Port 5002
+  # ============================================================================
+  academic-service:
+    build:
+      context: ./EducationSystem
+      dockerfile: Dockerfile.dotnet
+      args:
+        SERVICE_NAME: AcademicService
+    container_name: educationsystem-academic-service
+    restart: always
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_HTTP_PORTS=5002
+      - ConnectionStrings__AcademicDb=Server=mssql,1433;Database=TayDoV2;User Id=sa;Password=Your_password123!;TrustServerCertificate=True;MultipleActiveResultSets=True
+    ports:
+      - "5002:5002"
+    depends_on:
+      mssql:
+        condition: service_healthy
+      db-init:
+        condition: service_completed_successfully
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+    networks:
+      - educationsystem-network
+
+  # ============================================================================
+  # 3. ExamService (.NET 8 Web API) - Port 5003
+  # ============================================================================
+  exam-service:
+    build:
+      context: ./EducationSystem
+      dockerfile: Dockerfile.dotnet
+      args:
+        SERVICE_NAME: ExamService
+    container_name: educationsystem-exam-service
+    restart: always
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_HTTP_PORTS=5003
+      - ConnectionStrings__ExamDb=Server=mssql,1433;Database=TayDoV2;User Id=sa;Password=Your_password123!;TrustServerCertificate=True;MultipleActiveResultSets=True
+    ports:
+      - "5003:5003"
+    depends_on:
+      mssql:
+        condition: service_healthy
+      db-init:
+        condition: service_completed_successfully
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+    networks:
+      - educationsystem-network
+
+  # ============================================================================
+  # 4. CommunicationService (.NET 8 Web API) - Port 5004
+  # ============================================================================
+  communication-service:
+    build:
+      context: ./EducationSystem
+      dockerfile: Dockerfile.dotnet
+      args:
+        SERVICE_NAME: CommunicationService
+    container_name: educationsystem-communication-service
+    restart: always
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_HTTP_PORTS=5004
+      - ConnectionStrings__CommunicationDb=Server=mssql,1433;Database=TayDoV2;User Id=sa;Password=Your_password123!;TrustServerCertificate=True;MultipleActiveResultSets=True
+    ports:
+      - "5004:5004"
+    depends_on:
+      mssql:
+        condition: service_healthy
+      db-init:
+        condition: service_completed_successfully
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+    networks:
+      - educationsystem-network
+
+  # ============================================================================
+  # 5. CareerService (.NET 8 Web API / BFF) - Port 5005
+  # ============================================================================
+  career-service:
+    build:
+      context: ./EducationSystem
+      dockerfile: Dockerfile.dotnet
+      args:
+        SERVICE_NAME: CareerService
+    container_name: educationsystem-career-service
+    restart: always
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_HTTP_PORTS=5005
+      - ConnectionStrings__CareerDb=Server=mssql,1433;Database=TayDoV2;User Id=sa;Password=Your_password123!;TrustServerCertificate=True;MultipleActiveResultSets=True
+      - AcademicClient__BaseUrl=http://academic-service:5002
+      - VectorMatchClient__BaseUrl=http://vector-match-service:5006
+    ports:
+      - "5005:5005"
+    depends_on:
+      mssql:
+        condition: service_healthy
+      db-init:
+        condition: service_completed_successfully
+      academic-service:
+        condition: service_started
+      vector-match-service:
+        condition: service_started
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+    networks:
+      - educationsystem-network
+
+  # ============================================================================
+  # 6. VectorMatchService (Python 3.10 / FastAPI / Sentence-BERT / FAISS) - Port 5006
+  # ============================================================================
+  vector-match-service:
+    build:
+      context: ./EducationSystem/src/Services/VectorMatchService
+      dockerfile: Dockerfile
+    container_name: educationsystem-vector-match-service
+    restart: always
+    environment:
+      - VECTOR_ACADEMIC_DB_CONNECTION_STRING=Driver={ODBC Driver 18 for SQL Server};Server=mssql,1433;Database=TayDoV2;Uid=sa;Pwd=Your_password123!;TrustServerCertificate=yes;
+      - VECTOR_CAREER_DB_CONNECTION_STRING=Driver={ODBC Driver 18 for SQL Server};Server=mssql,1433;Database=TayDoV2;Uid=sa;Pwd=Your_password123!;TrustServerCertificate=yes;
+      - VECTOR_MODEL_NAME=sentence-transformers/multi-qa-MiniLM-L6-cos-v1
+      - VECTOR_MODEL_DEVICE=cpu
+      - VECTOR_ELIGIBLE_GPA_THRESHOLD=7.0
+      - VECTOR_INDEX_TTL_SECONDS=900
+    ports:
+      - "5006:5006"
+    depends_on:
+      mssql:
+        condition: service_healthy
+      db-init:
+        condition: service_completed_successfully
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+    networks:
+      - educationsystem-network
+
+  # ============================================================================
+  # 7. Frontend SPA (React 19 / Vite 8 + Nginx Proxy) - Port 80
+  # ============================================================================
+  frontend:
+    build:
+      context: ./EducationSystem/education-system-ui
+      dockerfile: Dockerfile
+    container_name: educationsystem-frontend
+    restart: always
+    ports:
+      - "80:80"
+    depends_on:
+      - identity-service
+      - academic-service
+      - exam-service
+      - communication-service
+      - career-service
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+    networks:
+      - educationsystem-network
+
+# ==============================================================================
+# Infrastructure Networks & Volumes
+# ==============================================================================
+volumes:
+  mssql-data:
+    driver: local
+
+networks:
+  educationsystem-network:
+    driver: bridge
