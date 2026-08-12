@@ -48,23 +48,34 @@ public sealed class VaultOutcomeProvider(
              Return one JSON object matching this schema. Do not wrap it in markdown:
              {schema}
              """;
-        var payload = new
-        {
-            model = settings.Model,
-            messages = new object[]
+        var usesResponsesApi = settings.Model.Equals(
+            "gpt-5.6-sol",
+            StringComparison.OrdinalIgnoreCase);
+        object payload = usesResponsesApi
+            ? new
             {
-                new
+                model = settings.Model,
+                instructions = GeminiOutcomeExtractionProvider.SystemInstruction,
+                input = prompt,
+                stream = true
+            }
+            : new
+            {
+                model = settings.Model,
+                messages = new object[]
                 {
-                    role = "system",
-                    content = GeminiOutcomeExtractionProvider.SystemInstruction
+                    new
+                    {
+                        role = "system",
+                        content = GeminiOutcomeExtractionProvider.SystemInstruction
+                    },
+                    new { role = "user", content = prompt }
                 },
-                new { role = "user", content = prompt }
-            },
-            temperature = 0.1,
-            max_completion_tokens = settings.MaxOutputTokens,
-            stream = true,
-            response_format = new { type = "json_object" }
-        };
+                temperature = 0.1,
+                max_completion_tokens = settings.MaxOutputTokens,
+                stream = true,
+                response_format = new { type = "json_object" }
+            };
 
         Exception? last = null;
         for (var attempt = 0; attempt <= settings.MaxRetries; attempt++)
@@ -73,7 +84,8 @@ public sealed class VaultOutcomeProvider(
             {
                 using var message = new HttpRequestMessage(
                     HttpMethod.Post,
-                    $"{settings.BaseUrl.TrimEnd('/')}/chat/completions")
+                    $"{settings.BaseUrl.TrimEnd('/')}/" +
+                    (usesResponsesApi ? "responses" : "chat/completions"))
                 {
                     Content = JsonContent.Create(payload)
                 };
@@ -106,7 +118,9 @@ public sealed class VaultOutcomeProvider(
                         response.StatusCode == HttpStatusCode.TooManyRequests ? 429 : 502);
                 }
 
-                var content = VaultChatResponseParser.ExtractContent(responseText);
+                var content = usesResponsesApi
+                    ? VaultChatResponseParser.ExtractResponsesContent(responseText)
+                    : VaultChatResponseParser.ExtractContent(responseText);
                 var normalized = NormalizeOptionalFields(
                     content, request.RequestNumber);
                 using var structured = JsonDocument.Parse(normalized);
@@ -119,7 +133,7 @@ public sealed class VaultOutcomeProvider(
                         : null);
             }
             catch (Exception exception) when (
-                exception is HttpRequestException or TaskCanceledException or JsonException)
+                exception is HttpRequestException or IOException or TaskCanceledException or JsonException)
             {
                 last = exception;
                 if (attempt < settings.MaxRetries)
@@ -152,11 +166,20 @@ public sealed class VaultOutcomeProvider(
         using var reader = new StreamReader(stream);
         var body = new StringBuilder();
 
-        while (await reader.ReadLineAsync(cancellationToken) is { } line)
+        try
         {
-            body.AppendLine(line);
-            if (line.Trim().Equals("data: [DONE]", StringComparison.Ordinal))
-                break;
+            while (await reader.ReadLineAsync(cancellationToken) is { } line)
+            {
+                body.AppendLine(line);
+                if (line.Trim().Equals("data: [DONE]", StringComparison.Ordinal))
+                    break;
+            }
+        }
+        catch (IOException) when (body.Length > 0)
+        {
+            // Some Vault gateways close a chunked SSE response without the
+            // terminating chunk. Preserve received events; schema validation
+            // below decides whether the streamed JSON is complete or retries.
         }
 
         return body.ToString();

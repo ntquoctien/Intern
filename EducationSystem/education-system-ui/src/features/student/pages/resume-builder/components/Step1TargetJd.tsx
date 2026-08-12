@@ -22,6 +22,7 @@ const MAX_JD_LENGTH = 1500
 const MAX_TARGET_ROLE_LENGTH = 200
 const MAX_CAREER_FOCUS_TAG_LENGTH = 200
 const RECOMMENDED_COURSE_LIMIT = 10
+const JD_SIMILARITY_THRESHOLD = 0.65
 const academicApiOrigin = import.meta.env.VITE_ACADEMIC_API_ORIGIN ?? 'http://localhost:5002'
 const careerApiOrigin =
   import.meta.env.VITE_AI_API_ORIGIN ?? import.meta.env.VITE_CAREER_API_ORIGIN ?? 'http://localhost:5005'
@@ -117,7 +118,7 @@ export function Step1TargetJd() {
             uiProjects: [],
             careerFocusTag: careerFocusTag.trim() || undefined,
             topK: RECOMMENDED_COURSE_LIMIT,
-            similarityThreshold: 0.65,
+            similarityThreshold: JD_SIMILARITY_THRESHOLD,
           },
         ),
       ])
@@ -133,8 +134,18 @@ export function Step1TargetJd() {
 
       // VectorMatch là tầng nâng cao: nếu dịch vụ phân tích JD không khả dụng
       // thì vẫn hiển thị môn học theo điểm số thay vì chặn luồng.
+      const matchedSubjects =
+        prepareResult.status === 'fulfilled'
+          ? (prepareResult.value.data.data?.matchedSubjects ?? [])
+          : []
+      // A semantic match may relax the requested threshold and still set
+      // isFallbackMode. Score-only fallback outcomes always have score 0.
+      const hasSemanticRecommendations = matchedSubjects.some(subject =>
+        subject.courseOutcomes.some(outcome => (outcome.similarityScore ?? 0) > 0),
+      )
       const vectorMatchUnavailable = prepareResult.status === 'rejected'
-        || prepareResult.value.data.data?.isFallbackMode === true
+        || (prepareResult.value.data.data?.isFallbackMode === true
+          && !hasSemanticRecommendations)
       if (vectorMatchUnavailable) {
         console.warn(
           'Vector match unavailable, falling back to raw scores:',
@@ -143,11 +154,6 @@ export function Step1TargetJd() {
             : 'CareerService returned fallback mode',
         )
       }
-      const matchedSubjects =
-        prepareResult.status === 'fulfilled'
-          ? (prepareResult.value.data.data?.matchedSubjects ?? [])
-          : []
-
       const matchBySubjectId = new Map(
         matchedSubjects.map(m => [m.subjectId.toLowerCase(), m] as const),
       )
@@ -197,8 +203,7 @@ export function Step1TargetJd() {
       // Fallback responses also contain matchedSubjects ranked by score. They
       // must not be treated as vector matches, otherwise every score-fallback
       // course is removed by the vector-only filter below.
-      const hasVectorRecommendations =
-        !vectorMatchUnavailable && matchedSubjects.length > 0
+      const hasVectorRecommendations = hasSemanticRecommendations
       const courses = rankedCourses
         .filter(course => !hasVectorRecommendations || course.recommendationSource === 'vector')
         .sort((a, b) => {
@@ -243,6 +248,9 @@ export function Step1TargetJd() {
         )
       } else if (vectorMatchUnavailable || !hasVectorRecommendations) {
         message.warning('Chưa có kết quả khớp JD. Chỉ hiển thị tối đa 10 môn điểm cao để tham khảo.')
+      } else if (prepareResult.status === 'fulfilled'
+        && prepareResult.value.data.data?.isFallbackMode === true) {
+        message.success(`Đã phân tích JD — đề xuất ${courses.length} môn gần phù hợp nhất!`)
       } else if (matchedSubjects.length > 0) {
         message.success(`Đã phân tích JD — đề xuất ${courses.length} môn học phù hợp nhất!`)
       } else {

@@ -19,6 +19,9 @@ export const NAVIGATION_LABELS = {
   USERS: 'Quản lý người dùng',
   COMMUNICATION: 'Liên lạc & Yêu cầu',
   FORM_REQUESTS: 'Yêu cầu biểu mẫu',
+  SYSTEM: 'Hệ thống',
+  SYSTEM_OVERVIEW: 'Tổng quan hệ thống',
+  OUTCOMES: 'Chuẩn đầu ra CLO/PLO',
 }
 
 // Page Titles & Descriptions

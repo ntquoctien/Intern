@@ -1,6 +1,12 @@
+param(
+    [switch]$Restart
+)
+
 $ErrorActionPreference = "Stop"
 
 $root = Split-Path -Parent $PSScriptRoot
+
+& (Join-Path $PSScriptRoot "Start-VectorMatchService.ps1") -Restart:$Restart
 
 # Let dotnet build services that are not already running. Using --no-build here
 # makes a clean checkout (or a cleaned bin folder) fail silently because the

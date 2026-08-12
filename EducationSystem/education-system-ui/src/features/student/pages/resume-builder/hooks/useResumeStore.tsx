@@ -257,6 +257,18 @@ function resumeBuilderReducer(state: ResumeBuilderState, action: ResumeBuilderAc
         optimizedCvResult: null,
         preparePayload: null,
       }
+    case 'SET_APPROVED_INTERNSHIPS': {
+      const availableIds = new Set(
+        action.payload.map(internship => internship.internshipId),
+      )
+      return {
+        ...state,
+        approvedInternships: action.payload,
+        selectedInternshipIds: state.selectedInternshipIds.filter(id =>
+          availableIds.has(id),
+        ),
+      }
+    }
     case 'PREPARE_PAYLOAD':
       return { ...state, preparePayload: action.payload }
     case 'SET_OPTIMIZED_RESULT':
@@ -348,6 +360,7 @@ export interface ResumeStoreContextType {
     projects: StudentProject[]
     internships: ApprovedInternship[]
   }) => void
+  setApprovedInternships: (internships: ApprovedInternship[]) => void
   preparePayload: (payload: PrepareResumePayloadRequestDto) => void
   setOptimizedResult: (result: OptimizedResumeResponseDto) => void
   updateOptimizedSummary: (summary: string) => void
@@ -410,6 +423,11 @@ export const ResumeStoreProvider: React.FC<{ children: React.ReactNode }> = ({ c
     projects: StudentProject[]
     internships: ApprovedInternship[]
   }) => dispatch({ type: 'SET_CONTEXT_DATA', payload: data }), [])
+  const setApprovedInternships = useCallback(
+    (internships: ApprovedInternship[]) =>
+      dispatch({ type: 'SET_APPROVED_INTERNSHIPS', payload: internships }),
+    [],
+  )
   const preparePayloadCallback = useCallback((payload: PrepareResumePayloadRequestDto) => dispatch({ type: 'PREPARE_PAYLOAD', payload }), [])
   const setOptimizedResult = useCallback((result: OptimizedResumeResponseDto) => dispatch({ type: 'SET_OPTIMIZED_RESULT', payload: result }), [])
   const updateOptimizedSummary = useCallback((summary: string) => dispatch({ type: 'UPDATE_OPTIMIZED_SUMMARY', payload: summary }), [])
@@ -457,13 +475,14 @@ export const ResumeStoreProvider: React.FC<{ children: React.ReactNode }> = ({ c
     setOptimizing,
     setZoomLevel,
     setContextData,
+    setApprovedInternships,
     preparePayload: preparePayloadCallback,
     setOptimizedResult,
     updateOptimizedSummary,
     updateOptimizedSkill,
     updateOptimizedBullet,
     reset,
-  }), [state, setStep, setTargetJd, setContactInfo, toggleSubjectSelection, toggleInternshipSelection, toggleProjectSelection, toggleCertificationSelection, toggleAwardSelection, updateUiProject, addPersonalProject, deletePersonalProject, addCertification, updateCertification, deleteCertification, addAward, updateAward, deleteAward, linkProjectCourses, setLoadingContext, setOptimizing, setZoomLevel, setContextData, preparePayloadCallback, setOptimizedResult, updateOptimizedSummary, updateOptimizedSkill, updateOptimizedBullet, reset])
+  }), [state, setStep, setTargetJd, setContactInfo, toggleSubjectSelection, toggleInternshipSelection, toggleProjectSelection, toggleCertificationSelection, toggleAwardSelection, updateUiProject, addPersonalProject, deletePersonalProject, addCertification, updateCertification, deleteCertification, addAward, updateAward, deleteAward, linkProjectCourses, setLoadingContext, setOptimizing, setZoomLevel, setContextData, setApprovedInternships, preparePayloadCallback, setOptimizedResult, updateOptimizedSummary, updateOptimizedSkill, updateOptimizedBullet, reset])
 
   return (
     <ResumeStoreContext.Provider value={value}>

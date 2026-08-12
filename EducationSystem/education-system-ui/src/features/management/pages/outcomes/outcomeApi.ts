@@ -221,6 +221,18 @@ export type OutcomeProblem = {
   title?: string
   detail?: string
   errorCode?: string
+  existingImportId?: number
+  existingImportStatus?: ImportStatus
+}
+
+export type DuplicateImport = { id: number; status: ImportStatus }
+
+export function duplicateImport(error: unknown): DuplicateImport | undefined {
+  if (!axios.isAxiosError<OutcomeProblem>(error)) return undefined
+  const problem = error.response?.data
+  if (problem?.errorCode !== 'DUPLICATE_IMPORT' || !problem.existingImportId || !problem.existingImportStatus)
+    return undefined
+  return { id: problem.existingImportId, status: problem.existingImportStatus }
 }
 
 export function problemMessage(error: unknown) {
@@ -232,6 +244,18 @@ export function problemMessage(error: unknown) {
 export const outcomeApi = {
   majors: async () =>
     (await httpClient.get<ApiResponse<MajorLookup[]>>(`${academicOrigin}/api/academic/majors/lookup`)).data.data,
+  subjects: async () => {
+    const items = (await httpClient.get<ApiResponse<Array<{
+      id: string
+      subjectCode: string
+      name: string
+    }>>>(`${academicOrigin}/api/academic/subjects/lookup`)).data.data
+    return items.map(item => ({
+      subjectId: item.id,
+      subjectCode: item.subjectCode,
+      name: item.name,
+    } satisfies SelectedSubject))
+  },
   curricula: async () =>
     (await httpClient.get<CurriculumOption[]>(`${baseUrl}/curriculum-versions`)).data,
   createCurriculum: async (request: CreateCurriculum) =>

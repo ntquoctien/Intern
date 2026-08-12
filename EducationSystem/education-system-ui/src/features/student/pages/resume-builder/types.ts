@@ -213,6 +213,7 @@ export type ResumeBuilderAction =
   | { type: 'SET_OPTIMIZING'; payload: boolean }
   | { type: 'SET_ZOOM'; payload: number | null }
   | { type: 'SET_CONTEXT_DATA'; payload: { studentInfo: ResumeBuilderState['studentInfo']; courses: EligibleCourse[]; projects: StudentProject[]; internships: ApprovedInternship[] } }
+  | { type: 'SET_APPROVED_INTERNSHIPS'; payload: ApprovedInternship[] }
   | { type: 'PREPARE_PAYLOAD'; payload: PrepareResumePayloadRequestDto }
   | { type: 'SET_OPTIMIZED_RESULT'; payload: OptimizedResumeResponseDto }
   | { type: 'UPDATE_OPTIMIZED_SUMMARY'; payload: string }

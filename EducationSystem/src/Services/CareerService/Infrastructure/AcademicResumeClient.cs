@@ -20,28 +20,50 @@ public sealed class AcademicResumeClient(HttpClient httpClient)
         request.Headers.Authorization =
             new AuthenticationHeaderValue("Bearer", bearerToken);
 
-        using var response = await httpClient.SendAsync(request, cancellationToken);
-        if (response.StatusCode == HttpStatusCode.NotFound)
+        HttpResponseMessage response;
+        try
+        {
+            response = await httpClient.SendAsync(request, cancellationToken);
+        }
+        catch (TaskCanceledException) when (!cancellationToken.IsCancellationRequested)
+        {
             throw new DownstreamApiException(
-                "STUDENT_CONTEXT_NOT_FOUND",
-                "Academic resume context was not found.",
-                StatusCodes.Status404NotFound);
-        if (response.StatusCode is HttpStatusCode.Unauthorized or HttpStatusCode.Forbidden)
-            throw new DownstreamApiException(
-                "ACADEMIC_AUTHORIZATION_FAILED",
-                "AcademicService rejected the student access token.",
-                StatusCodes.Status502BadGateway);
-        if (!response.IsSuccessStatusCode)
+                "ACADEMIC_SERVICE_TIMEOUT",
+                "Academic context took too long to respond. Please try again.",
+                StatusCodes.Status504GatewayTimeout);
+        }
+        catch (HttpRequestException)
+        {
             throw new DownstreamApiException(
                 "ACADEMIC_SERVICE_UNAVAILABLE",
                 "Academic context is currently unavailable.",
                 StatusCodes.Status503ServiceUnavailable);
+        }
 
-        return (await response.Content.ReadFromJsonAsync<
-                    ApiResponse<AcademicResumeContextContract>>(cancellationToken))?.Data
-               ?? throw new DownstreamApiException(
-                   "ACADEMIC_INVALID_RESPONSE",
-                   "AcademicService returned an invalid resume context.",
-                   StatusCodes.Status502BadGateway);
+        using (response)
+        {
+            if (response.StatusCode == HttpStatusCode.NotFound)
+                throw new DownstreamApiException(
+                    "STUDENT_CONTEXT_NOT_FOUND",
+                    "Academic resume context was not found.",
+                    StatusCodes.Status404NotFound);
+            if (response.StatusCode is HttpStatusCode.Unauthorized or HttpStatusCode.Forbidden)
+                throw new DownstreamApiException(
+                    "ACADEMIC_AUTHORIZATION_FAILED",
+                    "AcademicService rejected the student access token.",
+                    StatusCodes.Status502BadGateway);
+            if (!response.IsSuccessStatusCode)
+                throw new DownstreamApiException(
+                    "ACADEMIC_SERVICE_UNAVAILABLE",
+                    "Academic context is currently unavailable.",
+                    StatusCodes.Status503ServiceUnavailable);
+
+            return (await response.Content.ReadFromJsonAsync<
+                        ApiResponse<AcademicResumeContextContract>>(cancellationToken))?.Data
+                   ?? throw new DownstreamApiException(
+                       "ACADEMIC_INVALID_RESPONSE",
+                       "AcademicService returned an invalid resume context.",
+                       StatusCodes.Status502BadGateway);
+        }
     }
 }

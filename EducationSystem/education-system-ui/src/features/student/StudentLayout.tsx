@@ -31,7 +31,7 @@ export function StudentProtectedLayout() {
 
   return <Layout className="student-shell">
     <Layout.Sider className="student-sider" breakpoint="lg" collapsedWidth={0} width={260}>
-      <div className="student-brand"><span className="student-brand-emblem">TDU</span><span>CỔNG SINH VIÊN<small>ĐẠI HỌC TÂY ĐÔ</small></span></div>
+      <div className="student-brand"><span className="student-brand-emblem">TDU</span><span>CỔNG SINH VIÊN<small>Cao Đẳng Tây Đô</small></span></div>
       <Menu className="student-navigation" mode="inline" selectedKeys={[location.pathname]} items={menuItems} onClick={({ key }) => navigate(key)} />
       <div className="student-sider-help"><b>Bạn cần hỗ trợ?</b><span>Trung tâm trợ giúp</span></div>
     </Layout.Sider>

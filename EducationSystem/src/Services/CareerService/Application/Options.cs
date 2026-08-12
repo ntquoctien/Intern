@@ -32,6 +32,7 @@ public sealed class AcademicClientOptions
 {
     public const string SectionName = "AcademicClient";
     public string BaseUrl { get; set; } = "http://localhost:5002";
+    public int TimeoutSeconds { get; set; } = 60;
 }
 
 public sealed class VaultLlmOptions
@@ -50,6 +51,7 @@ public sealed class ResumeLlmOptions
     public const string SectionName = "ResumeLLM";
     public string Provider { get; set; } = "Vault";
     public string Model { get; set; } = "gpt-5.6-sol";
+    public string FallbackModel { get; set; } = string.Empty;
     public string ApiKey { get; set; } = string.Empty;
     public string BaseUrl { get; set; } = "https://newapi.vault.io.vn/v1";
     public int TimeoutSeconds { get; set; } = 300;
@@ -61,8 +63,8 @@ public sealed class PdfOcrOptions
 {
     public const string SectionName = "PdfOcr";
     public bool Enabled { get; set; } = true;
-    public string Provider { get; set; } = "Groq";
-    public string Model { get; set; } = "qwen/qwen3.6-27b";
+    public string Provider { get; set; } = "Vault";
+    public string Model { get; set; } = "gpt-5.6-sol";
     public string ApiKey { get; set; } = string.Empty;
     public int TimeoutSeconds { get; set; } = 600;
     public int MaxRetries { get; set; } = 2;

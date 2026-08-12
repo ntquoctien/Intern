@@ -2,9 +2,12 @@ using CareerService.Application;
 using CareerService.Infrastructure;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Wordprocessing;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.FileProviders;
+using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
+using System.Text.Json;
 
 namespace CareerService.Tests;
 
@@ -33,6 +36,76 @@ public sealed class DocumentPipelineTests
         var error = Assert.Throws<OutcomeImportException>(() =>
             validator.Validate("outcomes.docx", DocxFileValidator.ContentType, "not a zip"u8.ToArray()));
         Assert.Equal("INVALID_DOCX", error.ErrorCode);
+    }
+
+    [Fact]
+    public void ValidDocx_WithGenericBrowserMimeType_IsAccepted()
+    {
+        var validator = new DocxFileValidator(
+            Options.Create(new OutcomeStorageOptions()));
+
+        validator.Validate(
+            "outcomes.docx",
+            "application/octet-stream",
+            CreateDocx());
+    }
+
+    [Fact]
+    public void ValidPdf_IsAcceptedByDocumentValidator()
+    {
+        var options = Options.Create(new OutcomeStorageOptions());
+        var validator = new OutcomeDocumentFileValidator(
+            new DocxFileValidator(options),
+            new PdfFileValidator(options));
+
+        var extension = validator.Validate(
+            "outcomes.pdf",
+            PdfFileValidator.ContentType,
+            "%PDF-1.7\n%%EOF"u8.ToArray());
+
+        Assert.Equal(".pdf", extension);
+    }
+
+    [Fact]
+    public void PdfWithMismatchedMimeType_IsRejected()
+    {
+        var validator = new PdfFileValidator(
+            Options.Create(new OutcomeStorageOptions()));
+
+        var error = Assert.Throws<OutcomeImportException>(() => validator.Validate(
+            "outcomes.pdf",
+            DocxFileValidator.ContentType,
+            "%PDF-1.7\n%%EOF"u8.ToArray()));
+
+        Assert.Equal("INVALID_CONTENT_TYPE", error.ErrorCode);
+    }
+
+    [Fact]
+    public async Task ImportProblem_IncludesExistingBatchDetails()
+    {
+        var middleware = new OutcomeExceptionMiddleware(
+            _ => throw new OutcomeImportException(
+                "DUPLICATE_IMPORT",
+                "Document already exists.",
+                StatusCodes.Status409Conflict,
+                extensions: new Dictionary<string, object?>
+                {
+                    ["existingImportId"] = 42L,
+                    ["existingImportStatus"] = "PendingReview"
+                }),
+            NullLogger<OutcomeExceptionMiddleware>.Instance);
+        var context = new DefaultHttpContext();
+        context.Response.Body = new MemoryStream();
+
+        await middleware.InvokeAsync(context);
+
+        context.Response.Body.Position = 0;
+        using var problem = await JsonDocument.ParseAsync(context.Response.Body);
+        Assert.Equal(409, context.Response.StatusCode);
+        Assert.Equal(42, problem.RootElement.GetProperty("existingImportId").GetInt64());
+        Assert.Equal(
+            "PendingReview",
+            problem.RootElement.GetProperty("existingImportStatus").GetString());
     }
 
     [Fact]

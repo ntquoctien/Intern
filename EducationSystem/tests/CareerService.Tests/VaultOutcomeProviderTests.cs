@@ -32,6 +32,24 @@ public sealed class VaultOutcomeProviderTests
     }
 
     [Fact]
+    public async Task Gpt56Extraction_UsesResponsesApiAndParsesSseDeltas()
+    {
+        var handler = new CaptureHandler(HttpStatusCode.OK);
+        var provider = Provider(handler, model: "gpt-5.6-sol");
+
+        var result = await provider.ExtractAsync(
+            new OutcomeExtractionProviderRequest(
+                "Extract outcomes.", "v1", """{"blocks":[]}""", 2),
+            CancellationToken.None);
+
+        Assert.Equal("""{"subjects":[],"warnings":[]}""", result.Json);
+        Assert.Equal("https://vault.test/v1/responses", handler.RequestUri);
+        Assert.Contains("\"instructions\"", handler.Body);
+        Assert.Contains("\"input\"", handler.Body);
+        Assert.DoesNotContain("\"messages\"", handler.Body);
+    }
+
+    [Fact]
     public async Task Extraction_ReportsGatewayTimeoutWithoutMisclassifyingResponse()
     {
         var handler = new CaptureHandler(
@@ -65,15 +83,29 @@ public sealed class VaultOutcomeProviderTests
         Assert.Equal(2, handler.RequestCount);
     }
 
+    [Fact]
+    public async Task Extraction_RetriesPrematureResponseWhenConfigured()
+    {
+        var handler = new ThrowOnceHandler();
+
+        var result = await Provider(handler, maxRetries: 1).ExtractAsync(
+            new OutcomeExtractionProviderRequest("task", "v1", "{}", 2),
+            CancellationToken.None);
+
+        Assert.Equal("""{"subjects":[],"warnings":[]}""", result.Json);
+        Assert.Equal(2, handler.RequestCount);
+    }
+
     private static VaultOutcomeProvider Provider(
-        CaptureHandler handler,
-        int maxRetries = 0) =>
+        HttpMessageHandler handler,
+        int maxRetries = 0,
+        string model = "kimi-k3") =>
         new(
             new HttpClient(handler),
             Options.Create(new VaultLlmOptions
             {
                 BaseUrl = "https://vault.test/v1",
-                Model = "gpt-5.6-sol",
+                Model = model,
                 ApiKey = "test-secret",
                 MaxRetries = maxRetries,
                 MaxOutputTokens = 4000
@@ -118,12 +150,42 @@ public sealed class VaultOutcomeProviderTests
 
             const string content = "{\"subjects\":[],\"warnings\":[]}";
             var split = content.Length / 2;
-            var sse =
-                $"data: {{\"choices\":[{{\"delta\":{{\"content\":{System.Text.Json.JsonSerializer.Serialize(content[..split])}}}}}]}}\n\n" +
-                $"data: {{\"choices\":[{{\"delta\":{{\"content\":{System.Text.Json.JsonSerializer.Serialize(content[split..])}}}}}]}}\n\n" +
-                "data: [DONE]\n\n";
+            var sse = RequestUri.EndsWith("/responses", StringComparison.Ordinal)
+                ? $"data: {{\"type\":\"response.output_text.delta\",\"delta\":{System.Text.Json.JsonSerializer.Serialize(content[..split])}}}\n\n" +
+                  $"data: {{\"type\":\"response.output_text.delta\",\"delta\":{System.Text.Json.JsonSerializer.Serialize(content[split..])}}}\n\n" +
+                  "data: [DONE]\n\n"
+                : $"data: {{\"choices\":[{{\"delta\":{{\"content\":{System.Text.Json.JsonSerializer.Serialize(content[..split])}}}}}]}}\n\n" +
+                  $"data: {{\"choices\":[{{\"delta\":{{\"content\":{System.Text.Json.JsonSerializer.Serialize(content[split..])}}}}}]}}\n\n" +
+                  "data: [DONE]\n\n";
             response.Content = new StringContent(sse, Encoding.UTF8, "text/event-stream");
             return response;
+        }
+    }
+
+    private sealed class ThrowOnceHandler : HttpMessageHandler
+    {
+        public int RequestCount { get; private set; }
+
+        protected override Task<HttpResponseMessage> SendAsync(
+            HttpRequestMessage request,
+            CancellationToken cancellationToken)
+        {
+            RequestCount++;
+            if (RequestCount == 1)
+                throw new HttpIOException(
+                    HttpRequestError.ResponseEnded,
+                    "The response ended prematurely.");
+
+            const string content = "{\"subjects\":[],\"warnings\":[]}";
+            var response = new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new StringContent(
+                    $"data: {{\"choices\":[{{\"delta\":{{\"content\":{System.Text.Json.JsonSerializer.Serialize(content)}}}}}]}}\n\n" +
+                    "data: [DONE]\n\n",
+                    Encoding.UTF8,
+                    "text/event-stream")
+            };
+            return Task.FromResult(response);
         }
     }
 }

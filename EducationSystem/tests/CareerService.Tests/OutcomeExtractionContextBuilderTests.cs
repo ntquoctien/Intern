@@ -86,6 +86,35 @@ public sealed class OutcomeExtractionContextBuilderTests
     }
 
     [Fact]
+    public void CourseContext_PrioritizesVietnameseCourseOutcomeTable()
+    {
+        var blocks = new List<DocumentBlockData>
+        {
+            Block(0, "3. Mục tiêu học phần"),
+            Block(1, "Về kiến thức: củng cố kiến thức đã học"),
+            Block(2, "4. Chuẩn đầu ra học phần"),
+            Block(3, "Ký hiệu chuẩn đầu ra | Mô tả chuẩn đầu ra"),
+            Block(4, "G1 | Trình bày được thông tin cơ bản về doanh nghiệp"),
+            Block(5, "G2 | Hiểu được các công việc được giao"),
+            Block(6, "5. Nội dung chi tiết học phần"),
+            Block(7, "Công việc 1 không phải chuẩn đầu ra")
+        };
+
+        var input = OutcomeExtractionContextBuilder.BuildDocumentContext(
+            2,
+            new OutcomeExtractionSelection(
+                "CNTT", "Công nghệ thông tin", "CNTT", null, "2020",
+                Guid.NewGuid(), "501CNTH34", "Thực tập tốt nghiệp"),
+            blocks,
+            12_000);
+
+        Assert.Contains("paragraph-4", input);
+        Assert.Contains("paragraph-5", input);
+        Assert.DoesNotContain("paragraph-7", input);
+        Assert.DoesNotContain("paragraph-1", input);
+    }
+
+    [Fact]
     public void SelectedMetadataEvidence_AddsReferencesWithoutReplacingProviderEvidence()
     {
         var blocks = new[]

@@ -280,7 +280,7 @@ Giao diện sử dụng React Query/Axios và luôn gọi API thật của `Comm
 Trang này:
 
 - Không sử dụng sidebar/header của portal sinh viên.
-- Có giao diện Card trắng, Navy, logo/nhận diện Đại học Tây Đô.
+- Có giao diện Card trắng, Navy, logo/nhận diện Cao Đẳng Tây Đô.
 - Đọc token từ query string.
 - Hiển thị công ty, sinh viên, MSSV, vị trí và nhiệm vụ khai báo.
 - Cho mentor xác nhận thông tin.

@@ -108,7 +108,10 @@ builder.Services.PostConfigure<ResumeLlmOptions>(settings =>
 builder.Services.AddOptions<ManagementAuthOptions>()
     .Bind(builder.Configuration.GetSection(ManagementAuthOptions.SectionName));
 builder.Services.AddOptions<AcademicClientOptions>()
-    .Bind(builder.Configuration.GetSection(AcademicClientOptions.SectionName));
+    .Bind(builder.Configuration.GetSection(AcademicClientOptions.SectionName))
+    .Validate(options => options.TimeoutSeconds is >= 5 and <= 120,
+        "AcademicClient timeout must be between 5 and 120 seconds.")
+    .ValidateOnStart();
 builder.Services.AddOptions<VectorMatchClientOptions>()
     .Bind(builder.Configuration.GetSection(VectorMatchClientOptions.SectionName))
     .Validate(
@@ -194,7 +197,7 @@ builder.Services.AddHttpClient<IAcademicResumeClient, AcademicResumeClient>(
         var options = services.GetRequiredService<
             Microsoft.Extensions.Options.IOptions<AcademicClientOptions>>().Value;
         client.BaseAddress = new Uri(options.BaseUrl.TrimEnd('/') + "/");
-        client.Timeout = TimeSpan.FromSeconds(15);
+        client.Timeout = TimeSpan.FromSeconds(options.TimeoutSeconds);
     });
 builder.Services.AddHttpClient<IVectorMatchClient, VectorMatchClient>(
     (services, client) =>

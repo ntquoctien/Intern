@@ -20,7 +20,7 @@ public sealed class PdfFileValidator(IOptions<OutcomeStorageOptions> options)
                 "INVALID_FILE_EXTENSION",
                 "The uploaded file must have a .pdf extension.",
                 StatusCodes.Status400BadRequest);
-        if (!string.Equals(contentType, ContentType, StringComparison.OrdinalIgnoreCase))
+        if (!IsExpectedContentType(contentType))
             throw new OutcomeImportException(
                 "INVALID_CONTENT_TYPE",
                 "The PDF MIME type must be application/pdf.",
@@ -41,4 +41,9 @@ public sealed class PdfFileValidator(IOptions<OutcomeStorageOptions> options)
                 "The uploaded file does not contain a valid PDF signature.",
                 StatusCodes.Status400BadRequest);
     }
+
+    private static bool IsExpectedContentType(string contentType) =>
+        string.IsNullOrWhiteSpace(contentType) ||
+        string.Equals(contentType, ContentType, StringComparison.OrdinalIgnoreCase) ||
+        string.Equals(contentType, "application/octet-stream", StringComparison.OrdinalIgnoreCase);
 }

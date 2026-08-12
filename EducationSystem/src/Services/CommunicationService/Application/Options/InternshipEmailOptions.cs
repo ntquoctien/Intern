@@ -20,7 +20,7 @@ public sealed class InternshipEmailOptions
     [Required, EmailAddress]
     public string FromAddress { get; set; } = string.Empty;
 
-    public string FromName { get; set; } = "Cổng sinh viên Đại học Tây Đô";
+    public string FromName { get; set; } = "Cổng sinh viên Cao Đắng Tây Đô";
 
     public string? Username { get; set; }
 

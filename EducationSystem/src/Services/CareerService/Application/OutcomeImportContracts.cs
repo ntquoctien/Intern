@@ -316,8 +316,11 @@ public sealed class OutcomeImportException(
     string errorCode,
     string message,
     int statusCode,
-    Exception? innerException = null) : Exception(message, innerException)
+    Exception? innerException = null,
+    IReadOnlyDictionary<string, object?>? extensions = null) : Exception(message, innerException)
 {
     public string ErrorCode { get; } = errorCode;
     public int StatusCode { get; } = statusCode;
+    public IReadOnlyDictionary<string, object?> Extensions { get; } =
+        extensions ?? new Dictionary<string, object?>();
 }

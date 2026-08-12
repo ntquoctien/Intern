@@ -1,3 +1,4 @@
+using System.Data;
 using AcademicService.Application.DTOs.Resume;
 using AcademicService.Application.Interfaces;
 using AcademicService.Infrastructure.Persistence;
@@ -13,6 +14,12 @@ public sealed class ResumeDataService(
         Guid studentId,
         CancellationToken cancellationToken)
     {
+        // Resume generation is a read-only preview. Do not let an unrelated
+        // internship/evaluation update transaction block the entire AI flow.
+        await using var transaction = await dbContext.Database.BeginTransactionAsync(
+            IsolationLevel.ReadUncommitted,
+            cancellationToken);
+
         var student = await dbContext.Students.AsNoTracking()
             .Where(item => item.Id == studentId && !item.IsDeleted)
             .Select(item => new
@@ -148,7 +155,7 @@ public sealed class ResumeDataService(
                 item.TaskDescription))
             .ToListAsync(cancellationToken);
 
-        return new ResumeContextDto(
+        var result = new ResumeContextDto(
             new ResumeStudentDto(
                 student.Id,
                 student.UserId,
@@ -162,5 +169,7 @@ public sealed class ResumeDataService(
             eligibleCourses,
             projects,
             internships);
+        await transaction.CommitAsync(cancellationToken);
+        return result;
     }
 }

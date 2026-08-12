@@ -15,7 +15,7 @@ public sealed class DocxFileValidator(IOptions<OutcomeStorageOptions> options)
         var limits = options.Value;
         if (!string.Equals(Path.GetExtension(fileName), ".docx", StringComparison.OrdinalIgnoreCase))
             throw new OutcomeImportException("INVALID_FILE_EXTENSION", "Only .docx files are accepted.", 400);
-        if (!string.Equals(contentType, ContentType, StringComparison.OrdinalIgnoreCase))
+        if (!IsExpectedContentType(contentType))
             throw new OutcomeImportException("INVALID_CONTENT_TYPE", "The file MIME type is not DOCX.", 400);
         if (content.Length == 0 || content.Length > limits.MaxFileSizeBytes)
             throw new OutcomeImportException("INVALID_FILE_SIZE", $"DOCX size must be between 1 and {limits.MaxFileSizeBytes} bytes.", 400);
@@ -54,4 +54,9 @@ public sealed class DocxFileValidator(IOptions<OutcomeStorageOptions> options)
             throw new OutcomeImportException("INVALID_DOCX", "The DOCX package is invalid or damaged.", 400, exception);
         }
     }
+
+    private static bool IsExpectedContentType(string contentType) =>
+        string.IsNullOrWhiteSpace(contentType) ||
+        string.Equals(contentType, ContentType, StringComparison.OrdinalIgnoreCase) ||
+        string.Equals(contentType, "application/octet-stream", StringComparison.OrdinalIgnoreCase);
 }

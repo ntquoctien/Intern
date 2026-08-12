@@ -1,4 +1,5 @@
 using AcademicService.Application;
+using AcademicService.Infrastructure;
 using AcademicService.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using SharedKernel;
@@ -7,9 +8,17 @@ var builder = WebApplication.CreateBuilder(args);
 
 AddSharedConnectionStringFile(builder);
 
+// The Windows Event Log provider can throw when the development process does
+// not have permission to write system event logs. Console/debug logging keeps
+// request handling independent from machine-level privileges.
+builder.Logging.ClearProviders();
+builder.Logging.AddConsole();
+builder.Logging.AddDebug();
+
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(options =>
+    options.CustomSchemaIds(type => type.FullName?.Replace("+", ".") ?? type.Name));
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("FrontendDev", policy =>
@@ -40,6 +49,7 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseMiddleware<ManagementReadIsolationMiddleware>();
 
 app.MapControllers();
 

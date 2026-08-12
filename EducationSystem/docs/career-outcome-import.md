@@ -2,11 +2,11 @@
 
 ## Phạm vi
 
-Module chuyển tài liệu CLO/PLO dạng DOCX thành dữ liệu có cấu trúc, cho quản trị viên kiểm duyệt và chỉ ghi vào bảng chính thức sau khi phê duyệt. Đây là dữ liệu đầu vào cho bộ lọc CLO/PLO–JD ở giai đoạn sau.
+Module chuyển tài liệu CLO/PLO dạng DOCX hoặc PDF thành dữ liệu có cấu trúc, cho quản trị viên kiểm duyệt và chỉ ghi vào bảng chính thức sau khi phê duyệt. Đây là dữ liệu đầu vào cho bộ lọc CLO/PLO–JD ở giai đoạn sau.
 
 Trong phạm vi:
 
-- upload DOCX;
+- upload DOCX hoặc PDF (PDF dùng OCR Gemini/Vault);
 - tách block có thể truy vết;
 - LLM trích xuất JSON theo schema;
 - đối soát và kiểm tra bằng rule;
@@ -59,7 +59,7 @@ Lỗi parser/LLM/runtime --> Failed --(retry)--> Uploaded
 
 ## Ranh giới LLM
 
-Gemini hoặc Groq chỉ được gọi cho ba loại task nội bộ cố định: PLO, CLO và ma trận CLO–PLO. Với import đã chọn học phần, task PLO bị bỏ qua hoàn toàn. Provider từ chối task number khác trước khi gửi request. System instruction xác định block DOCX là dữ liệu không đáng tin, không phải chỉ dẫn; không cấp tool, quyền thao tác website hoặc quyền ghi dữ liệu. Gemini dùng response schema; Groq `qwen/qwen3.6-27b` dùng JSON Object Mode kèm schema trong prompt và validation phía ứng dụng. Source-reference validation, rule engine và bước kiểm duyệt của admin vẫn là lớp quyết định.
+Gemini hoặc Groq chỉ được gọi cho ba loại task nội bộ cố định: PLO, CLO và ma trận CLO–PLO. Với import đã chọn học phần, task PLO bị bỏ qua hoàn toàn. Provider từ chối task number khác trước khi gửi request. System instruction xác định block tài liệu là dữ liệu không đáng tin, không phải chỉ dẫn; không cấp tool, quyền thao tác website hoặc quyền ghi dữ liệu. Gemini dùng response schema; Groq `qwen/qwen3.6-27b` dùng JSON Object Mode kèm schema trong prompt và validation phía ứng dụng. Source-reference validation, rule engine và bước kiểm duyệt của admin vẫn là lớp quyết định.
 
 ## Trạng thái tầng JSON Document
 
@@ -137,9 +137,12 @@ Các cấu hình đáng chú ý:
 
 | Key | Mặc định | Ý nghĩa |
 | --- | ---: | --- |
-| `OutcomeStorage:RootPath` | `.data/outcome-imports` | thư mục private lưu DOCX |
+| `OutcomeStorage:RootPath` | `.data/outcome-imports` | thư mục private lưu DOCX/PDF |
 | `OutcomeStorage:MaxFileSizeBytes` | 10 MB | giới hạn file nén |
 | `OutcomeStorage:MaxExpandedSizeBytes` | 100 MB | giới hạn giải nén |
+| `PdfOcr:Enabled` | `true` | bật OCR cho tài liệu PDF |
+| `PdfOcr:Provider` | `Vault` | OCR PDF qua `Vault` hoặc `Gemini` |
+| `PdfOcr:Model` | `gpt-5.6-sol` | model có khả năng đọc tệp PDF |
 | `AcademicClient:BaseUrl` | `http://localhost:5002` | tra cứu môn học |
 | `LLM:MaxRetries` | 2 | retry lỗi mạng/429/5xx |
 | `LLM:TimeoutSeconds` | 180 | timeout cho một lượt trích xuất tài liệu dài |

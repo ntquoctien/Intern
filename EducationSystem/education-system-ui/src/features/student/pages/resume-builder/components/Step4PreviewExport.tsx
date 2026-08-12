@@ -18,7 +18,7 @@ type ProblemDetailsLike = {
 function formatBackendError(error: unknown) {
   if (!axios.isAxiosError(error)) return null
   if (error.code === 'ECONNABORTED') {
-    return 'Tối ưu CV mất quá lâu và đã bị hủy sau 60 giây. Vui lòng thử lại hoặc rút gọn nội dung đã chọn.'
+    return 'Tối ưu CV mất quá lâu và đã bị hủy sau 5 phút. Vui lòng thử lại hoặc rút gọn nội dung đã chọn.'
   }
   const data = error.response?.data as ProblemDetailsLike | undefined
   if (!data) return null

@@ -37,7 +37,7 @@ export function ManagementSystemPage() {
 
 function OutcomeImportEntry() {
   return <Card className="outcome-system-entry">
-    <div><span><FileProtectOutlined /></span><div><b>Chuẩn đầu ra CLO/PLO</b><p>Import DOCX, theo dõi LLM phân tích và kiểm duyệt dữ liệu trước khi đưa vào bộ lọc CV.</p></div></div>
+    <div><span><FileProtectOutlined /></span><div><b>Chuẩn đầu ra CLO/PLO</b><p>Import DOCX/PDF, theo dõi LLM phân tích và kiểm duyệt dữ liệu trước khi đưa vào bộ lọc CV.</p></div></div>
     <Button type="primary" href="/management/system/outcomes">Quản lý CLO/PLO</Button>
   </Card>
 }

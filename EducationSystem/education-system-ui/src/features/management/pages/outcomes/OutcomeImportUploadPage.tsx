@@ -1,13 +1,25 @@
 import { useMemo, useState } from 'react'
 import { useMutation, useQuery } from '@tanstack/react-query'
-import { ArrowLeftOutlined, FileWordOutlined, InboxOutlined } from '@ant-design/icons'
+import { ArrowLeftOutlined, FileTextOutlined, InboxOutlined } from '@ant-design/icons'
 import { Alert, Button, Card, Input, Progress, Result, Select, Space, Steps, Typography, Upload, message } from 'antd'
 import { useNavigate } from 'react-router-dom'
 import { managementApi } from '../../managementApi'
 import { OutcomeStatusTag } from './OutcomeStatusTag'
-import { outcomeApi, problemMessage, type ImportDetail } from './outcomeApi'
+import { duplicateImport, outcomeApi, problemMessage, type DuplicateImport, type ImportDetail } from './outcomeApi'
 
 const docxMime = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+const pdfMime = 'application/pdf'
+const genericMime = 'application/octet-stream'
+
+function hasExpectedMime(actual: string, expected: string) {
+  return !actual || actual === expected || actual === genericMime
+}
+
+function isSupportedDocument(file: File) {
+  const name = file.name.toLowerCase()
+  return (name.endsWith('.docx') && hasExpectedMime(file.type, docxMime)) ||
+    (name.endsWith('.pdf') && hasExpectedMime(file.type, pdfMime))
+}
 
 function normalizeSearch(value: string) {
   return value
@@ -25,10 +37,15 @@ export function OutcomeImportUploadPage() {
   const [version, setVersion] = useState('')
   const [file, setFile] = useState<File>()
   const [batchId, setBatchId] = useState<number>()
+  const [existingImport, setExistingImport] = useState<DuplicateImport>()
 
   const majors = useQuery({ queryKey: ['outcome-major-options'], queryFn: outcomeApi.majors })
   const plans = useQuery({ queryKey: ['management-plans', 'outcome-import'], queryFn: managementApi.plans })
-  const subjects = useQuery({ queryKey: ['management-subjects', 'outcome-import'], queryFn: managementApi.subjects })
+  const subjects = useQuery({
+    queryKey: ['academic-subject-lookup'],
+    queryFn: outcomeApi.subjects,
+    staleTime: 5 * 60 * 1000,
+  })
   const curricula = useQuery({ queryKey: ['outcome-curricula'], queryFn: outcomeApi.curricula })
 
   const selectedMajor = majors.data?.find(item => item.id === majorId)
@@ -68,7 +85,6 @@ export function OutcomeImportUploadPage() {
       ? [selectedSubject, ...candidates]
       : candidates
     return visible
-      .filter(subject => subject.isActive)
       .sort((left, right) => left.subjectCode.localeCompare(right.subjectCode))
       .map(subject => ({
         value: subject.subjectId,
@@ -87,7 +103,7 @@ export function OutcomeImportUploadPage() {
   const upload = useMutation({
     mutationFn: async () => {
       if (!selectedMajor || !selectedSubject || !file || !version.trim())
-        throw new Error('Vui lòng chọn đủ ngành, học phần, phiên bản và tệp DOCX.')
+        throw new Error('Vui lòng chọn đủ ngành, học phần, phiên bản và tệp DOCX/PDF.')
 
       const normalizedVersion = version.trim()
       let curriculum = curricula.data?.find(item =>
@@ -108,8 +124,18 @@ export function OutcomeImportUploadPage() {
 
       return outcomeApi.upload(curriculum.id, selectedSubject, file)
     },
-    onSuccess: result => setBatchId(result.id),
-    onError: error => message.error(problemMessage(error)),
+    onSuccess: result => {
+      setExistingImport(undefined)
+      setBatchId(result.id)
+    },
+    onError: error => {
+      const duplicate = duplicateImport(error)
+      if (duplicate) {
+        setExistingImport(duplicate)
+        return
+      }
+      message.error(problemMessage(error))
+    },
   })
 
   const current = !batchId
@@ -134,12 +160,25 @@ export function OutcomeImportUploadPage() {
     <Card>
       <Steps current={current} items={[
         { title: 'Chọn ngữ cảnh' },
-        { title: 'Chọn DOCX' },
+        { title: 'Chọn tài liệu' },
         { title: 'LLM phân tích' },
         { title: 'Kiểm duyệt' },
       ]} />
 
       {!batchId ? <div className="outcome-upload-form">
+        {existingImport && <Alert
+          type="warning"
+          showIcon
+          title="Tài liệu này đã được import"
+          description={`Đã tìm thấy bản import #${existingImport.id} (${existingImport.status}). Bạn có thể mở bản hiện có thay vì tạo dữ liệu trùng.`}
+          action={<Button onClick={() => {
+            if (['Uploaded', 'Processing'].includes(existingImport.status)) {
+              setBatchId(existingImport.id)
+              return
+            }
+            navigate(`/management/system/outcomes/${existingImport.id}/review`)
+          }}>Mở bản import hiện có</Button>}
+        />}
         {academicLookupFailed && <Alert
           type="error"
           showIcon
@@ -169,7 +208,7 @@ export function OutcomeImportUploadPage() {
           <Select
             value={subjectId}
             disabled={!majorId}
-            loading={plans.isLoading || subjects.isLoading}
+            loading={subjects.isLoading || plans.isLoading}
             showSearch
             filterOption={false}
             onSearch={setSubjectSearch}
@@ -204,12 +243,11 @@ export function OutcomeImportUploadPage() {
         </label>
 
         <Upload.Dragger
-          accept=".docx"
+          accept=".docx,.pdf"
           maxCount={1}
           beforeUpload={selected => {
-            if (!selected.name.toLowerCase().endsWith('.docx') ||
-                (selected.type && selected.type !== docxMime)) {
-              message.error('Chỉ chấp nhận tệp DOCX.')
+            if (!isSupportedDocument(selected)) {
+              message.error('Chỉ chấp nhận tệp DOCX hoặc PDF hợp lệ.')
               return Upload.LIST_IGNORE
             }
             if (selected.size > 10 * 1024 * 1024) {
@@ -217,22 +255,24 @@ export function OutcomeImportUploadPage() {
               return Upload.LIST_IGNORE
             }
             setFile(selected)
+            setExistingImport(undefined)
             return false
           }}
           onRemove={() => {
             setFile(undefined)
+            setExistingImport(undefined)
             return true
           }}
         >
           <p className="ant-upload-drag-icon"><InboxOutlined /></p>
-          <p className="ant-upload-text">Kéo thả hoặc chọn tệp CLO/PLO dạng DOCX</p>
-          <p className="ant-upload-hint">Tối đa 10 MB. Hệ thống lưu bản gốc để đối chiếu nguồn.</p>
+          <p className="ant-upload-text">Kéo thả hoặc chọn tệp CLO/PLO dạng DOCX hoặc PDF</p>
+          <p className="ant-upload-hint">Tối đa 10 MB. PDF sẽ được OCR khi cần; hệ thống lưu bản gốc để đối chiếu nguồn.</p>
         </Upload.Dragger>
 
         <Button
           type="primary"
           size="large"
-          icon={<FileWordOutlined />}
+          icon={<FileTextOutlined />}
           disabled={!selectedMajor || !selectedSubject || !version.trim() || !file}
           loading={upload.isPending}
           onClick={() => upload.mutate()}

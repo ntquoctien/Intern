@@ -16,7 +16,12 @@ public sealed class OutcomeExceptionMiddleware(
         }
         catch (OutcomeImportException exception)
         {
-            await WriteProblem(context, exception.StatusCode, exception.ErrorCode, exception.Message);
+            await WriteProblem(
+                context,
+                exception.StatusCode,
+                exception.ErrorCode,
+                exception.Message,
+                exception.Extensions);
         }
         catch (DownstreamApiException exception)
         {
@@ -29,6 +34,13 @@ public sealed class OutcomeExceptionMiddleware(
                 StatusCodes.Status401Unauthorized,
                 StudentErrorCodes.Unauthorized,
                 exception.Message);
+        }
+        catch (OperationCanceledException) when (context.RequestAborted.IsCancellationRequested)
+        {
+            logger.LogInformation(
+                "CareerService request {Method} {Path} was canceled by the client.",
+                context.Request.Method,
+                context.Request.Path);
         }
         catch (Exception exception)
         {
@@ -43,7 +55,8 @@ public sealed class OutcomeExceptionMiddleware(
         HttpContext context,
         int status,
         string errorCode,
-        string detail)
+        string detail,
+        IReadOnlyDictionary<string, object?>? extensions = null)
     {
         context.Response.StatusCode = status;
         context.Response.ContentType = "application/problem+json";
@@ -56,6 +69,9 @@ public sealed class OutcomeExceptionMiddleware(
         };
         problem.Extensions["errorCode"] = errorCode;
         problem.Extensions["traceId"] = context.TraceIdentifier;
+        if (extensions is not null)
+            foreach (var extension in extensions)
+                problem.Extensions[extension.Key] = extension.Value;
         await context.Response.WriteAsJsonAsync(problem);
     }
 }

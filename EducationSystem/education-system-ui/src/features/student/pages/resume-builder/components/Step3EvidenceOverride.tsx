@@ -1,7 +1,11 @@
-import { ProjectOutlined, RobotOutlined } from '@ant-design/icons'
-import { Button, Card, Checkbox, Empty, Space, Typography, Tabs } from 'antd'
-import { useState } from 'react'
+import { ProjectOutlined, ReloadOutlined, RobotOutlined } from '@ant-design/icons'
+import { Button, Card, Checkbox, Empty, Space, Typography, Tabs, message } from 'antd'
+import { useCallback, useEffect, useState } from 'react'
+import { httpClient } from '../../../../../shared/api/httpClient'
+import type { ApiResponse } from '../../../../../shared/types/api'
+import { useStudentAuth } from '../../../studentAuth'
 import { useResumeStore } from '../hooks/useResumeStore'
+import type { ApprovedInternship } from '../types'
 import { ProjectFormModal } from './ProjectFormModal'
 import { ProjectPersonalForm } from './ProjectPersonalForm'
 import { ProjectCard } from './ProjectCard'
@@ -9,14 +13,41 @@ import { CertAndAwardManager } from './CertAndAwardManager'
 import { formatAwardPayload, formatCertificationPayload } from '../utils/resumeSelectionFormatters'
 
 const { Title, Text } = Typography
+const academicApiOrigin = import.meta.env.VITE_ACADEMIC_API_ORIGIN ?? 'http://localhost:5002'
 
 export function Step3EvidenceOverride() {
-  const { state, updateUiProject, toggleInternshipSelection, setStep, addPersonalProject, deletePersonalProject, preparePayload } = useResumeStore()
+  const { state, updateUiProject, toggleInternshipSelection, setStep, addPersonalProject, deletePersonalProject, preparePayload, setApprovedInternships } = useResumeStore()
+  const { session } = useStudentAuth()
   const { uiProjects, approvedInternships, selectedInternshipIds, eligibleCourses, targetRole, jobDescription, careerFocusTag, selectedSubjectIds, studentInfo, certifications, awardsAndActivities } = state
   const [personalFormOpen, setPersonalFormOpen] = useState(false)
   const [projectFormOpen, setProjectFormOpen] = useState(false)
   const [editingProject, setEditingProject] = useState<number | null>(null)
   const [creatingSchoolProject, setCreatingSchoolProject] = useState(false)
+  const [isRefreshingInternships, setIsRefreshingInternships] = useState(false)
+
+  const refreshInternships = useCallback(async (showError = true) => {
+    if (!session?.studentId) return
+    setIsRefreshingInternships(true)
+    try {
+      const response = await httpClient.get<ApiResponse<ApprovedInternship[]>>(
+        `${academicApiOrigin}/api/academic/students/${session.studentId}/internships`,
+      )
+      setApprovedInternships(response.data.data ?? [])
+    } catch {
+      if (showError) {
+        message.error('Không thể tải lại danh sách thực tập đã được duyệt.')
+      }
+    } finally {
+      setIsRefreshingInternships(false)
+    }
+  }, [session?.studentId, setApprovedInternships])
+
+  useEffect(() => {
+    void refreshInternships(false)
+    const handleFocus = () => void refreshInternships(false)
+    window.addEventListener('focus', handleFocus)
+    return () => window.removeEventListener('focus', handleFocus)
+  }, [refreshInternships])
 
   const personalProjects = uiProjects.filter(p => p.source === 'personal')
   const portfolioProjects = uiProjects.filter(p => p.source !== 'personal')
@@ -211,6 +242,13 @@ export function Step3EvidenceOverride() {
   function renderInternshipTab() {
     return (
       <Space direction="vertical" size="large" style={{ width: '100%' }}>
+        <Button
+          icon={<ReloadOutlined />}
+          loading={isRefreshingInternships}
+          onClick={() => void refreshInternships()}
+        >
+          Làm mới danh sách thực tập
+        </Button>
         {approvedInternships.length === 0 ? (
           <Empty description="Chưa có thực tập được duyệt" image={Empty.PRESENTED_IMAGE_SIMPLE} />
         ) : (

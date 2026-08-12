@@ -86,6 +86,9 @@ public sealed class OutcomeImportService(
         CancellationToken cancellationToken)
     {
         var extension = fileValidator.Validate(fileName, contentType, content);
+        var normalizedContentType = extension == ".pdf"
+            ? PdfFileValidator.ContentType
+            : DocxFileValidator.ContentType;
         var hasSubjectContext = subjectExternalId.HasValue ||
                                 !string.IsNullOrWhiteSpace(subjectCode) ||
                                 !string.IsNullOrWhiteSpace(subjectName);
@@ -121,12 +124,18 @@ public sealed class OutcomeImportService(
                            item.Status != OutcomeImportStatuses.Failed &&
                            item.Status != OutcomeImportStatuses.Rejected &&
                            item.Status != OutcomeImportStatuses.Archived)
-            .Select(item => (long?)item.Id)
+            .Select(item => new { item.Id, item.Status })
             .FirstOrDefaultAsync(cancellationToken);
-        if (duplicate.HasValue)
+        if (duplicate is not null)
             throw new OutcomeImportException(
                 "DUPLICATE_IMPORT",
-                $"The same document already exists as import batch {duplicate.Value}.", 409);
+                $"The same document already exists as import batch {duplicate.Id}.",
+                409,
+                extensions: new Dictionary<string, object?>
+                {
+                    ["existingImportId"] = duplicate.Id,
+                    ["existingImportStatus"] = duplicate.Status
+                });
 
         var storageKey = $"outcome-imports/{Guid.NewGuid():N}/source{extension}";
         await fileStorage.SaveAsync(storageKey, content, cancellationToken);
@@ -139,7 +148,7 @@ public sealed class OutcomeImportService(
             SelectedSubjectName = normalizedSubjectName,
             OriginalFileName = Path.GetFileName(fileName),
             StorageKey = storageKey,
-            ContentType = contentType,
+            ContentType = normalizedContentType,
             FileSize = content.Length,
             FileHash = hash,
             Status = OutcomeImportStatuses.Uploaded,

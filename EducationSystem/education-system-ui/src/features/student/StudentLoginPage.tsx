@@ -34,7 +34,7 @@ export function StudentLoginPage() {
       <header className="student-login-brand">
         <span className="student-login-brand-mark" aria-hidden="true">TDU</span>
         <div>
-          <strong>TRƯỜNG ĐẠI HỌC TÂY ĐÔ</strong>
+          <strong>TRƯỜNG CAO ĐẲNG TÂY ĐÔ</strong>
           <span>CỔNG THÔNG TIN SINH VIÊN</span>
         </div>
       </header>

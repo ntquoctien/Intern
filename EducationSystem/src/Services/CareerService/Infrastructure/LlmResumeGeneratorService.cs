@@ -77,11 +77,6 @@ public sealed partial class LlmResumeGeneratorService(
                 "Resume LLM model and API key must be configured.",
                 StatusCodes.Status503ServiceUnavailable);
 
-        logger.LogInformation(
-            "Generating optimized resume with provider {Provider} and model {Model}.",
-            settings.Provider,
-            settings.Model);
-
         var sourceJson = JsonSerializer.Serialize(promptPayload, JsonOptions);
         if (sourceJson.Length > settings.MaxInputTokensPerRequest * 4L)
             throw new DownstreamApiException(
@@ -94,10 +89,20 @@ public sealed partial class LlmResumeGeneratorService(
         var maxRetries = Math.Clamp(settings.MaxRetries, 0, 5);
         for (var attempt = 0; attempt <= maxRetries; attempt++)
         {
+            var attemptModel = attempt > 0 &&
+                               !string.IsNullOrWhiteSpace(settings.FallbackModel)
+                ? settings.FallbackModel.Trim()
+                : settings.Model;
+            logger.LogInformation(
+                "Generating optimized resume with provider {Provider}, model {Model}, attempt {Attempt}/{TotalAttempts}.",
+                settings.Provider,
+                attemptModel,
+                attempt + 1,
+                maxRetries + 1);
             try
             {
                 var responseJson = await SendAsync(
-                    settings, prompt, cancellationToken);
+                    settings, attemptModel, prompt, cancellationToken);
                 responseJson = VaultChatResponseParser.ExtractJsonObject(responseJson);
                 var generated = JsonSerializer.Deserialize<OptimizedResumeResponseDto>(
                                     responseJson, JsonOptions)
@@ -154,26 +159,28 @@ public sealed partial class LlmResumeGeneratorService(
 
     private async Task<string> SendAsync(
         ResumeLlmOptions settings,
+        string model,
         string prompt,
         CancellationToken cancellationToken)
     {
         if (settings.Provider.Equals("Gemini", StringComparison.OrdinalIgnoreCase))
-            return await SendGeminiAsync(settings, prompt, cancellationToken);
+            return await SendGeminiAsync(settings, model, prompt, cancellationToken);
         if (settings.Provider.Equals("Groq", StringComparison.OrdinalIgnoreCase))
             return await SendOpenAiCompatibleAsync(
-                settings, prompt, "https://api.groq.com/openai/v1/chat/completions",
+                settings, model, prompt, "https://api.groq.com/openai/v1/chat/completions",
                 false, cancellationToken);
         if (settings.Provider.Equals("OpenAI", StringComparison.OrdinalIgnoreCase))
             return await SendOpenAiCompatibleAsync(
-                settings, prompt, "https://api.openai.com/v1/chat/completions",
+                settings, model, prompt, "https://api.openai.com/v1/chat/completions",
                 true, cancellationToken);
         if (settings.Provider.Equals("Vault", StringComparison.OrdinalIgnoreCase))
         {
-            if (settings.Model.Equals("gpt-5.6-sol", StringComparison.OrdinalIgnoreCase))
+            if (model.Equals("gpt-5.6-sol", StringComparison.OrdinalIgnoreCase))
                 return await SendVaultResponsesAsync(
-                    settings, prompt, cancellationToken);
+                    settings, model, prompt, cancellationToken);
             return await SendOpenAiCompatibleAsync(
                 settings,
+                model,
                 prompt,
                 $"{settings.BaseUrl.TrimEnd('/')}/chat/completions",
                 false,
@@ -188,6 +195,7 @@ public sealed partial class LlmResumeGeneratorService(
 
     private async Task<string> SendGeminiAsync(
         ResumeLlmOptions settings,
+        string model,
         string prompt,
         CancellationToken cancellationToken)
     {
@@ -209,7 +217,7 @@ public sealed partial class LlmResumeGeneratorService(
             }
         };
         var url =
-            $"https://generativelanguage.googleapis.com/v1beta/models/{Uri.EscapeDataString(settings.Model)}:generateContent";
+            $"https://generativelanguage.googleapis.com/v1beta/models/{Uri.EscapeDataString(model)}:generateContent";
         using var message = new HttpRequestMessage(HttpMethod.Post, url)
         {
             Content = JsonContent.Create(payload)
@@ -231,6 +239,7 @@ public sealed partial class LlmResumeGeneratorService(
 
     private async Task<string> SendOpenAiCompatibleAsync(
         ResumeLlmOptions settings,
+        string model,
         string prompt,
         string endpoint,
         bool strictJsonSchema,
@@ -250,7 +259,7 @@ public sealed partial class LlmResumeGeneratorService(
             : new { type = "json_object" };
         var payload = new
         {
-            model = settings.Model,
+            model,
             messages = new object[]
             {
                 new { role = "system", content = SystemInstruction },
@@ -273,6 +282,7 @@ public sealed partial class LlmResumeGeneratorService(
 
     private async Task<string> SendVaultResponsesAsync(
         ResumeLlmOptions settings,
+        string model,
         string prompt,
         CancellationToken cancellationToken)
     {
@@ -280,7 +290,7 @@ public sealed partial class LlmResumeGeneratorService(
         // Chat Completions compatibility route currently times out upstream.
         var payload = new
         {
-            model = settings.Model,
+            model,
             instructions = SystemInstruction,
             input = prompt,
             stream = true

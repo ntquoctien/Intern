@@ -24,7 +24,8 @@ public static class OutcomeExtractionContextBuilder
 
     private static readonly string[] CourseKeywords =
     [
-        "course learning outcome", "chuẩn đầu ra môn", "mục tiêu môn học",
+        "course learning outcome", "chuẩn đầu ra môn", "chuẩn đầu ra học phần",
+        "cđr môn học", "cđr học phần", "mục tiêu môn học", "mục tiêu học phần",
         "về kiến thức", "về kỹ năng", "năng lực tự chủ", "\"clo", "clo "
     ];
 
@@ -116,9 +117,9 @@ public static class OutcomeExtractionContextBuilder
             .ToList();
         if (requestNumber == 2)
         {
-            var objectiveSection = SelectCourseObjectiveSection(eligible);
-            if (objectiveSection.Count > 0)
-                return objectiveSection;
+            var outcomeSection = SelectCourseOutcomeSection(eligible);
+            if (outcomeSection.Count > 0)
+                return outcomeSection;
         }
         var selected = new HashSet<int>();
 
@@ -161,6 +162,35 @@ public static class OutcomeExtractionContextBuilder
                 return blocks.Skip(start).Take(index - start).ToList();
         }
         return [];
+    }
+
+    private static IReadOnlyList<DocumentBlockData> SelectCourseOutcomeSection(
+        IReadOnlyList<DocumentBlockData> blocks)
+    {
+        var start = -1;
+        for (var index = 0; index < blocks.Count; index++)
+        {
+            var searchable = SearchableText(blocks[index].ContentJson);
+            if (start < 0 &&
+                (searchable.Contains("chuẩn đầu ra học phần") ||
+                 searchable.Contains("chuẩn đầu ra môn học") ||
+                 searchable.Contains("cđr học phần") ||
+                 searchable.Contains("cđr môn học")))
+            {
+                start = index;
+                continue;
+            }
+            if (start >= 0 &&
+                (searchable.Contains("nội dung chi tiết học phần") ||
+                 searchable.Contains("nội dung môn học") ||
+                 searchable.Contains("hướng dẫn tổ chức dạy học")))
+                return blocks.Skip(start).Take(index - start).ToList();
+        }
+
+        if (start >= 0)
+            return blocks.Skip(start).ToList();
+
+        return SelectCourseObjectiveSection(blocks);
     }
 
     private static string SearchableText(string contentJson)

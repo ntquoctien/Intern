@@ -48,7 +48,7 @@ export function OutcomeImportListPage() {
 
   return <div className="outcome-page">
     <div className="outcome-page-heading">
-      <div><Typography.Title level={3}>Import CLO/PLO</Typography.Title><Typography.Text type="secondary">Chuẩn hoá dữ liệu chuẩn đầu ra từ DOCX trước khi sử dụng cho bộ lọc CV.</Typography.Text></div>
+      <div><Typography.Title level={3}>Import CLO/PLO</Typography.Title><Typography.Text type="secondary">Chuẩn hoá dữ liệu chuẩn đầu ra từ DOCX hoặc PDF trước khi sử dụng cho bộ lọc CV.</Typography.Text></div>
       <Space><Button icon={<ReloadOutlined />} onClick={() => imports.refetch()}>Làm mới</Button><Button type="primary" icon={<FileAddOutlined />} onClick={() => navigate('/management/system/outcomes/import')}>Import tài liệu</Button></Space>
     </div>
     <Card>

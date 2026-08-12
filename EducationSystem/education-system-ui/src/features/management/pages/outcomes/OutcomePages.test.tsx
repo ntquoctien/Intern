@@ -7,7 +7,7 @@ import { managementApi } from '../../managementApi'
 import { OutcomeImportListPage } from './OutcomeImportListPage'
 import { OutcomeImportReviewPage } from './OutcomeImportReviewPage'
 import { OutcomeImportUploadPage } from './OutcomeImportUploadPage'
-import { outcomeApi, type ImportReview } from './outcomeApi'
+import { duplicateImport, outcomeApi, type ImportReview } from './outcomeApi'
 
 function renderPage(element: React.ReactNode, path: string, route = path) {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false }, mutations: { retry: false } } })
@@ -18,6 +18,19 @@ function renderPage(element: React.ReactNode, path: string, route = path) {
 
 describe('CLO/PLO management pages', () => {
   afterEach(() => vi.restoreAllMocks())
+
+  it('reads the existing batch from a duplicate-import problem', () => {
+    expect(duplicateImport({
+      isAxiosError: true,
+      response: {
+        data: {
+          errorCode: 'DUPLICATE_IMPORT',
+          existingImportId: 42,
+          existingImportStatus: 'PendingReview',
+        },
+      },
+    })).toEqual({ id: 42, status: 'PendingReview' })
+  })
 
   it('exposes a direct Administrator sidebar entry for nested outcome routes', () => {
     const entry = managementNavigation.find(item => item.id === 'outcomes')
@@ -40,14 +53,16 @@ describe('CLO/PLO management pages', () => {
     expect((await screen.findAllByText('No data')).length).toBeGreaterThan(0)
   })
 
-  it('guides upload through curriculum, DOCX, processing and review steps', async () => {
+  it('guides upload through curriculum, document, processing and review steps', async () => {
     vi.spyOn(outcomeApi, 'curricula').mockResolvedValue([])
     vi.spyOn(outcomeApi, 'majors').mockResolvedValue([])
     vi.spyOn(managementApi, 'plans').mockResolvedValue([])
-    vi.spyOn(managementApi, 'subjects').mockResolvedValue([])
+    vi.spyOn(outcomeApi, 'subjects').mockResolvedValue([])
     renderPage(<OutcomeImportUploadPage />, '/management/system/outcomes/import')
     expect(await screen.findByText('Chọn ngữ cảnh')).toBeInTheDocument()
-    expect(screen.getByText('Chọn DOCX')).toBeInTheDocument()
+    expect(screen.getByText('Chọn tài liệu')).toBeInTheDocument()
+    expect(screen.getByText(/DOCX hoặc PDF/)).toBeInTheDocument()
+    expect(document.querySelector<HTMLInputElement>('input[type="file"]')).toHaveAttribute('accept', '.docx,.pdf')
     expect(screen.getByText('LLM phân tích')).toBeInTheDocument()
     expect(screen.getByText('Kiểm duyệt')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /Tải lên và phân tích/ })).toBeDisabled()

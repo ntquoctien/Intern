@@ -23,13 +23,25 @@ public sealed class ManagementReadService(
             .ToListAsync(cancellationToken);
         var distribution = distributionRows.OrderByDescending(group => group.Count)
             .Select(group => new NamedCountDto(group.Name, group.Count)).ToList();
+        // A full COUNT(*) scan on the attendance history can take tens of
+        // seconds on the development database. The dashboard only needs a
+        // current cardinality indicator, so use SQL Server's maintained row
+        // count metadata instead of scanning every attendance row.
+        var attendanceRows = await dbContext.Database
+            .SqlQuery<long>($"""
+                SELECT COALESCE(SUM(CONVERT(bigint, [rows])), 0) AS [Value]
+                FROM sys.partitions
+                WHERE object_id = OBJECT_ID(N'[academic].[Attendances]')
+                  AND index_id IN (0, 1)
+                """)
+            .SingleAsync(cancellationToken);
         return new ManagementDashboardDto(
             await students.CountAsync(cancellationToken),
             await teachers.CountAsync(cancellationToken),
             await subjects.CountAsync(cancellationToken),
             await classes.CountAsync(cancellationToken),
             await schedules.CountAsync(cancellationToken),
-            await dbContext.Attendances.AsNoTracking().CountAsync(cancellationToken),
+            (int)Math.Min(attendanceRows, int.MaxValue),
             distribution);
     }
 

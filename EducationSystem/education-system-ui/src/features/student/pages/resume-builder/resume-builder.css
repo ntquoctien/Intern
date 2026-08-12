@@ -119,6 +119,8 @@
 
 .course-item {
   display: flex;
+  min-width: 0;
+  max-width: 100%;
   align-items: flex-start;
   gap: 12px;
   padding: 14px;
@@ -140,6 +142,7 @@
 
 .course-info {
   flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   gap: 4px;
@@ -186,6 +189,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 12px;
+  min-width: 0;
 }
 
 .course-title {
@@ -193,6 +197,8 @@
   align-items: baseline;
   gap: 8px;
   min-width: 0;
+  flex: 1 1 auto;
+  flex-wrap: wrap;
 }
 
 .course-recommendation-tags {
@@ -205,6 +211,8 @@
 .course-name {
   font-size: 14px;
   color: #262626;
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .course-meta {
@@ -255,6 +263,13 @@
   color: #475467;
   font-size: 12px;
   line-height: 1.45;
+  min-width: 0;
+}
+
+.matched-outcome > span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .matched-outcome .ant-tag {
@@ -516,8 +531,8 @@
 .cv-draft,
 .cv-optimized {
   font-family: Inter, 'Segoe UI', Arial, sans-serif;
-  font-size: 9.2pt;
-  line-height: 1.33;
+  font-size: 9.5pt;
+  line-height: 1.38;
   color: #333;
 }
 
@@ -628,14 +643,14 @@
 .cv-item-role,
 .cv-item-duration {
   color: #475467;
-  font-size: 9pt;
+  font-size: 9.5pt;
   font-weight: 600;
 }
 
 .cv-item-tech,
 .cv-item-company {
   color: #667085;
-  font-size: 9pt;
+  font-size: 9.5pt;
   font-style: normal;
   margin: 2px 0;
 }
@@ -649,8 +664,8 @@
   margin-bottom: 1px;
   padding-left: 2px;
   color: #4a5568;
-  font-size: 9.2pt;
-  line-height: 1.33;
+  font-size: 9.5pt;
+  line-height: 1.38;
 }
 
 .cv-item ul {
@@ -670,8 +685,8 @@
 .cv-skill-line {
   display: block;
   margin: 0;
-  font-size: 9.2pt;
-  line-height: 1.33;
+  font-size: 9.5pt;
+  line-height: 1.38;
   break-inside: avoid;
 }
 
@@ -689,20 +704,17 @@
   color: #667085;
 }
 
-.cv-education-meta,
-.cv-highlighted-courses {
+.cv-education-meta {
   margin: 3px 0 0;
   color: #475467;
-  font-size: 9.4pt;
-}
-
-.cv-highlighted-courses strong {
-  color: #344054;
+  font-size: 9.5pt;
 }
 
 .cv-summary {
   margin: 0;
   color: #344054;
+  font-size: 9.5pt;
+  line-height: 1.38;
   text-align: justify;
 }
 

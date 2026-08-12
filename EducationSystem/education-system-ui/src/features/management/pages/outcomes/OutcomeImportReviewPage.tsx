@@ -183,7 +183,7 @@ function SourceBlocks({ review }: { review: ImportReview }) {
 }
 
 function Evidence({ item }: { item: DraftBase }) {
-  return <Popover title="Minh chứng trong DOCX" content={<div className="outcome-evidence">{item.sourceReferences.length ? item.sourceReferences.map(source => <div key={`${source.blockId}-${source.sequence}`}><b>{source.blockId}</b><small>{source.headingPath.join(' › ')}</small><p>{source.excerpt}</p></div>) : 'Chưa có nguồn tham chiếu.'}</div>} trigger="click"><Button size="small" icon={<FileSearchOutlined />}>{item.sourceReferences.length}</Button></Popover>
+  return <Popover title="Minh chứng trong tài liệu nguồn" content={<div className="outcome-evidence">{item.sourceReferences.length ? item.sourceReferences.map(source => <div key={`${source.blockId}-${source.sequence}`}><b>{source.blockId}</b><small>{source.headingPath.join(' › ')}</small><p>{source.excerpt}</p></div>) : 'Chưa có nguồn tham chiếu.'}</div>} trigger="click"><Button size="small" icon={<FileSearchOutlined />}>{item.sourceReferences.length}</Button></Popover>
 }
 
 function EditableText({ value, textArea, disabled, saving, onSave }: { value: string; textArea?: boolean; disabled: boolean; saving: boolean; onSave: (value: string) => void }) {

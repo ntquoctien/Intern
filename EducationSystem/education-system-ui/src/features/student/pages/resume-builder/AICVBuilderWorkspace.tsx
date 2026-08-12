@@ -212,7 +212,7 @@ const initialResumeData: ResumeData = {
     phone: '093 812 2406',
     location: 'Cần Thơ, Việt Nam',
     major: 'Công nghệ thông tin',
-    university: 'Đại học Tây Đô',
+    university: 'Cao Đắng Tây Đô',
     gpa: 7.54,
   },
   selectedCourses: ['web', 'database', 'software'],
@@ -445,7 +445,6 @@ export function AICVBuilderWorkspace() {
     semester: 'Từ dữ liệu học vụ',
     competency: course.courseOutcomes.map(outcome => outcome.name).join(', '),
   })) ?? eligibleCourses
-  const selectedCourseData = availableCourses.filter(course => resumeData.selectedCourses.includes(course.id))
   const isAILoading = isOptimizing || optimizeMutation.isPending
 
   const accordionItems = [
@@ -514,7 +513,7 @@ export function AICVBuilderWorkspace() {
               description={(
                 <span>
                   Bạn chưa có lịch sử thực tập được phê duyệt. Hãy vào phần{' '}
-                  <Link to="/communication/form-requests">Yêu cầu biểu mẫu</Link>{' '}
+                  <Link to="/student/form-requests">Yêu cầu biểu mẫu</Link>{' '}
                   để gửi đơn xác nhận thực tập trước.
                 </span>
               )}
@@ -636,10 +635,9 @@ export function AICVBuilderWorkspace() {
                 ))}
               </CvSection>
             )}
-            <CvSection title="Học vấn & học phần tiêu biểu">
-              <div className="cv-entry-title"><b {...inlineProps('studentInfo', 'university')}>{resumeData.studentInfo.university}</b><span>2023 – 2027</span></div>
+            <CvSection title="Học vấn">
+              <div className="cv-entry-title"><b>Cao Đắng Tây Đô</b><span>2023 – 2027</span></div>
               <p><span {...inlineProps('studentInfo', 'major')}>{resumeData.studentInfo.major}</span> · GPA {resumeData.studentInfo.gpa.toFixed(2)} · MSSV {resumeData.studentInfo.studentCode}</p>
-              <p className="cv-course-line">{selectedCourseData.map(course => `${course.name} (${course.score.toFixed(1)})`).join('  •  ')}</p>
             </CvSection>
           </article>
         </Spin>

@@ -44,18 +44,18 @@ public sealed class OutcomeImportsController(
     [Consumes("multipart/form-data")]
     [RequestSizeLimit(10 * 1024 * 1024 + 1024)]
     public async Task<ActionResult<UploadOutcomeImportResponse>> Upload(
-        [FromForm] IFormFile file,
-        [FromForm] long curriculumVersionId,
-        [FromForm] Guid? subjectExternalId,
-        [FromForm] string? subjectCode,
-        [FromForm] string? subjectName,
+        [FromForm] UploadOutcomeImportForm form,
         CancellationToken cancellationToken)
     {
         await using var memory = new MemoryStream();
-        await file.CopyToAsync(memory, cancellationToken);
+        await form.File.CopyToAsync(memory, cancellationToken);
         var result = await service.UploadAsync(
-            curriculumVersionId, subjectExternalId, subjectCode, subjectName,
-            file.FileName, file.ContentType,
+            form.CurriculumVersionId,
+            form.SubjectExternalId,
+            form.SubjectCode,
+            form.SubjectName,
+            form.File.FileName,
+            form.File.ContentType,
             memory.ToArray(), Actor(), cancellationToken);
         return Created($"/api/management/outcome-imports/{result.Id}", result);
     }
@@ -120,4 +120,13 @@ public sealed class OutcomeImportsController(
         new(
             User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "unknown",
             User.FindFirstValue(ClaimTypes.Name) ?? "System Administrator");
+}
+
+public sealed class UploadOutcomeImportForm
+{
+    public required IFormFile File { get; init; }
+    public long CurriculumVersionId { get; init; }
+    public Guid? SubjectExternalId { get; init; }
+    public string? SubjectCode { get; init; }
+    public string? SubjectName { get; init; }
 }

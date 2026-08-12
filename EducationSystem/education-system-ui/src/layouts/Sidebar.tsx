@@ -1,7 +1,9 @@
 import {
   BookOutlined,
   FileTextOutlined,
+  FileProtectOutlined,
   ReadOutlined,
+  SettingOutlined,
   TeamOutlined,
   UserOutlined,
 } from '@ant-design/icons'
@@ -42,14 +44,28 @@ const menuItems = [
     key: 'communication',
     icon: <TeamOutlined />,
     label: NAVIGATION_LABELS.COMMUNICATION,
-    children: [{ key: '/communication/form-requests', label: NAVIGATION_LABELS.FORM_REQUESTS }],
+    children: [{ key: '/management/forms/requests', label: NAVIGATION_LABELS.FORM_REQUESTS }],
+  },
+  {
+    key: 'system',
+    icon: <SettingOutlined />,
+    label: NAVIGATION_LABELS.SYSTEM,
+    children: [
+      { key: '/management/system', label: NAVIGATION_LABELS.SYSTEM_OVERVIEW },
+      {
+        key: '/management/system/outcomes',
+        icon: <FileProtectOutlined />,
+        label: NAVIGATION_LABELS.OUTCOMES,
+      },
+    ],
   },
 ]
 
 function openKey(pathname: string) {
   if (pathname.startsWith('/exam')) return 'exam'
   if (pathname.startsWith('/identity')) return 'identity'
-  if (pathname.startsWith('/communication')) return 'communication'
+  if (pathname.startsWith('/communication') || pathname.startsWith('/management/forms')) return 'communication'
+  if (pathname.startsWith('/management/system')) return 'system'
   return 'academic'
 }
 

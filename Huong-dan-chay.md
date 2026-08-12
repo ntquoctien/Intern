@@ -180,8 +180,12 @@ Ví dụ:
 ```powershell
 $env:PdfOcr__Enabled = "true"
 $env:PdfOcr__Provider = "Vault"
-$env:PdfOcr__ApiKey = "YOUR_API_KEY"
+$env:PdfOcr__Model = "gpt-5.6-sol"
+$env:VaultLLM__ApiKey = "YOUR_API_KEY"
 ```
+
+Nếu chọn `PdfOcr__Provider = "Gemini"`, cấu hình khóa bằng
+`PdfOcr__ApiKey` thay cho `VaultLLM__ApiKey`.
 
 Nếu không dùng import CLO/PLO hoặc OCR trong phiên chạy, có thể bỏ qua các biến của mục này.
 

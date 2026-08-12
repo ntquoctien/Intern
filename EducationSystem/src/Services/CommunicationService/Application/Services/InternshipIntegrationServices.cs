@@ -26,7 +26,7 @@ public sealed class SmtpInternshipVerificationEmailSender(
         using var message = new MailMessage
         {
             From = new MailAddress(settings.FromAddress, settings.FromName, Encoding.UTF8),
-            Subject = $"[Đại học Tây Đô] Xác nhận thông tin thực tập tại {companyName}",
+            Subject = $"[Cao Đắng Tây Đô] Xác nhận thông tin thực tập tại {companyName}",
             SubjectEncoding = Encoding.UTF8,
             BodyEncoding = Encoding.UTF8,
             IsBodyHtml = true,
@@ -92,12 +92,12 @@ public sealed class SmtpInternshipVerificationEmailSender(
             <body style="margin:0;background:#f3f5f7;font-family:Arial,sans-serif;color:#243746">
               <div style="max-width:620px;margin:32px auto;background:#fff;border:1px solid #e1e6eb;border-radius:16px;overflow:hidden">
                 <div style="background:#002140;padding:22px 28px;color:#fff">
-                  <strong style="font-size:18px">ĐẠI HỌC TÂY ĐÔ</strong>
+                  <strong style="font-size:18px">Cao Đẳng Tây Đô</strong>
                   <div style="margin-top:4px;font-size:13px;opacity:.82">Cổng xác thực thực tập doanh nghiệp</div>
                 </div>
                 <div style="padding:28px">
                   <p>Kính gửi Quý doanh nghiệp <strong>{{safeCompany}}</strong>,</p>
-                  <p>Một sinh viên Đại học Tây Đô đã khai báo quá trình thực tập tại doanh nghiệp và đề nghị người hướng dẫn xác nhận thông tin.</p>
+                  <p>Một sinh viên Cao Đắng Tây Đô đã khai báo quá trình thực tập tại doanh nghiệp và đề nghị người hướng dẫn xác nhận thông tin.</p>
                   <p style="margin:26px 0">
                     <a href="{{safeLink}}" style="display:inline-block;background:#002140;color:#fff;text-decoration:none;padding:13px 22px;border-radius:9px;font-weight:700">
                       Xác nhận thông tin thực tập

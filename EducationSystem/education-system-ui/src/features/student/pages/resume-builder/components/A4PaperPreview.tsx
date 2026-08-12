@@ -145,7 +145,6 @@ export function A4PaperPreview({ showToolbar = true }: A4PaperPreviewProps) {
         <OptimizedCvContent
           cv={optimizedCvResult}
           contactInfo={contactInfo}
-          selectedCourses={eligibleCourses.filter(c => selectedSubjectIds.includes(c.subjectId))}
           onSummaryCommit={updateOptimizedSummary}
           onSkillCommit={updateOptimizedSkill}
           onBulletCommit={updateOptimizedBullet}
@@ -368,10 +367,10 @@ function DraftCvContent({
       )}
 
       <div className="cv-section">
-        <h2>Học vấn & Học phần tiêu biểu</h2>
+        <h2>Học vấn</h2>
         <div className="cv-item cv-education-item">
           <div className="cv-item-header">
-            <strong>Đại học Tây Đô</strong>
+            <strong>Cao Đắng Tây Đô</strong>
             {studentInfo.academicYear && <span className="cv-item-duration">{studentInfo.academicYear}</span>}
           </div>
           <p className="cv-education-meta">
@@ -379,11 +378,6 @@ function DraftCvContent({
             {studentInfo.gpa > 0 && ` · GPA ${studentInfo.gpa.toFixed(2)}`}
             {studentInfo.studentCode && ` · MSSV ${studentInfo.studentCode}`}
           </p>
-          {selectedCourses.length > 0 && (
-            <p className="cv-highlighted-courses">
-              <strong>Học phần:</strong> {selectedCourses.map(course => `${course.subjectName} (${course.score.toFixed(1)})`).join(' · ')}
-            </p>
-          )}
         </div>
       </div>
 
@@ -414,7 +408,6 @@ function DraftCvContent({
 type OptimizedCvContentProps = {
   cv: OptimizedResumeResponseDto
   contactInfo: ResumeContactInfo
-  selectedCourses: EligibleCourse[]
   onSummaryCommit: (value: string) => void
   onSkillCommit: (group: OptimizedSkillGroup, index: number, keywords: string[]) => void
   onBulletCommit: (
@@ -429,7 +422,6 @@ type OptimizedCvContentProps = {
 function OptimizedCvContent({
   cv,
   contactInfo,
-  selectedCourses,
   onSummaryCommit,
   onSkillCommit,
   onBulletCommit,
@@ -537,10 +529,10 @@ function OptimizedCvContent({
       )}
 
       <div className="cv-section">
-        <h2>Học vấn & Học phần tiêu biểu</h2>
+        <h2>Học vấn</h2>
         <div className="cv-item cv-education-item">
           <div className="cv-item-header">
-            <strong>{cv.education.institutionName || 'Đại học Tây Đô'}</strong>
+            <strong>Cao Đắng Tây Đô</strong>
             <span className="cv-item-duration">{cv.education.durationText}</span>
           </div>
           <p className="cv-education-meta">
@@ -549,11 +541,6 @@ function OptimizedCvContent({
             {cv.education.gpa != null && ` · GPA ${cv.education.gpa.toFixed(2)}`}
             {cv.header.studentCode && ` · MSSV ${cv.header.studentCode}`}
           </p>
-          {selectedCourses.length > 0 && (
-            <p className="cv-highlighted-courses">
-              <strong>Học phần:</strong> {selectedCourses.map(course => `${course.subjectName} (${course.score.toFixed(1)})`).join(' · ')}
-            </p>
-          )}
         </div>
       </div>
 
